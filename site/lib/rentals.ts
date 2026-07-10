@@ -13,15 +13,16 @@ export type Rental = {
   description: string;
 };
 
-// Mirrors site/public/rentals/lahenga1/360/metadata.json (P0.4 output).
+// Mirrors site/public/rentals/lahenga1/360/metadata.json (R1.0: 87-frame set,
+// ~225° front→profile→back→back-left).
 const LAHENGA1_SPIN: SpinConfig = {
   basePath: "/rentals/lahenga1/360",
-  count: 32,
+  count: 36,
   ext: "webp",
   pad: 3,
   width: 576,
   height: 720,
-  arcDegrees: 90,
+  arcDegrees: 225,
   loop: false,
 };
 
