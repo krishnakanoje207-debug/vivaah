@@ -26,7 +26,7 @@ Preview 0 (P0.1–P0.5) is built, committed, and verified locally; Cloudflare de
 
 ## Assets & tools
 - `videos/heroSection/` — 151 hero frames (720p, KlingAI watermark bottom-right → crop/overlay). Encode: dual-video play-once-then-ping-pong-loop, ffmpeg commands in IMPLEMENTATION_PLAN §5.
-- `videos/lahenga1/` — 68 turntable frames (720p, watermark bottom-right), **only ~90° arc (front→right profile)** → pendulum viewer, `loop: false`.
+- `videos/lahenga1/` — **replaced 10 Jul 22:13**: `ezgif-frame-001..087.jpg` (720p, sparkle watermark bottom-right), **~225° arc — front(001) → right profile(044) → full back(072) → back-left(087)** → pendulum viewer, `loop: false`, `arcDegrees: 225`. Owner recalls source video reaching 270°; if tail frames get extracted later, re-run arrange_360 with `--arc 270`.
 - `tools/` — lehenga prep: `prep_lehenga.py` (rembg), `wan_i2v_colab.ipynb` (WAN 2.1 beauty clips on free Colab — laptop GPU is a GTX 1650, never run AI video locally).
 
 ## Environment gotchas

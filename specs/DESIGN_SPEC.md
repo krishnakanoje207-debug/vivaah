@@ -75,7 +75,7 @@ One recurring shape that no template has: gallery/featured card images get a **s
 
 ## 4. Motion language — unchanged from v1 defaults
 (0.7s power2.out reveals, 70ms stagger, 180ms hovers, scale ≤1.03, scrub only hero + spin stage, reduced-motion = final state.) Addition:
-- **Product-stage auto-swing** (§5b): the garment swings through its arc autonomously — frame 0→N→0, one full sweep ≈ 12–14s, sinusoidal ease at the ends (a pendulum settling, not a metronome). Pauses on pointer-down; resumes after 3s idle. Reduced-motion: static front frame, drag still works.
+- **Product-stage auto-swing** (§5b): the garment swings through its arc autonomously — frame 0→N→0, sweep duration scales with the arc (≈7s per 90°; lahenga1's ~225° ≈ 16–18s), sinusoidal ease at the ends (a pendulum settling, not a metronome). Pauses on pointer-down; resumes after 3s idle. Reduced-motion: static front frame, drag still works.
 
 ## 5. Page anatomies
 

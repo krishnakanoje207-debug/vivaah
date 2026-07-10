@@ -9,6 +9,10 @@ Owner reviewed Preview 0 and gave 8 corrections. This file is the **Opus work or
 
 ---
 
+## R1.0 — Reprocess lahenga1: NEW FRAMES, ~225° arc (owner correction)
+Owner replaced `videos/lahenga1` (10 Jul, 22:13) with `ezgif-frame-001..087.jpg` — a fuller extraction. Measured against clean anchors: frame 044 = right profile (90°), frame 072 = full back (180°) → ~2.5°/frame → frame 087 ≈ **~225° (back-left quarter)**. Owner recalls 270° from the source video; the extracted files stop short of the left profile — if tail frames are added later, re-run with `--arc 270`, nothing else changes.
+Re-run: `python tools/arrange_360.py --in videos/lahenga1 --out site/public/rentals/lahenga1/360 --count 36 --arc 225 --no-loop --glob "ezgif-frame-*.jpg"` → verify endpoints (watermark gone, back dupatta trail unclipped), update `lib/rentals.ts` spin config from the new `metadata.json`, card badge copy → “Spin view”. The pendulum now shows front, sides, AND back — a real upgrade for renters.
+
 ## R1.1 — Fix hero playback (point 1) — DEBUG FIRST, in a real browser
 Owner report: the hero “is not playing as we discussed” — expected smooth frame-motion playing ONCE, then only the tail frames looping. That IS the built design (`hero-intro.mp4` → seamless `hero-loop.mp4`), so this is a **runtime failure, not a design gap**. Debug in an actual browser with DevTools before changing code:
 1. Network: do `/hero/hero-intro.mp4` + `hero-loop.mp4` return 200 with `video/mp4` and range support? Console errors?
@@ -25,7 +29,7 @@ Apply the brand facts above: `lib/site.ts` (name, tagline, nav), `layout.tsx` me
 Global: new tokens (violet/gold/porcelain — marigold/rose/silk deleted), primary buttons → violet-800, gold accents, body font → Instrument Sans, arch motif on featured/category tiles, stage colour for all product imagery panels. Run the v2 §8 acceptance checklist. Note: `lahenga1` frame WebPs are already neutral-grey — they sit on `--color-stage` without reprocessing; if a seam shows, re-run `tools/arrange_360.py` is NOT needed (tune the stage colour instead).
 
 ## R1.4 — Product page rebuild (points 3 + 7): two-act layout per DESIGN_SPEC §5b
-- Act 1: 100svh seamless stage, auto-swing pendulum (12–14s sweep, sinusoidal ends, pause on pointer, resume 3s, reduced-motion static), circular gold drag glyph until first touch, minimal chrome, transparent nav.
+- Act 1: 100svh seamless stage, auto-swing pendulum over the full ~225° arc (≈7s per 90° → ~16–18s sweep, sinusoidal ends, pause on pointer, resume 3s, reduced-motion static), circular gold drag glyph until first touch, minimal chrome, transparent nav.
 - Act 2: details + **swipeable real-photo gallery** (scroll-snap, sourced from 4–6 of the turntable stills for now) + **reviews block with stub data** (2–3 sample reviews marked clearly as samples, gold ✦ marks, “verified renter” badge demo) + jewellery pairing strip (static cards for now — drawer behaviour lands with Phase 2 booking flow per BOOKING_ENGINE_SPEC §2.7) + booking panel + trial CTA.
 - SpinViewer grows an `autoplay` prop implementing the swing; existing drag/clamp/arc logic unchanged.
 

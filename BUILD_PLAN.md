@@ -77,6 +77,6 @@ Content load, client training doc, DNS cutover.
 ---
 
 ## 3. Known content gaps (tracked, none block Preview 0)
-- `lahenga1` covers only a ~90° arc (front → right profile) → ships as pendulum viewer; upgrade to full 360 per item when turntable reshoots happen (§2.4). Frames are 720p (below the ≥1500 px guideline) — acceptable interim; optional Real-ESRGAN upscale in the same Colab as the WAN clips.
+- `lahenga1` (replaced 10 Jul with 87-frame extraction): covers **~225°** — front → profile → full back → back-left → pendulum viewer showing front AND back; the last ~45° to the left profile (owner recalls 270° in the source video) can be added by re-extracting the tail. Full 360 per item when turntable reshoots happen (§2.4). Frames are 720p (below the ≥1500 px guideline) — acceptable interim; optional Real-ESRGAN upscale in the same Colab as the WAN clips.
 - WAN 2.1 beauty clips (memory: `lehenga-video-pipeline`) are a separate hero-layer garnish — not on the critical path.
 - §10 client inputs (rates, policies, catalogue size, domain, spare SIM) — admin-configurable, don't block build.
