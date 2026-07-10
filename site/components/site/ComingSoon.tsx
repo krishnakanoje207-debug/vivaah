@@ -12,7 +12,7 @@ export function ComingSoon({
   body: string;
 }) {
   return (
-    <section className="bg-silk-50 pt-32 pb-28">
+    <section className="bg-porcelain-50 pt-32 pb-28">
       <div className="shell max-w-2xl text-center">
         <p className="eyebrow">{eyebrow}</p>
         <h1 className="mt-3 text-h1">{title}</h1>
@@ -22,7 +22,7 @@ export function ComingSoon({
         <p className="mx-auto max-w-lg text-ink-600">{body}</p>
         <div className="mt-9 flex justify-center gap-4">
           <Button href="/rentals" variant="primary">
-            Explore lehengas
+            Explore rentals
           </Button>
           <Button href="/visit" variant="ghost">
             Visit the shop

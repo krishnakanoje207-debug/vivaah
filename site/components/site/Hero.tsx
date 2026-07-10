@@ -7,11 +7,14 @@ import { Ornament } from "@/components/site/Ornament";
 import { SHOP } from "@/lib/site";
 
 /**
- * Hero (§5 + IMPLEMENTATION_PLAN §5). Play-once intro crossfades into a seamless
- * ping-pong loop; the overlay copy fades in as the camera settles. Under
- * prefers-reduced-motion the videos never play and the settled still shows,
- * with copy visible immediately. The still is also the base layer / ultimate
- * fallback if autoplay is blocked.
+ * Hero (§5a + IMPLEMENTATION_PLAN §5). Play-once intro crossfades into a seamless
+ * ping-pong loop; overlay copy fades in as the camera settles.
+ *
+ * R1.1 playback fixes: if autoplay is blocked the video is NOT hidden — the still
+ * shows as poster and we retry play() on the first user interaction (the v1 bug
+ * was silently swapping to the still, which read as "video not playing"). On
+ * `ended`, the loop is started BEFORE the opacity swap (same frame) so there is
+ * no flash. Reduced-motion shows the settled still with copy visible immediately.
  */
 export function Hero() {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -27,13 +30,7 @@ export function Hero() {
     const items = overlay ? overlay.querySelectorAll<HTMLElement>("[data-hero]") : [];
 
     const reveal = () => {
-      gsap.to(items, {
-        opacity: 1,
-        y: 0,
-        duration: 0.9,
-        ease: "power2.out",
-        stagger: 0.08,
-      });
+      gsap.to(items, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out", stagger: 0.08 });
       if (hairlineRef.current) {
         gsap.fromTo(
           hairlineRef.current,
@@ -52,33 +49,57 @@ export function Hero() {
       return;
     }
 
-    // Reveal copy as the scene settles (~4.6s), loop takes over at intro end.
     const settle = window.setTimeout(reveal, 4600);
-
     const intro = introRef.current;
+
     const onEnded = () => {
-      setShowLoop(true);
-      loopRef.current?.play().catch(() => {});
+      const loop = loopRef.current;
+      if (!loop) return;
+      // Start the loop first, then swap opacity next frame → no flash of still.
+      loop.play().catch(() => {});
+      requestAnimationFrame(() => setShowLoop(true));
     };
     intro?.addEventListener("ended", onEnded);
-    intro?.play().catch(() => {
-      // Autoplay blocked — fall back to the still and reveal copy now.
-      window.clearTimeout(settle);
-      setPlayVideo(false);
-      reveal();
+
+    // Retry playback on first interaction if autoplay was blocked.
+    const onInteract = () => {
+      intro?.play().then(removeInteract).catch(() => {});
+    };
+    const removeInteract = () => {
+      window.removeEventListener("pointerdown", onInteract);
+      window.removeEventListener("touchstart", onInteract);
+      window.removeEventListener("scroll", onInteract);
+      window.removeEventListener("keydown", onInteract);
+    };
+    const addInteract = () => {
+      window.addEventListener("pointerdown", onInteract);
+      window.addEventListener("touchstart", onInteract, { passive: true });
+      window.addEventListener("scroll", onInteract, { passive: true });
+      window.addEventListener("keydown", onInteract);
+    };
+
+    intro?.play().catch((err: unknown) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[hero] autoplay blocked, will retry on interaction:", err);
+      }
+      addInteract();
     });
 
     return () => {
       window.clearTimeout(settle);
       intro?.removeEventListener("ended", onEnded);
+      removeInteract();
     };
   }, []);
 
   return (
-    <section className="relative isolate overflow-hidden bg-dusk-950 text-silk-50 on-dark">
+    <section
+      data-dark-hero
+      className="relative isolate overflow-hidden bg-violet-950 text-porcelain-50 on-dark"
+    >
       {/* Media stack */}
       <div className="grain absolute inset-0 -z-10" aria-hidden="true">
-        {/* Base: settled still (fallback + reduced-motion + pre-play) */}
+        {/* Base: settled still (fallback + reduced-motion + pre-play/poster) */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url('/hero/hero-still.webp')" }}
@@ -108,7 +129,7 @@ export function Hero() {
           </>
         )}
         {/* Scrim for text legibility (tokens only) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-dusk-950/55 via-dusk-950/25 to-dusk-950/65" />
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/55 via-violet-950/25 to-violet-950/65" />
       </div>
 
       {/* Overlay copy */}
@@ -117,25 +138,26 @@ export function Hero() {
         className="shell flex min-h-[88svh] flex-col items-center justify-center py-28 text-center"
       >
         <p data-hero className="eyebrow on-dark">
-          Bridal rental &amp; boutique
+          Rent · Buy · Adorn
         </p>
-        <h1 data-hero className="mt-5 max-w-3xl text-h1 text-silk-50">
-          The lehenga you dreamed of, <em className="italic text-marigold-500">for a day</em>.
+        <h1 data-hero className="mt-5 max-w-3xl text-h1 text-porcelain-50">
+          Dressed for every <em className="italic">celebration</em>.
         </h1>
         <span
           ref={hairlineRef}
           aria-hidden="true"
-          className="mt-6 block h-px w-24 origin-center bg-gold-400/70"
+          className="mt-6 block h-px w-24 origin-center bg-gold-500/70"
         />
-        <p data-hero className="mt-6 max-w-xl text-dusk-100 text-[1.0625rem] leading-relaxed">
-          {SHOP.tagline} Reserve online, collect at our shop.
+        <p data-hero className="mt-6 max-w-xl text-violet-100 text-[1.0625rem] leading-relaxed">
+          Rent bridal &amp; festive wear, shop dresses and suits, and add jewellery to match —
+          reserved online, collected at our shop.
         </p>
         <div data-hero className="mt-9 flex flex-wrap items-center justify-center gap-4">
-          <Button href="/rentals" variant="primary">
-            Explore lehengas
+          <Button href="/rentals" variant="primary-dark">
+            Explore rentals
           </Button>
           <Button href="/visit" variant="ghost-dark">
-            Book a trial visit
+            Visit the shop
           </Button>
         </div>
       </div>
@@ -144,7 +166,7 @@ export function Hero() {
       <div className="relative">
         <div
           className="pointer-events-none h-40 w-full"
-          style={{ background: "linear-gradient(to bottom, transparent, var(--color-silk-50))" }}
+          style={{ background: "linear-gradient(to bottom, transparent, var(--color-porcelain-50))" }}
           aria-hidden="true"
         />
         <div className="shell -mt-6 pb-2">

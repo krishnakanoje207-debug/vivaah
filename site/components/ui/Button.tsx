@@ -1,19 +1,21 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
-type Variant = "primary" | "ghost" | "ghost-dark";
+type Variant = "primary" | "primary-dark" | "ghost" | "ghost-dark";
 
 const base =
   "inline-flex items-center justify-center gap-2 rounded-control px-6 py-3 text-[0.9375rem] font-semibold " +
   "transition-colors duration-[180ms] ease-out focus-visible:outline-2 focus-visible:outline-offset-2";
 
 const variants: Record<Variant, string> = {
-  // The one marigold element. ink text on marigold, shifts one step on hover.
-  primary: "bg-marigold-600 text-ink-900 hover:bg-marigold-500",
-  // Outlined, transparent — for light surfaces.
-  ghost: "border border-ink-900/25 text-ink-900 hover:border-ink-900/60 hover:bg-silk-100",
-  // Outlined for dark surfaces.
-  "ghost-dark": "border border-silk-50/30 text-silk-50 hover:border-silk-50/70 hover:bg-white/5",
+  // The primary CTA on light surfaces: royal violet, porcelain text (NOT amber).
+  primary: "bg-violet-800 text-porcelain-50 hover:bg-violet-700",
+  // On dark surfaces the primary is gold (poster pairing).
+  "primary-dark": "bg-gold-500 text-violet-950 hover:bg-gold-600 hover:text-porcelain-50",
+  // Outlined, transparent — light surfaces.
+  ghost: "border border-ink-900/25 text-ink-900 hover:border-ink-900/60 hover:bg-porcelain-100",
+  // Outlined — dark surfaces.
+  "ghost-dark": "border border-porcelain-50/30 text-porcelain-50 hover:border-porcelain-50/70 hover:bg-white/5",
 };
 
 type ButtonProps = {

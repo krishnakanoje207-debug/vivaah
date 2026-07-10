@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type SpinConfig = {
-  basePath: string; // e.g. "/rentals/lahenga1/360"
+  basePath: string;
   count: number;
-  ext: string; // "webp"
-  pad: number; // filename zero-pad width
+  ext: string;
+  pad: number;
   width: number;
   height: number;
   arcDegrees: number;
@@ -16,19 +16,33 @@ export type SpinConfig = {
 const frameUrl = (c: SpinConfig, i: number) =>
   `${c.basePath}/${String(i).padStart(c.pad, "0")}.${c.ext}`;
 
+// One-way traversal time per 90° of arc (ms). Tunable; ~5s reads as unhurried
+// without feeling static. lahenga1's ~225° → ~12.5s each way.
+const MS_PER_90 = 5000;
+const RESUME_IDLE_MS = 3000;
+
 /**
- * Turntable viewer (DESIGN_SPEC §6). Drag or wheel to rotate. A partial arc
- * (loop:false) clamps at both ends like a pendulum; loop:true wraps. All frames
- * are preloaded (the set is tiny). The gold arc shows position honestly — a 90°
- * arc for a 90° capture, not a fake full circle.
+ * Turntable viewer (DESIGN_SPEC §6). Drag / wheel / arrows to rotate; a partial
+ * arc (loop:false) clamps like a pendulum. With `autoplay`, the garment swings
+ * through its arc autonomously (sinusoidal ease at the ends), pausing on touch
+ * and resuming after idle. Reduced-motion disables the swing (drag still works).
  */
-export function SpinViewer({ config, alt }: { config: SpinConfig; alt: string }) {
+export function SpinViewer({
+  config,
+  alt,
+  autoplay = false,
+}: {
+  config: SpinConfig;
+  alt: string;
+  autoplay?: boolean;
+}) {
   const { count, loop, arcDegrees } = config;
   const [frame, setFrame] = useState(0);
   const [ready, setReady] = useState(false);
-  const [hinted, setHinted] = useState(true);
+  const [interacted, setInteracted] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ startX: number; startFrame: number; active: boolean } | null>(null);
+  const pausedUntil = useRef(0); // performance.now() timestamp
 
   const urls = useMemo(
     () => Array.from({ length: count }, (_, i) => frameUrl(config, i)),
@@ -53,42 +67,71 @@ export function SpinViewer({ config, alt }: { config: SpinConfig; alt: string })
   const step = useCallback(
     (start: number, deltaFrames: number) => {
       let next = start + deltaFrames;
-      if (loop) {
-        next = ((next % count) + count) % count;
-      } else {
-        next = Math.max(0, Math.min(count - 1, next));
-      }
+      if (loop) next = ((next % count) + count) % count;
+      else next = Math.max(0, Math.min(count - 1, next));
       return next;
     },
     [count, loop]
   );
 
+  // Auto-swing (pendulum). Constant angular velocity via cosine easing so the
+  // garment slows at both ends. Skips while the user is interacting.
+  useEffect(() => {
+    if (!autoplay) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const period = 2 * (arcDegrees / 90) * MS_PER_90; // full there-and-back
+    let theta = 0;
+    let last: number | null = null;
+    let raf = 0;
+
+    const tick = (t: number) => {
+      if (last == null) last = t;
+      const dt = t - last;
+      last = t;
+      if (t >= pausedUntil.current) {
+        theta = (theta + (2 * Math.PI * dt) / period) % (2 * Math.PI);
+        const pos = (1 - Math.cos(theta)) / 2; // 0→1→0, eased ends
+        setFrame(Math.round(pos * (count - 1)));
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [autoplay, arcDegrees, count]);
+
+  const pauseAuto = () => {
+    pausedUntil.current = performance.now() + RESUME_IDLE_MS;
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
     (e.target as Element).setPointerCapture?.(e.pointerId);
     drag.current = { startX: e.clientX, startFrame: frame, active: true };
-    setHinted(false);
+    setInteracted(true);
+    pauseAuto();
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current;
     if (!d?.active || !stageRef.current) return;
     const w = stageRef.current.clientWidth || 1;
-    const pxPerFrame = w / count; // a full drag across the stage spans the arc
-    // Drag left advances toward the profile end (index up).
+    const pxPerFrame = w / count;
     const deltaFrames = -Math.round((e.clientX - d.startX) / pxPerFrame);
     setFrame(step(d.startFrame, deltaFrames));
+    pauseAuto();
   };
   const endDrag = () => {
     if (drag.current) drag.current.active = false;
+    pauseAuto();
   };
 
-  // Wheel scrubs; at a clamp boundary in the scroll direction, release to the page.
   const onWheel = (e: React.WheelEvent) => {
     const dir = e.deltaY > 0 ? 1 : -1;
     const atEnd = !loop && ((dir > 0 && frame >= count - 1) || (dir < 0 && frame <= 0));
-    if (atEnd) return; // let the page scroll
+    if (atEnd) return;
     e.preventDefault();
     setFrame((f) => step(f, dir));
-    setHinted(false);
+    setInteracted(true);
+    pauseAuto();
   };
 
   const t = count > 1 ? frame / (count - 1) : 0;
@@ -97,7 +140,7 @@ export function SpinViewer({ config, alt }: { config: SpinConfig; alt: string })
     <div className="select-none">
       <div
         ref={stageRef}
-        className="relative aspect-[4/5] w-full overflow-hidden rounded-card bg-silk-100 touch-none cursor-grab active:cursor-grabbing"
+        className="relative aspect-[4/5] w-full overflow-hidden bg-stage touch-none cursor-grab active:cursor-grabbing"
         style={{ aspectRatio: `${config.width} / ${config.height}` }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -112,11 +155,18 @@ export function SpinViewer({ config, alt }: { config: SpinConfig; alt: string })
         aria-valuenow={frame}
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "ArrowRight") setFrame((f) => step(f, 1));
-          if (e.key === "ArrowLeft") setFrame((f) => step(f, -1));
+          if (e.key === "ArrowRight") {
+            setFrame((f) => step(f, 1));
+            setInteracted(true);
+            pauseAuto();
+          }
+          if (e.key === "ArrowLeft") {
+            setFrame((f) => step(f, -1));
+            setInteracted(true);
+            pauseAuto();
+          }
         }}
       >
-        {/* Frames — plain <img> swap (preloaded = instant). */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={urls[frame]}
@@ -127,17 +177,20 @@ export function SpinViewer({ config, alt }: { config: SpinConfig; alt: string })
           }`}
         />
 
-        {/* Drag hint — fades after first interaction */}
+        {/* Circular drag glyph — floats until first interaction */}
         <div
-          className={`pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-dusk-950/55 px-3 py-1 text-[0.75rem] text-silk-50 transition-opacity duration-500 ${
-            hinted ? "opacity-100" : "opacity-0"
+          className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ${
+            interacted ? "opacity-0" : "opacity-90"
           }`}
+          aria-hidden="true"
         >
-          ⟵ drag to rotate ⟶
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="20" stroke="var(--color-gold-600)" strokeWidth="1.5" opacity="0.85" />
+            <path d="M18 28h20M18 28l4-4M18 28l4 4M38 28l-4-4M38 28l-4 4" stroke="var(--color-gold-600)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
       </div>
 
-      {/* Gold arc position indicator (honest to the captured arc) */}
       <ArcIndicator arcDegrees={arcDegrees} t={t} loop={loop} />
     </div>
   );
@@ -157,17 +210,17 @@ function ArcIndicator({ arcDegrees, t, loop }: { arcDegrees: number; t: number; 
   const large = span > 180 ? 1 : 0;
 
   return (
-    <div className="mt-3 flex items-center justify-center gap-3 text-caption text-ink-400">
-      <svg viewBox="0 0 100 24" className="h-5 w-24" aria-hidden="true">
+    <div className="mt-4 flex items-center justify-center gap-3 text-caption text-ink-400">
+      <svg viewBox="0 0 100 26" className="h-6 w-24" aria-hidden="true">
         <path
           d={`M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`}
           fill="none"
-          stroke="var(--color-gold-400)"
-          strokeOpacity="0.5"
+          stroke="var(--color-gold-500)"
+          strokeOpacity="0.55"
           strokeWidth="1.5"
           strokeLinecap="round"
         />
-        <circle cx={dx} cy={dy} r="2.4" fill="var(--color-gold-400)" />
+        <circle cx={dx} cy={dy} r="2.6" fill="var(--color-gold-600)" />
       </svg>
       <span>{loop ? "360° view" : `${Math.round(arcDegrees)}° view`}</span>
     </div>

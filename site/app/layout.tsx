@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, Noto_Serif_Devanagari, Mukta } from "next/font/google";
+import { Fraunces, Instrument_Sans, Noto_Serif_Devanagari, Mukta } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { SHOP } from "@/lib/site";
 
-// Display serif — variable, optical sizing enabled. Weights kept light (340–420) in CSS.
+// Display serif — variable, optical sizing on. Weights kept light (340–420) in CSS.
 const fraunces = Fraunces({
   subsets: ["latin"],
   axes: ["opsz"],
@@ -13,14 +13,14 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
-// Body / UI sans — variable.
-const inter = Inter({
+// Body / UI sans — Instrument Sans (replaces Inter; less template-flavoured).
+const instrument = Instrument_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-instrument",
   display: "swap",
 });
 
-// Hindi display + body (stacks activate under :lang(hi); toggle ships later).
+// Hindi display + body (activate under :lang(hi); toggle ships later).
 const notoDeva = Noto_Serif_Devanagari({
   subsets: ["devanagari"],
   variable: "--font-noto-deva",
@@ -35,11 +35,11 @@ const mukta = Mukta({
 
 export const metadata: Metadata = {
   title: {
-    default: `${SHOP.name} — Bridal Lehenga & Jewellery Rental`,
+    default: `${SHOP.name} — Rent & Buy Bridal & Festive Wear`,
     template: `%s · ${SHOP.name}`,
   },
   description:
-    "Rent bridal lehengas and jewellery, and shop ethnic wear — reserve online, collect at our shop.",
+    "Vivaah Dresses and Suits — rent bridal lehengas and festive wear, shop dresses and suits, and rent matching jewellery. Reserve online, collect at our shop.",
 };
 
 export default function RootLayout({
@@ -48,9 +48,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} ${notoDeva.variable} ${mukta.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${instrument.variable} ${notoDeva.variable} ${mukta.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-silk-50 text-ink-900">
+      <body className="min-h-full flex flex-col bg-porcelain-50 text-ink-900">
         <Nav />
         <main className="flex-1">{children}</main>
         <Footer />
