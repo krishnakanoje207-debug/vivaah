@@ -56,6 +56,17 @@ Retail is **stock-counted, not date-exclusive**: two customers may reserve the s
 - Stock is decremented on create and restored on cancel/expiry, inside the server-route transaction using `SELECT … FOR UPDATE` on the variant row; reject if insufficient.
 - Everything else (code, expiry of unconfirmed reservations, admin confirm, comms) reuses the rental machinery unchanged.
 
+### 2.7 Jewellery cross-sell drawer (owner requirement, July 2026)
+Most customers rent jewellery with the outfit, so the moment a rental garment is added to a booking (date selection confirmed or "book" tapped), open the **side drawer** (design per DESIGN_SPEC §6): jewellery products **availability-checked for the same `booked_range`** via `product_unavailable_ranges`, one-tap Add appends a `booking_items` row with identical dates inside the same transaction at submit time. Rules: appears once per booking flow (dismiss = don't reopen), never blocks the booking CTA, adding from the drawer re-renders the amount summary. Server re-validates availability at submit regardless (the drawer is UX, the constraint is law).
+
+### 2.8 Reviews (owner requirement, July 2026)
+- `POST /api/products/[id]/reviews` — body: name, rating 1–5, text, optional booking code (if it matches a `returned` booking containing that product → store `booking_id` = "verified renter"). Turnstile + rate limit 2/day/IP. Inserted `is_approved=false`.
+- Admin inbox gets a review-moderation queue (approve/reject) in Phase 4.
+- Product pages read approved reviews only (RLS enforces).
+
+### 2.9 Scope note — rentals are category-wide
+Rentals are NOT just lehengas: 8 garment categories (see schema category seeds) + jewellery, all date-exclusive via `booking_items`. The engine is category-agnostic; nothing changes mechanically.
+
 ## 3. Availability & calendar
 - Public calendar data comes **only** from `product_unavailable_ranges(product_id)` (RPC, anon-safe). Client renders: booked/held (danger tint), buffer tail (dotted), free. Never expose customer data.
 - Date-picker blocks: past dates, ranges intersecting any blocked range, and enforces the range-length cap. Server re-validates everything (client checks are UX only).
@@ -69,6 +80,7 @@ Retail is **stock-counted, not date-exclusive**: two customers may reserve the s
 | `/api/bookings/[code]/utr` | POST | code | 5/hr/code |
 | `/api/bookings/[code]/extension` | POST | code | 3/day/code |
 | `/api/bookings/[code]/cancel` | POST | code (policy-gated) | 3/day/code |
+| `/api/products/[id]/reviews` | POST | anon + Turnstile | 2/day/IP |
 | `/api/admin/**` | * | Supabase session + `is_admin` | 5/15min login |
 | Webhooks (`/api/hooks/whatsapp`, `/api/hooks/sms-gateway`) | POST | signature verification (see COMMS spec) | CF edge |
 

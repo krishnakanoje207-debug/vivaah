@@ -53,8 +53,11 @@ Goal: a Cloudflare preview URL showing the real look and the lahenga1 viewer.
 5. `/rentals` gallery (spin-on-scroll card) + `/rentals/[slug]` with the **pendulum viewer** (clamped 90° arc — drag right to profile, left back to front; same component does full 360 later by flipping `loop`).
 6. Stub data layer (local JSON, one lehenga). Deploy → send preview URL for review.
 
+### Revision 1 — owner feedback on Preview 0 (Opus; work order in `specs/REVISION_1.md`)
+Hero playback fix · rebrand to “Vivaah Dresses and Suits” (rentals + retail + jewellery, logo slot) · re-skin to DESIGN_SPEC **v2** (violet/gold/porcelain — marigold/rose removed as “generic”) · product page rebuilt as two-act stage layout with auto-swing + swipeable gallery + stub reviews · category-first galleries (owner's 8+8 category lists) · redeploy.
+
 ### Phase 1 — Foundation (Fable F1 + F6 done; Opus wires it)
-Supabase project, schema migration (F1 output), auth, RLS, storage buckets; swap stub data → DB.
+Supabase project, schema migration (F1 output — now includes `reviews` + category seeds), auth, RLS, storage buckets; swap stub data → DB.
 
 ### Phase 2 — Rental engine (Fable F2 spec → Opus build → Fable F4 gate)
 Availability calendar, booking flow + jewellery bundles, UPI step, hold/expiry job, booking-status page + extension requests.

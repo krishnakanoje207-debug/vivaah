@@ -1,18 +1,19 @@
-# Vivaah — bridal rental & retail website
+# Vivaah Dresses and Suits — rental & retail website
 
-Single shop, single owner-admin. Lehengas + jewellery = **rental** (date-based pre-booking); all other dresses = **retail** (reserve, pick up at shop). No shipping. Everything owner-editable via admin panel.
+Single shop, single owner-admin. Full brand name: **“Vivaah Dresses and Suits”** — three businesses: **rentals** (8 garment categories: bridal/side lehengas, indo-western, ready-to-wear sarees, rajasthani poshak, chaniya cholis, gowns, sarees — date-based pre-booking), **retail** (8+ categories: suits, kurtis, co-ord sets, kaftans… — reserve, pick up at shop), and **jewellery** (rented, usually alongside an outfit → cross-sell drawer). No shipping. Everything owner-editable via admin panel. Logo asset incoming from owner (`site/public/brand/`).
 
 ## Read these before substantial work
 - `BUILD_PLAN.md` — build order + **model routing (Fable vs Opus — check which tasks belong to which model before starting)**
 - `IMPLEMENTATION_PLAN.md` — 🔒 locked architecture (v1.0). Deviations are scope changes: escalate, don't improvise.
 - `specs/` — Fable-authored specs, implement them verbatim:
-  - `DESIGN_SPEC.md` — tokens, type, motion, components. **User directive: subtle yet extremely beautiful — quiet luxury, one accent per view.** Includes P0.2 acceptance checklist.
-  - `schema.sql` — apply as migration 0001 unchanged (exclusion constraint + triggers + RLS are load-bearing).
-  - `BOOKING_ENGINE_SPEC.md` — state machine, flows, API routes, test invariants. Retail gets its own `0002_retail.sql` (Fable-reviewed) in Phase 3.
+  - `DESIGN_SPEC.md` — **v2** (violet/gold/porcelain; v1's marigold/silk judged "generic" by owner). Directives: subtle yet extremely beautiful, unmistakably non-template. Includes acceptance checklist.
+  - `REVISION_1.md` — **owner's 8-point feedback on Preview 0 → Opus work order R1.1–R1.6 (current work).**
+  - `schema.sql` — apply as migration 0001 unchanged (exclusion constraint + triggers + RLS are load-bearing; now includes `reviews` + category seeds).
+  - `BOOKING_ENGINE_SPEC.md` — state machine, flows, API routes, test invariants; §2.7 jewellery cross-sell drawer, §2.8 reviews. Retail gets its own `0002_retail.sql` (Fable-reviewed) in Phase 3.
   - `COMMS_FLOW_SPEC.md` — WhatsApp/SMS/email ladder, webhook security, quota queue (Phase 5).
 
-## Current status (10 July 2026) — HANDOFF TO OPUS
-All Fable prep is done (design spec, schema, booking spec, comms spec). **Next task: P0.1 — scaffold Next.js 16 + `@opennextjs/cloudflare` + Tailwind v4 at project root, git init.** Then P0.2 (theme/shell) → P0.3 (hero encode+component) → P0.4 (`tools/arrange_360.py`, process `videos/lahenga1`) → P0.5 (pendulum viewer + /rentals on stub JSON, deploy Cloudflare preview → user reviews on the site). Session task list #6–#20 mirrors BUILD_PLAN §2. Escalate to a Fable session: adapter build friction (F5), any change to specs, and the gates after P1/P2/P4/P5.
+## Current status (10 July 2026, evening) — OPUS: DO REVISION 1
+Preview 0 (P0.1–P0.5) is built, committed, and verified locally; Cloudflare deploy still awaits the user's `wrangler login`. Owner reviewed and gave 8 corrections → **next work: `specs/REVISION_1.md` R1.1–R1.6** (hero playback bug-fix first, rebrand, v2 re-skin, two-act product page with auto-swing + gallery + stub reviews, category-first galleries, redeploy). Phase 1 (Supabase) comes after Revision 1 is accepted. Escalate to Fable: any spec change, adapter friction, and the gates after P1/P2/P4/P5.
 
 ## Locked decisions (do not re-litigate)
 - **Stack:** Next.js 16 App Router → Cloudflare Workers via `@opennextjs/cloudflare` · Supabase (DB/auth/storage) · Tailwind v4 · GSAP + ScrollTrigger · Resend · Upstash Redis.

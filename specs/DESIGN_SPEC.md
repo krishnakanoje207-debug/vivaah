@@ -1,123 +1,115 @@
-# Vivaah Design-Language Spec (F6) — v1.0
+# Vivaah Design-Language Spec (F6) — v2.0
 
-**Governing principle (user directive): subtle yet extremely beautiful.** Quiet luxury, not decoration. The lehengas are the ornament; the site is the silk it rests on. Every rule below exists to enforce restraint: if a choice feels "impressive", pick the quieter option. Opus: follow this exactly; do not invent colours, fonts, shadows, or animations not listed here.
+**v2 supersedes v1 after owner review of Preview 0.** Verdict on v1: well-built but **generic — "AI-made website vibes."** Root cause: the warm-beige + orange-CTA combination is the default aesthetic of a thousand template sites. v2 keeps what the owner liked (**the purple**) and rebuilds the rest around the shop's own poster: **violet, gold, white.**
+
+**Governing principle (unchanged): subtle yet extremely beautiful — and now, unmistakably *this shop's*.** Every generic choice is a defect. When in doubt, ask: "would this exact element appear on any Tailwind template?" If yes, change it.
+
+Brand facts: full name **“Vivaah Dresses and Suits”** — rentals (many categories), retail, and jewellery. Logo asset incoming from owner; Nav/Footer/metadata get a logo slot (text wordmark until the file arrives).
 
 ---
 
-## 1. Palette
+## 1. Palette — violet · gold · porcelain
 
-Derived from the hero frames (dusk sky, marigold garlands, rose petals, fairy lights) but **desaturated for UI use** — the anime hero is the only place full saturation appears.
-
-### Tokens (Tailwind v4 `@theme`)
+Sources: the shop poster (violet/gold/white) and the reference product stage (near-white gallery grey). **Marigold, warm silk-beige, and rose are REMOVED** — they were the generic part.
 
 ```css
 @theme {
-  /* Dusk — the brand neutral (purple-ink, NOT vivid purple) */
-  --color-dusk-950: #14111F;  /* hero/night section bg */
-  --color-dusk-900: #1C1830;  /* dark section bg */
-  --color-dusk-800: #262040;  /* dark elevated panels */
-  --color-dusk-700: #332B52;  /* dark borders/hover */
-  --color-dusk-500: #5D5382;  /* muted text on dark, icons */
-  --color-dusk-300: #A79FC2;  /* secondary text on dark */
-  --color-dusk-100: #E9E6F2;  /* tinted surfaces on light */
+  /* Violet — the brand pillar (kept from v1 feedback: "I like the purple") */
+  --color-violet-950: #191129;  /* hero/night bg */
+  --color-violet-900: #221636;  /* dark sections */
+  --color-violet-800: #2F1E4D;  /* PRIMARY BUTTON bg, dark panels */
+  --color-violet-700: #40296A;  /* button hover, dark borders */
+  --color-violet-500: #6E56A6;  /* muted royal — icons, secondary on dark */
+  --color-violet-300: #B3A4D6;  /* secondary text on dark */
+  --color-violet-100: #EDE9F7;  /* tints, selected fills, badges on light */
 
-  /* Silk — warm off-whites; the default page background */
-  --color-silk-50:  #FBF8F3;  /* page bg */
-  --color-silk-100: #F6F1E9;  /* cards, panels */
-  --color-silk-200: #EDE5D8;  /* borders, dividers, hover fills */
+  /* Porcelain — cool gallery neutrals (replaces warm silk) */
+  --color-porcelain-50:  #FAFAF7;  /* page bg */
+  --color-porcelain-100: #F2F1EC;  /* cards, panels */
+  --color-porcelain-200: #E4E2DA;  /* borders, dividers */
+  --color-stage:         #ECEBE7;  /* product stage — sampled to blend with the
+                                      turntable frames' studio grey so garment
+                                      photos sit seamlessly (reference-image look) */
 
-  /* Ink — text on light */
-  --color-ink-900: #211D2E;   /* headings, body */
-  --color-ink-600: #5A5468;   /* secondary text */
-  --color-ink-400: #8B8598;   /* placeholders, captions */
+  /* Ink — violet-cast text on light */
+  --color-ink-900: #241D31;
+  --color-ink-600: #5D5668;
+  --color-ink-400: #8E8798;
 
-  /* Marigold — THE accent. One per view. */
-  --color-marigold-600: #C0761B; /* primary CTA bg, links, active states */
-  --color-marigold-500: #D98A2B; /* hover of CTA on dark, highlights */
-  --color-marigold-100: #F7E8D2; /* subtle selected-fill on light */
+  /* Gold — THE accent (antique, from the poster). Links, eyebrows, active
+     states, hairlines, ornaments. Never large fills, never body text. */
+  --color-gold-600: #A9853A;   /* links/accents on light (AA at 16px+) */
+  --color-gold-500: #C2A155;   /* accents on dark, hover */
+  --color-gold-100: #F4EEDC;   /* tint fills */
 
-  /* Gold — hairlines & ornaments ONLY (never fills, never text blocks) */
-  --color-gold-400: #C9AC6E;
-
-  /* Rose & red — editorial garnish, small doses */
-  --color-rose-500: #B76477;   /* badges ("Bridal pick"), rare heading accents */
-  --color-red-700:  #8E3B4A;   /* destructive actions, error text */
-
-  /* Semantic */
-  --color-success: #4E7D5B;    /* available dates, confirmed */
-  --color-warning: #A8742F;    /* pending verification */
-  --color-danger:  #8E3B4A;    /* booked/unavailable, errors */
+  /* Semantic (muted, cool-cast) */
+  --color-success: #4C7A5E;
+  --color-warning: #A07C2E;
+  --color-danger:  #8C3A4C;    /* also destructive/error */
 }
 ```
 
-### Usage rules (this is what makes it subtle)
-- **90/8/2 rule:** ≥90% of any viewport is silk/dusk neutrals; ~8% muted supporting colour; ≤2% marigold. **One marigold element per view** (the primary CTA). If two things want marigold, the second becomes an outlined ghost button.
-- Gold appears only as **1px hairlines** (section dividers, card top-borders, focus rings on dark) and tiny ornaments (4px diamond ✦ separators). Never as button fills or large text.
-- Rose/red never sit next to marigold in the same component.
-- Dark sections (dusk-950/900) get a **2% film-grain noise overlay** (inline SVG feTurbulence, `opacity:.02`) to feel like velvet, not flat vector. Light sections get none.
-- Product photos always sit on silk-100 panels — never on dark or saturated backgrounds; the garment must be the most colourful thing on screen.
+### Roles (this is the de-generic move)
+- **Primary button = violet-800 with porcelain-50 text** (hover violet-700). NOT an orange/amber CTA — that was the template tell. On dark surfaces the primary button is gold-500 bg + violet-950 text (the poster pairing), max one per view.
+- **Gold is the jewellery of the UI**: eyebrows, links, hairlines, the ✦, arc indicator, active states. ≤2% of any viewport.
+- **90/8/2 rule stays**: ≥90% porcelain/violet neutrals · ~8% violet tints · ≤2% gold.
+- Badges: violet-100 bg + violet-700 text (no rose).
+- Dark sections keep the **2% grain**; light sections none.
+- Product imagery always on `stage`/porcelain — garment is the only saturated thing on screen (reference-image discipline).
 
-### Contrast pairs (WCAG AA verified — use only these text/bg combos)
-ink-900 on silk-50/100 · ink-600 on silk-50 · silk-50 on dusk-950/900 · dusk-300 on dusk-950 · marigold-600 on silk-50 (large text/links only) · ink-900 on marigold-500 (CTA) · silk-50 on red-700.
+### Contrast pairs (AA — use only these)
+ink-900 on porcelain-50/100/stage · ink-600 on porcelain-50 · porcelain-50 on violet-950/900/800 · violet-300 on violet-950/900 · gold-600 on porcelain-50 (≥16px or 500 weight) · gold-500 on violet-950/900 · violet-950 on gold-500 · porcelain-50 on danger.
 
 ## 2. Typography
 
-- **Display: Fraunces** (Google Fonts, variable — use `opsz` auto, weight **340–420 only**; light weights are the elegance). Headings never bold. `letter-spacing:-0.01em` above 40px. Italic Fraunces for editorial accents ("*the* bridal edit") — max one italic word-group per section.
-- **Body/UI: Inter** (400/500; 600 only for prices and buttons). Body `line-height:1.65`, ink-600 for paragraphs, ink-900 for emphasis.
-- **Hindi:** pair with **Noto Serif Devanagari** (display) + **Mukta** (body) via `:lang(hi)` font stacks — set this up in P0.2 even though the toggle ships later.
-- Fluid scale (clamp): h1 40→64 · h2 30→42 · h3 22→28 · body 16→17 · caption 13. No font sizes outside the scale.
-- Numerals in prices/calendars: `font-variant-numeric: tabular-nums`.
-- ALL-CAPS only for 11px letter-spaced (0.12em) eyebrow labels above headings, ink-400/dusk-300.
+- **Display: Fraunces** (unchanged — it's already distinctive; weight 340–420, never bold, `opsz` auto, italics for one editorial accent per section).
+- **Body/UI: Instrument Sans** (Google, variable) — replaces Inter. Inter is the single most template-flavoured font on the web; Instrument Sans keeps the same clarity with more character. Weights 400/500; 600 only prices/buttons. Fallback stack keeps Inter → system.
+- **Hindi:** Noto Serif Devanagari (display) + Mukta (body) via `:lang(hi)` — unchanged.
+- Scale, tabular numerals, 11px/0.12em eyebrows — unchanged from v1.
 
-## 3. Space, radius, elevation
+## 3. Space, radius, elevation — unchanged from v1
+(8px grid, py-24→36 sections, 1200px shell, 14px cards / 10px controls, the two shadows, 1px porcelain-200 borders on light / violet-700 on dark.)
 
-- 8px base grid. Section vertical padding: **py-24 mobile → py-36 desktop** (generous air is the luxury signal). Content max-width 1200px; product grids 2-col mobile / 3-col desktop with 24–32px gutters, never 4-col (cards stay large).
-- Radius: cards/panels **14px**, buttons/inputs **10px**, pills/swatches full. One radius language everywhere.
-- Shadows (only these two): card `0 1px 2px rgba(23,20,35,.05), 0 12px 32px rgba(23,20,35,.07)`; hover/modal `0 16px 48px rgba(23,20,35,.14)`. No coloured glows.
-- Borders: 1px silk-200 on light, 1px dusk-700 on dark. Hairline gold reserved per §1.
+### 3b. Signature motif — the jharokha arch (use with restraint)
+One recurring shape that no template has: gallery/featured card images get a **soft arch top** (`border-radius: 50% 50% 14px 14px / 18% 18% 14px 14px` — a gentle mehrab curve, not a horseshoe). Applies to: featured-card images, category tiles, the /visit map frame. Does NOT apply to: the product-page stage (full-bleed), admin, forms. If it ever appears more than ~6 times in a viewport, reduce.
 
-## 4. Motion language (GSAP)
+## 4. Motion language — unchanged from v1 defaults
+(0.7s power2.out reveals, 70ms stagger, 180ms hovers, scale ≤1.03, scrub only hero + spin stage, reduced-motion = final state.) Addition:
+- **Product-stage auto-swing** (§5b): the garment swings through its arc autonomously — frame 0→N→0, one full sweep ≈ 12–14s, sinusoidal ease at the ends (a pendulum settling, not a metronome). Pauses on pointer-down; resumes after 3s idle. Reduced-motion: static front frame, drag still works.
 
-Subtle = felt, not noticed. Defaults:
-- Reveal-on-scroll: `opacity 0→1, y 14→0`, **0.7s, power2.out**, stagger 70ms, trigger at 80% viewport, once only. Never scale/rotate/blur reveals.
-- Hover: 180ms ease-out; cards lift `y:-3px` + hover shadow; images inside cards scale **max 1.03** with overflow hidden; buttons darken one step (no transforms).
-- Scroll-scrub belongs to exactly two things: the **hero** and the **360 spin-on-scroll cards**. Nothing else scrubs; no parallax backgrounds.
-- Hero text/CTA: fade+rise 0.9s after camera settles (~5.7s), gold hairline draws in (scaleX 0→1, 0.6s) under the heading.
-- Page transitions: none (App Router default). Loading states: 300ms skeleton shimmer in silk-200.
-- `prefers-reduced-motion`: all reveals render final-state; hero shows poster still; viewer remains drag-only.
+## 5. Page anatomies
 
-## 5. The design bridge (anime hero → real products)
+### 5a. Homepage — structure unchanged, re-skinned
+Hero (violet-950 + video) → dusk veil into **porcelain-50** → featured (arch cards) → how-it-works → occasions → retail strip → dark visit bookend. Copy updated to the full brand: rentals **and** retail **and** jewellery (see REVISION_1 §2 for name/tagline).
 
-The one hard problem: a saturated anime film must hand off to real product photos without feeling like two websites.
-1. **Dusk veil:** hero (dusk-950) ends in a 160px gradient into silk-50; a 1px gold hairline with a centred ✦ marks the seam. The first product section ("Featured lehengas") begins inside that gradient, so the eye travels dark→light in one scroll.
-2. **Echoed palette, not echoed style:** UI marigold/rose/gold are the hero's colours desaturated ~30%. The hero stays the only saturated element.
-3. **Recurring motifs** carry the thread: gold hairlines, ✦ separators, Fraunces italic accents, grain on dark sections — present in both worlds.
-4. Footer + testimonials return to dusk-900 (dark bookends: dark hero → light body → dark close).
+### 5b. Product page — REBUILT (owner's vision, per reference image)
+Two-act layout, both desktop and mobile:
+1. **Act 1 — the stage (100svh):** the garment alone on `stage` bg, blending seamlessly with the frames' own studio grey. Auto-swing loop per §4. A small **circular drag glyph** (28px ring, gold-600 stroke, drag arrows) floats near the garment centre until first interaction. Minimal chrome: breadcrumb + name (small, top-left), scroll cue (thin gold chevron, bottom-centre). Nav transparent over this section. NO price, NO panel — the dress gets the whole screen.
+   *Honesty note:* our current frames include the mannequin (no ghost-mannequin shoot yet), so the garment doesn't float like the reference — the seamless stage + auto-swing delivers the same feel. Revisit when reshoots happen.
+2. **Act 2 — the details (scroll):** name (display), price/advance, date fields, description, **swipeable real-photo gallery** (scroll-snap x, edge-peek next photo, swipe on touch / drag or arrows on desktop — sourced from the turntable stills until real editorial photos exist), **customer reviews** (see §6), jewellery pairing strip, booking panel, trial CTA.
+- Mobile: identical order; stage is still 100svh with swipe-to-rotate.
 
-## 6. Component idioms
+### 5c. Gallery pages — now category-first
+/rentals and /retail open with their **category rows** (arch tiles with real counts); “All” grid below. Category chips become functional links. (Category lists live in REVISION_1 §5 / schema seeds.)
 
-- **Primary button:** marigold-600 bg, ink-900 text, 10px radius, px-6 py-3; hover → marigold-500 (dark) / -700-tone darken (light). **Ghost button:** 1px ink-900/silk-50 border, transparent.
-- **Product card:** silk-100 panel, 14px radius, 4:5 image, name (Fraunces 22), price row (Inter 600 tabular), rose badge top-left when flagged. Rental cards host the spin-on-scroll canvas.
-- **Swatch dots:** 14px circles, 1px ink-400 ring; active = 2px marigold ring + 2px offset; sold-out = 40% opacity + diagonal strike; ≥44px tap target.
-- **Calendar days:** free = silk-50/ink-900; booked = silk-200 bg, ink-400 strikethrough; held/pending = warning-tint marigold-100; buffer = dotted silk-200 (tooltip "prep day"); selected range = marigold-100 fill with marigold-600 endpoints. Legend always visible.
-- **360 viewer:** silk-100 stage, no border; pill hint "⟵ drag ⟶" ink-400 fades after first drag; thin gold arc indicator (stroke 2px) shows position — clamped arcs show partial arc honestly. No chrome buttons.
-- **Sticky date bar (product page):** silk-50/90% blur backdrop, hairline bottom border, dates + one marigold "Check availability" CTA.
-- **Forms:** silk-50 inputs, 1px silk-200 border → marigold-600 border on focus (no glow), labels 13px ink-600 above. Errors red-700 text + border, message under field.
-- **Toasts/status:** ink-900 bg, silk-50 text, bottom-centre, 14px radius, auto-dismiss 4s.
-- Focus-visible everywhere: 2px marigold-600 ring (light) / gold-400 (dark), 2px offset.
+## 6. Component idioms — v1 rules carry over, with these changes
+- **Primary button:** violet-800/porcelain-50 (§1 roles). **Ghost:** 1px ink-900/25 on light, porcelain-50/30 on dark (unchanged shape).
+- **Swatches, calendar, forms, toasts, sticky date bar:** unchanged geometry; all marigold references become **gold-600** (active/focus) and violet-100 (selected fills). Focus rings: gold-600 on light, gold-500 on dark.
+- **Spin viewer:** stage bg `--color-stage` (not porcelain-100); arc indicator + drag glyph gold; “N° view” caption stays honest.
+- **Review block (new):** per product — average as gold ✦ marks (✦✦✦✦✧, never yellow stars), count, then quoted reviews on porcelain-100 cards: text, name, “verified renter” tag (violet-100 badge) when linked to a booking. Empty state: “Be the first to review after your event.” Admin moderates before display.
+- **Jewellery cross-sell drawer (new):** when a rental garment is added to a booking, a **side drawer** slides in (right, 360px desktop / bottom-sheet mobile, porcelain-50, shadow-lift): “Complete the look” + jewellery available for the same dates, each with one-tap Add. Dismissible, never modal-blocking, appears once per booking flow.
 
-## 7. Imagery & content tone
+## 7. Imagery & tone — unchanged, plus
+- Stage/product shots keep the studio-grey continuity trick (§5b).
+- The shop logo (incoming) renders in Nav (≤28px tall) and Footer; keep the wordmark spacing rules when it lands.
 
-- Real photography: consistent studio-grey/silk seamless (matches `tools/` prep pipeline), no filters, no AI upscaling artefacts on product truth-images.
-- The WAN beauty clips (when they exist) render inside the same silk-100 card stage as the viewer — garnish, clearly separate from the accurate 360.
-- Copy tone: warm, unhurried, few words. Headings ≤6 words. No exclamation marks, no "WOW", no emoji in UI copy (WhatsApp messages may use sparing emoji).
-
-## 8. Acceptance checklist for P0.2 (Opus, verify before deploy)
-
-- [ ] Only tokens from §1 exist in CSS (grep for stray hex values).
-- [ ] One marigold element per viewport at every scroll position of the homepage.
-- [ ] Dark sections have grain; light sections don't.
-- [ ] Fraunces ≤420 weight; no bold headings anywhere.
-- [ ] Reveals: opacity+14px rise only; nothing else animates on scroll except hero + spin cards.
-- [ ] AA contrast holds in both `:lang(en)` and `:lang(hi)` font stacks.
-- [ ] `prefers-reduced-motion` renders a fully static, complete page.
+## 8. Acceptance checklist (Opus, verify before redeploy)
+- [ ] Zero marigold/rose/silk-beige values anywhere; only §1 tokens exist in CSS.
+- [ ] No orange/amber CTA anywhere; primary buttons are violet (gold only on dark, max one).
+- [ ] Gold ≤2% of any viewport; one primary button per view.
+- [ ] Product stage blends with frame bg (no visible rectangle seam around the garment photos).
+- [ ] Auto-swing: sinusoidal ends, pauses on touch, resumes after 3s, reduced-motion static.
+- [ ] Arch motif on gallery/featured/category tiles only — nowhere else.
+- [ ] Instrument Sans loaded (body no longer Inter); Fraunces weights ≤420.
+- [ ] Reviews render with gold ✦ (no yellow); drawer never blocks the booking CTA.
+- [ ] AA pairs hold in EN and HI stacks; reduced-motion full page intact.

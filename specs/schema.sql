@@ -180,6 +180,22 @@ create table public.extension_requests (
 create index extension_requests_open_idx on public.extension_requests (booking_id)
   where status = 'pending';
 
+-- ---------- reviews ----------
+-- Owner-moderated customer reviews per product. booking_id, when present,
+-- marks a "verified renter". Inserts happen only via server route (service
+-- role, Turnstile + rate-limited); public reads see approved rows only.
+create table public.reviews (
+  id            uuid primary key default gen_random_uuid(),
+  product_id    uuid not null references public.products(id) on delete cascade,
+  booking_id    uuid references public.bookings(id) on delete set null,
+  customer_name text not null,
+  rating        int not null check (rating between 1 and 5),
+  body          text not null default '',
+  is_approved   boolean not null default false,
+  created_at    timestamptz not null default now()
+);
+create index reviews_product_idx on public.reviews (product_id) where is_approved;
+
 -- ---------- content & settings ----------
 create table public.site_content (
   key        text primary key,                                  -- e.g. 'home.hero', 'policies.rental'
@@ -194,6 +210,25 @@ create table public.settings (
   value     jsonb not null,
   is_public boolean not null default false                      -- true => readable by storefront (anon)
 );
+
+-- Category seeds (owner's lists, July 2026). Admin can add/rename later.
+insert into public.categories (section, name, slug, sort_order) values
+  ('rental', 'Bridal Lehengas',      'bridal-lehengas',      1),
+  ('rental', 'Side Lehengas',        'side-lehengas',        2),
+  ('rental', 'Indo-Western',         'indo-western',         3),
+  ('rental', 'Ready-to-wear Sarees', 'ready-to-wear-sarees', 4),
+  ('rental', 'Rajasthani Poshak',    'rajasthani-poshak',    5),
+  ('rental', 'Chaniya Cholis',       'chaniya-cholis',       6),
+  ('rental', 'Gowns',                'gowns',                7),
+  ('rental', 'Sarees',               'sarees',               8),
+  ('retail', '3-Piece Suits',        'three-piece-suits',    1),
+  ('retail', 'Party Wear Suits',     'party-wear-suits',     2),
+  ('retail', 'One Piece',            'one-piece',            3),
+  ('retail', 'Short Kurtis',         'short-kurtis',         4),
+  ('retail', 'Co-ord Sets',          'co-ord-sets',          5),
+  ('retail', 'Night Suits',          'night-suits',          6),
+  ('retail', '2-Piece Kurta-Pant Sets', 'kurta-pant-sets',   7),
+  ('retail', 'Kaftans',              'kaftans',              8);
 
 insert into public.settings (key, value, is_public) values
   ('buffer_days',            '2',                          false),
@@ -242,6 +277,7 @@ alter table public.site_content       enable row level security;
 alter table public.settings           enable row level security;
 alter table public.sms_queue          enable row level security;
 alter table public.wa_contacts        enable row level security;
+alter table public.reviews            enable row level security;
 
 -- public catalogue reads
 create policy categories_public_read on public.categories
@@ -254,6 +290,8 @@ create policy site_content_public_read on public.site_content
   for select using (true);
 create policy settings_public_read on public.settings
   for select using (is_public or is_admin());
+create policy reviews_public_read on public.reviews
+  for select using (is_approved or is_admin());
 
 -- admin full control (writes)
 create policy categories_admin_all on public.categories
@@ -276,7 +314,10 @@ create policy sms_queue_admin_all on public.sms_queue
   for all using (is_admin()) with check (is_admin());
 create policy wa_contacts_admin_all on public.wa_contacts
   for all using (is_admin()) with check (is_admin());
--- (no anon policies on bookings/comms tables: deny by default)
+create policy reviews_admin_all on public.reviews
+  for all using (is_admin()) with check (is_admin());
+-- (no anon policies on bookings/comms tables: deny by default; review INSERTs
+--  go through a server route — service role — with Turnstile + rate limiting)
 
 -- =============================================================================
 -- Availability helper — the ONLY sanctioned way to read a product's calendar
