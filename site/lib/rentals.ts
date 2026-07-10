@@ -28,14 +28,14 @@ export function galleryFrames(spin: SpinConfig, n = 5): string[] {
   return idx.map((i) => `${spin.basePath}/${String(i).padStart(spin.pad, "0")}.${spin.ext}`);
 }
 
-// Mirrors site/public/rentals/lahenga1/360/metadata.json (R1.0: 87-frame set,
-// ~225° front→profile→back→back-left).
+// Mirrors site/public/rentals/lahenga1/360/metadata.json. All 87 frames
+// (2.6°/frame → smooth swing), FULL uncropped 1280×720 frame (watermark painted out).
 const LAHENGA1_SPIN: SpinConfig = {
   basePath: "/rentals/lahenga1/360",
-  count: 36,
+  count: 87,
   ext: "webp",
   pad: 3,
-  width: 576,
+  width: 1280,
   height: 720,
   arcDegrees: 225,
   loop: false,

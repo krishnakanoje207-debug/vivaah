@@ -16,16 +16,17 @@ export type SpinConfig = {
 const frameUrl = (c: SpinConfig, i: number) =>
   `${c.basePath}/${String(i).padStart(c.pad, "0")}.${c.ext}`;
 
-// One-way traversal time per 90° of arc (ms). Tunable; ~5s reads as unhurried
-// without feeling static. lahenga1's ~225° → ~12.5s each way.
-const MS_PER_90 = 5000;
+// One-way traversal time per 90° of arc (ms). With 87 frames, ~1.6s/90° gives
+// ~22 frame-changes/sec at a calm ~4s sweep across lahenga1's ~225°.
+const MS_PER_90 = 1600;
 const RESUME_IDLE_MS = 3000;
 
 /**
- * Turntable viewer (DESIGN_SPEC §6). Drag / wheel / arrows to rotate; a partial
- * arc (loop:false) clamps like a pendulum. With `autoplay`, the garment swings
- * through its arc autonomously (sinusoidal ease at the ends), pausing on touch
- * and resuming after idle. Reduced-motion disables the swing (drag still works).
+ * Turntable viewer (DESIGN_SPEC §6). Renders to a <canvas> from pre-decoded
+ * frames (no per-frame <img> re-decode → smooth). Drag / wheel / arrows rotate;
+ * a partial arc (loop:false) clamps like a pendulum. With `autoplay` the garment
+ * swings through its arc autonomously, pausing on touch. Reduced-motion: static
+ * first frame, drag still works.
  */
 export function SpinViewer({
   config,
@@ -36,33 +37,67 @@ export function SpinViewer({
   alt: string;
   autoplay?: boolean;
 }) {
-  const { count, loop, arcDegrees } = config;
-  const [frame, setFrame] = useState(0);
+  const { count, loop, arcDegrees, width, height } = config;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imgsRef = useRef<(HTMLImageElement | null)[]>([]);
+  const frameRef = useRef(0);
+  const [frame, setFrameState] = useState(0); // mirror for the arc indicator
   const [ready, setReady] = useState(false);
   const [interacted, setInteracted] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ startX: number; startFrame: number; active: boolean } | null>(null);
-  const pausedUntil = useRef(0); // performance.now() timestamp
+  const pausedUntil = useRef(0);
 
   const urls = useMemo(
     () => Array.from({ length: count }, (_, i) => frameUrl(config, i)),
     [config, count]
   );
 
-  // Preload every frame; reveal once the first (front) frame is decoded.
+  const draw = useCallback(
+    (i: number) => {
+      const canvas = canvasRef.current;
+      const img = imgsRef.current[i];
+      if (!canvas || !img) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    },
+    []
+  );
+
+  const setIdx = useCallback(
+    (i: number) => {
+      frameRef.current = i;
+      draw(i);
+      setFrameState(i);
+    },
+    [draw]
+  );
+
+  // Preload + decode all frames.
   useEffect(() => {
-    let done = 0;
-    const imgs = urls.map((u) => {
+    let cancelled = false;
+    imgsRef.current = new Array(count).fill(null);
+    urls.forEach((u, i) => {
       const img = new Image();
       img.src = u;
-      img.onload = img.onerror = () => {
-        done += 1;
-        if (done === 1) setReady(true);
+      const done = () => {
+        if (cancelled) return;
+        imgsRef.current[i] = img;
+        if (i === frameRef.current) {
+          draw(i);
+          setReady(true);
+        }
       };
-      return img;
+      if (img.decode) img.decode().then(done).catch(done);
+      else img.onload = done;
     });
-    return () => imgs.forEach((i) => (i.onload = i.onerror = null));
-  }, [urls]);
+    return () => {
+      cancelled = true;
+    };
+  }, [urls, count, draw]);
 
   const step = useCallback(
     (start: number, deltaFrames: number) => {
@@ -74,13 +109,12 @@ export function SpinViewer({
     [count, loop]
   );
 
-  // Auto-swing (pendulum). Constant angular velocity via cosine easing so the
-  // garment slows at both ends. Skips while the user is interacting.
+  // Auto-swing (pendulum). Draws directly each rAF for smoothness.
   useEffect(() => {
     if (!autoplay) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const period = 2 * (arcDegrees / 90) * MS_PER_90; // full there-and-back
+    const period = 2 * (arcDegrees / 90) * MS_PER_90;
     let theta = 0;
     let last: number | null = null;
     let raf = 0;
@@ -91,14 +125,15 @@ export function SpinViewer({
       last = t;
       if (t >= pausedUntil.current) {
         theta = (theta + (2 * Math.PI * dt) / period) % (2 * Math.PI);
-        const pos = (1 - Math.cos(theta)) / 2; // 0→1→0, eased ends
-        setFrame(Math.round(pos * (count - 1)));
+        const pos = (1 - Math.cos(theta)) / 2;
+        const i = Math.round(pos * (count - 1));
+        if (i !== frameRef.current) setIdx(i);
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [autoplay, arcDegrees, count]);
+  }, [autoplay, arcDegrees, count, setIdx]);
 
   const pauseAuto = () => {
     pausedUntil.current = performance.now() + RESUME_IDLE_MS;
@@ -106,7 +141,7 @@ export function SpinViewer({
 
   const onPointerDown = (e: React.PointerEvent) => {
     (e.target as Element).setPointerCapture?.(e.pointerId);
-    drag.current = { startX: e.clientX, startFrame: frame, active: true };
+    drag.current = { startX: e.clientX, startFrame: frameRef.current, active: true };
     setInteracted(true);
     pauseAuto();
   };
@@ -116,7 +151,7 @@ export function SpinViewer({
     const w = stageRef.current.clientWidth || 1;
     const pxPerFrame = w / count;
     const deltaFrames = -Math.round((e.clientX - d.startX) / pxPerFrame);
-    setFrame(step(d.startFrame, deltaFrames));
+    setIdx(step(d.startFrame, deltaFrames));
     pauseAuto();
   };
   const endDrag = () => {
@@ -126,10 +161,10 @@ export function SpinViewer({
 
   const onWheel = (e: React.WheelEvent) => {
     const dir = e.deltaY > 0 ? 1 : -1;
-    const atEnd = !loop && ((dir > 0 && frame >= count - 1) || (dir < 0 && frame <= 0));
+    const atEnd = !loop && ((dir > 0 && frameRef.current >= count - 1) || (dir < 0 && frameRef.current <= 0));
     if (atEnd) return;
     e.preventDefault();
-    setFrame((f) => step(f, dir));
+    setIdx(step(frameRef.current, dir));
     setInteracted(true);
     pauseAuto();
   };
@@ -140,8 +175,8 @@ export function SpinViewer({
     <div className="select-none">
       <div
         ref={stageRef}
-        className="relative aspect-[4/5] w-full overflow-hidden bg-stage touch-none cursor-grab active:cursor-grabbing"
-        style={{ aspectRatio: `${config.width} / ${config.height}` }}
+        className="relative w-full touch-none cursor-grab overflow-hidden bg-stage active:cursor-grabbing"
+        style={{ aspectRatio: `${width} / ${height}` }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
@@ -156,25 +191,23 @@ export function SpinViewer({
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "ArrowRight") {
-            setFrame((f) => step(f, 1));
+            setIdx(step(frameRef.current, 1));
             setInteracted(true);
             pauseAuto();
           }
           if (e.key === "ArrowLeft") {
-            setFrame((f) => step(f, -1));
+            setIdx(step(frameRef.current, -1));
             setInteracted(true);
             pauseAuto();
           }
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={urls[frame]}
-          alt={alt}
-          draggable={false}
-          className={`h-full w-full object-cover transition-opacity duration-300 ${
-            ready ? "opacity-100" : "opacity-0"
-          }`}
+        <canvas
+          ref={canvasRef}
+          width={width}
+          height={height}
+          className={`h-full w-full transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
+          aria-label={alt}
         />
 
         {/* Circular drag glyph — floats until first interaction */}
@@ -189,9 +222,12 @@ export function SpinViewer({
             <path d="M18 28h20M18 28l4-4M18 28l4 4M38 28l-4-4M38 28l-4 4" stroke="var(--color-gold-600)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-      </div>
 
-      <ArcIndicator arcDegrees={arcDegrees} t={t} loop={loop} />
+        {/* Arc position indicator — overlaid at the bottom of the frame */}
+        <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2">
+          <ArcIndicator arcDegrees={arcDegrees} t={t} loop={loop} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -210,7 +246,7 @@ function ArcIndicator({ arcDegrees, t, loop }: { arcDegrees: number; t: number; 
   const large = span > 180 ? 1 : 0;
 
   return (
-    <div className="mt-4 flex items-center justify-center gap-3 text-caption text-ink-400">
+    <div className="flex items-center justify-center gap-3 rounded-full bg-porcelain-50/70 px-4 py-1.5 text-caption text-ink-600 backdrop-blur">
       <svg viewBox="0 0 100 26" className="h-6 w-24" aria-hidden="true">
         <path
           d={`M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`}

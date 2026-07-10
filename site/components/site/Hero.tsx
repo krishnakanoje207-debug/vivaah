@@ -97,8 +97,10 @@ export function Hero() {
       data-dark-hero
       className="relative isolate overflow-hidden bg-violet-950 text-porcelain-50 on-dark"
     >
-      {/* Media stack */}
-      <div className="grain absolute inset-0 -z-10" aria-hidden="true">
+      {/* Media stack. NOTE: do not add `.grain` here — it sets position:relative
+          and would override `absolute`, collapsing this layer (that was the
+          "no video/still visible" bug). */}
+      <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {/* Base: settled still (fallback + reduced-motion + pre-play/poster) */}
         <div
           className="absolute inset-0 bg-cover bg-center"

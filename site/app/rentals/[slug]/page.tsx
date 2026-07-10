@@ -40,35 +40,52 @@ export default async function RentalProductPage({
 
   return (
     <>
-      {/* ── Act 1: the stage ───────────────────────────────────────────── */}
-      <section className="relative flex min-h-[100svh] flex-col bg-stage">
-        <div className="shell pt-20">
-          <nav className="text-caption text-ink-400" aria-label="Breadcrumb">
-            <Link href="/rentals" className="hover:text-ink-900">
-              Rent
-            </Link>
-            <span className="mx-2">/</span>
-            <span className="text-ink-600">{p.name}</span>
-          </nav>
-          <h1 className="mt-1 font-display text-[1.5rem] text-ink-900">{p.name}</h1>
-        </div>
-
-        <div className="flex flex-1 items-center justify-center px-4 py-6">
+      {/* ── Act 1: the stage (full uncropped frame; capped to native width so
+          it never upscales; studio-vignette backdrop blends the frame edges) ── */}
+      <section
+        className="relative pt-16"
+        style={{
+          // Studio backdrop mimicking the frames' own spotlight vignette so the
+          // photo edges dissolve into the page (the frames aren't bg-removed).
+          background:
+            "radial-gradient(ellipse at 50% 42%, #d8d7d2 0%, #bcbbb6 55%, #9c9b94 100%)",
+        }}
+      >
+        <div className="relative mx-auto w-full max-w-[1100px]">
           {p.spin ? (
-            <div className="w-[min(88vw,440px)]">
+            // Feather the photo edges so they dissolve into the studio backdrop
+            // (the frames aren't background-removed, so this hides the seam).
+            <div
+              style={{
+                maskImage:
+                  "radial-gradient(ellipse 100% 100% at 50% 46%, #000 84%, transparent 100%)",
+                WebkitMaskImage:
+                  "radial-gradient(ellipse 100% 100% at 50% 46%, #000 84%, transparent 100%)",
+              }}
+            >
               <SpinViewer config={p.spin} alt={`${p.name} lehenga`} autoplay />
             </div>
           ) : (
-            <div className="flex aspect-[4/5] w-[min(88vw,440px)] items-center justify-center rounded-card bg-porcelain-100 text-center text-ink-400">
+            <div className="flex min-h-[60svh] items-center justify-center text-center text-ink-600">
               <span className="max-w-[16rem] text-[0.9375rem]">
                 Turntable photos coming soon for this piece.
               </span>
             </div>
           )}
-        </div>
 
-        <div className="flex justify-center pb-8 text-gold-600" aria-hidden="true">
-          <span className="animate-bounce text-lg">⌄</span>
+          {/* Name overlaid on the stage (lower-left, over the studio floor) */}
+          <div className="pointer-events-none absolute bottom-6 left-6 z-10 md:bottom-8 md:left-8">
+            <nav className="pointer-events-auto text-caption text-ink-600" aria-label="Breadcrumb">
+              <Link href="/rentals" className="hover:text-ink-900">
+                Rent
+              </Link>
+              <span className="mx-2">/</span>
+              <span className="text-ink-900">{p.name}</span>
+            </nav>
+            <h1 className="mt-1 font-display text-[2rem] leading-none text-ink-900 md:text-[2.5rem]">
+              {p.name}
+            </h1>
+          </div>
         </div>
       </section>
 

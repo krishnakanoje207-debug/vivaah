@@ -47,6 +47,29 @@ def center_crop_box(w: int, h: int, aspect: float) -> tuple[int, int, int, int]:
     return (x0, y0, x0 + target_w, y0 + target_h)
 
 
+def patch_box(im: Image.Image, box: tuple[int, int, int, int], src_x: int) -> None:
+    """Paint out a rectangle (e.g. a corner watermark) by tiling a 1px background
+    column from just outside the box — invisible on the smooth studio backdrop."""
+    from PIL import ImageFilter
+
+    w, h = im.size
+    x0, y0, x1, y1 = box
+    x0, y0 = max(0, x0), max(0, y0)
+    x1, y1 = min(w, x1), min(h, y1)
+    if x1 <= x0 or y1 <= y0:
+        return
+    if src_x < 0:
+        src_x = x1 + 8
+    src_x = min(w - 1, max(0, src_x))
+    strip = im.crop((src_x, y0, src_x + 1, y1)).resize((x1 - x0, y1 - y0))
+    im.paste(strip, (x0, y0))
+    # Feather the seam so the patch dissolves into the backdrop.
+    pad = 10
+    region = (max(0, x0 - pad), max(0, y0 - pad), min(w, x1 + pad), min(h, y1 + pad))
+    blurred = im.crop(region).filter(ImageFilter.GaussianBlur(6))
+    im.paste(blurred, region)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Build a 360/pendulum viewer asset set.")
     ap.add_argument("--in", dest="src", required=True, help="folder of source frames")
@@ -62,8 +85,15 @@ def main() -> int:
                     help="full wrap-around 360 (default: pendulum, clamped)")
     ap.add_argument("--no-loop", dest="loop", action="store_false")
     ap.add_argument("--glob", default="*.jpg", help="source glob (default *.jpg)")
+    ap.add_argument("--no-crop", dest="no_crop", action="store_true",
+                    help="keep the full frame (no cropping)")
+    ap.add_argument("--patch", default="",
+                    help="watermark box 'x0,y0,x1,y1' (source px) painted out from bg")
+    ap.add_argument("--patch-src-x", type=int, default=-1,
+                    help="bg column x to sample the patch fill from (default: just right of box)")
     ap.set_defaults(loop=False)
     args = ap.parse_args()
+    patch = tuple(int(v) for v in args.patch.split(",")) if args.patch else None
 
     src = Path(args.src)
     out = Path(args.out)
@@ -86,11 +116,14 @@ def main() -> int:
         with Image.open(frames[idx]) as im:
             im = im.convert("RGB")
             w, h = im.size
-            x0, y0, x1, y1 = center_crop_box(w, h, args.aspect)
-            if args.shift_x:
-                x0 = max(0, min(w - (x1 - x0), x0 + args.shift_x))
-                x1 = x0 + (x1 - x0)
-            im = im.crop((x0, y0, x1, y1))
+            if patch:
+                patch_box(im, patch, args.patch_src_x)
+            if not args.no_crop:
+                x0, y0, x1, y1 = center_crop_box(w, h, args.aspect)
+                if args.shift_x:
+                    x0 = max(0, min(w - (x1 - x0), x0 + args.shift_x))
+                    x1 = x0 + (x1 - x0)
+                im = im.crop((x0, y0, x1, y1))
             if im.height > args.max_height:
                 scale = args.max_height / im.height
                 im = im.resize((round(im.width * scale), args.max_height), Image.LANCZOS)
