@@ -1,0 +1,12 @@
+<!-- converted from vivaahprompt1.docx -->
+
+My client wants a website for her semi rental business(bridal dresses for rent and other types of dresses all for retail). Her business is female only, she also rents jewellery with rental dresses.
+What I am thinking of design:
+I want a video played on hero section when someone starts the website(I will provide frames of video). In rental section each lehenga will be animated and will rotate along its y-axis just like the ball in the website - https://slamdunk-five.vercel.app/ . I want the page of lehenga booking just like the mentioned website only differentiating factor will be theme, I want the website theme to be beautiful and unique for website design you can surf on the internet for ideas, surf all kinds of rental website as well as websites that deal with clothes for design ideas and design each section based on recommendations other than what I personally told you to follow. For the retail section there will be categories of dresses and will have normal generic selling page like any other website, the number of pages can be multiple and is not restricted.
+Remember The client only deal with lehenga and jewellery rentals, everything else is retail, all the content of website should be customizable through admin page in the website.
+
+The client also has a shop so for picking up the orders, customers have to go to shop themselves. the website only deals with prebookings and there may be pre booking charges involved in case of lahengas. There can be extensions of bookibg suration for rentals so add a section to tell them about additional charges. The bookibg details should be delivered to the client alongside the location of shop in the message. The owner will use their own number for sending messages to cut for the ama charges and the details should also be sent to the customers on their whatsapp with website link attacked for getting engagement on the website.
+
+Make sure the whole project is made for free and if there are any necessary charges involved for the project mention them.
+Ask for any other information required, also recommend any additions that can be made in the website to make it more engaging.
+Also add rate limiting in the website.

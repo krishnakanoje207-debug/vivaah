@@ -1,0 +1,2321 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {
+    "hyperedges": [
+      {
+        "id": "free_tier_stack",
+        "label": "Free-Tier Service Stack",
+        "nodes": [
+          "implementation_plan_cloudflare_workers",
+          "implementation_plan_supabase",
+          "implementation_plan_upstash",
+          "implementation_plan_resend"
+        ],
+        "relation": "participate_in",
+        "confidence": "INFERRED",
+        "confidence_score": 0.85,
+        "source_file": "IMPLEMENTATION_PLAN.md"
+      },
+      {
+        "id": "messaging_channels",
+        "label": "Customer Messaging Channels",
+        "nodes": [
+          "implementation_plan_whatsapp_cloud_api",
+          "implementation_plan_android_sms_gateway",
+          "implementation_plan_resend"
+        ],
+        "relation": "participate_in",
+        "confidence": "INFERRED",
+        "confidence_score": 0.75,
+        "source_file": "IMPLEMENTATION_PLAN.md"
+      },
+      {
+        "id": "booking_flow",
+        "label": "Booking & Double-Booking Prevention Flow",
+        "nodes": [
+          "implementation_plan_bookings",
+          "implementation_plan_booking_items",
+          "implementation_plan_gist_exclusion_constraint",
+          "implementation_plan_pending_booking_expiry",
+          "implementation_plan_buffer_days"
+        ],
+        "relation": "participate_in",
+        "confidence": "INFERRED",
+        "confidence_score": 0.85,
+        "source_file": "IMPLEMENTATION_PLAN.md"
+      },
+      {
+        "id": "client_provides_checklist",
+        "label": "What the Client Must Provide",
+        "nodes": [
+          "client_plan_client_provides",
+          "client_plan_spare_sim",
+          "client_plan_upi_payment",
+          "client_plan_google_maps_visit_us",
+          "client_plan_domain_cost"
+        ],
+        "relation": "participate_in",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "CLIENT_PLAN.md"
+      },
+      {
+        "id": "booking_journey_flow",
+        "label": "Customer Booking Journey",
+        "nodes": [
+          "client_plan_booking_journey",
+          "client_plan_upi_payment",
+          "client_plan_double_booking_prevention",
+          "client_plan_one_tap_confirm",
+          "client_plan_auto_cancel_unconfirmed",
+          "client_plan_cleaning_gap"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "CLIENT_PLAN.md"
+      },
+      {
+        "id": "zero_cost_messaging_stack",
+        "label": "Zero-Cost Confirmation Messaging",
+        "nodes": [
+          "client_plan_zero_cost_messaging",
+          "client_plan_whatsapp_confirmation",
+          "client_plan_sms_confirmation",
+          "client_plan_spare_sim"
+        ],
+        "relation": "implement",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "CLIENT_PLAN.md"
+      },
+      {
+        "id": "hero_video_palette_formation",
+        "label": "Aesthetic Elements Form the Dusk Bridal Colour Palette",
+        "nodes": [
+          "hero_video_marigold_garlands",
+          "hero_video_fairy_lights",
+          "hero_video_rose_petals_garden",
+          "hero_video_dusk_lighting",
+          "hero_video_bridal_lehenga",
+          "hero_video_colour_palette"
+        ],
+        "relation": "form",
+        "confidence": "INFERRED",
+        "confidence_score": 0.85,
+        "source_file": "videos/heroSection/hero_video"
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "label": "Vivaah Implementation Plan",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_doc",
+      "community": 1,
+      "norm_label": "vivaah implementation plan"
+    },
+    {
+      "label": "Vivaah Website",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_vivaah",
+      "community": 1,
+      "norm_label": "vivaah website"
+    },
+    {
+      "label": "Next.js",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_nextjs",
+      "community": 1,
+      "norm_label": "next.js"
+    },
+    {
+      "label": "Cloudflare Workers",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_cloudflare_workers",
+      "community": 1,
+      "norm_label": "cloudflare workers"
+    },
+    {
+      "label": "Supabase",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_supabase",
+      "community": 4,
+      "norm_label": "supabase"
+    },
+    {
+      "label": "Postgres",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_postgres",
+      "community": 4,
+      "norm_label": "postgres"
+    },
+    {
+      "label": "GSAP",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_gsap",
+      "community": 1,
+      "norm_label": "gsap"
+    },
+    {
+      "label": "react-three-fiber",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_react_three_fiber",
+      "community": 1,
+      "norm_label": "react-three-fiber"
+    },
+    {
+      "label": "Upstash",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_upstash",
+      "community": 3,
+      "norm_label": "upstash"
+    },
+    {
+      "label": "Resend",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_resend",
+      "community": 1,
+      "norm_label": "resend"
+    },
+    {
+      "label": "Cloudflare Turnstile",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_turnstile",
+      "community": 3,
+      "norm_label": "cloudflare turnstile"
+    },
+    {
+      "label": "WhatsApp Cloud API Messaging",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_whatsapp_cloud_api",
+      "community": 4,
+      "norm_label": "whatsapp cloud api messaging"
+    },
+    {
+      "label": "Android SMS Gateway",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_android_sms_gateway",
+      "community": 4,
+      "norm_label": "android sms gateway"
+    },
+    {
+      "label": "UPI QR Manual Verification",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_upi_manual_verification",
+      "community": 7,
+      "norm_label": "upi qr manual verification"
+    },
+    {
+      "label": "Postgres GiST Exclusion Constraint",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_gist_exclusion_constraint",
+      "community": 3,
+      "norm_label": "postgres gist exclusion constraint"
+    },
+    {
+      "label": "Double-Booking Prevention",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_double_booking_prevention",
+      "community": 3,
+      "norm_label": "double-booking prevention"
+    },
+    {
+      "label": "Buffer Days",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_buffer_days",
+      "community": 3,
+      "norm_label": "buffer days"
+    },
+    {
+      "label": "Pending Booking Expiry",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_pending_booking_expiry",
+      "community": 3,
+      "norm_label": "pending booking expiry"
+    },
+    {
+      "label": "products table",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_products",
+      "community": 2,
+      "norm_label": "products table"
+    },
+    {
+      "label": "product_variants table",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_product_variants",
+      "community": 2,
+      "norm_label": "product_variants table"
+    },
+    {
+      "label": "bookings table",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_bookings",
+      "community": 3,
+      "norm_label": "bookings table"
+    },
+    {
+      "label": "booking_items table",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_booking_items",
+      "community": 3,
+      "norm_label": "booking_items table"
+    },
+    {
+      "label": "categories table",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_categories",
+      "community": 2,
+      "norm_label": "categories table"
+    },
+    {
+      "label": "site_content table",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_site_content",
+      "community": 6,
+      "norm_label": "site_content table"
+    },
+    {
+      "label": "settings table",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_settings",
+      "community": 6,
+      "norm_label": "settings table"
+    },
+    {
+      "label": "Colour Variants",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_colour_variants",
+      "community": 2,
+      "norm_label": "colour variants"
+    },
+    {
+      "label": "Hero Video Section",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_hero_video",
+      "community": 1,
+      "norm_label": "hero video section"
+    },
+    {
+      "label": "Dual Video Ping-Pong Technique",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_dual_video_technique",
+      "community": 0,
+      "norm_label": "dual video ping-pong technique"
+    },
+    {
+      "label": "/rentals Page",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_page_rentals",
+      "community": 2,
+      "norm_label": "/rentals page"
+    },
+    {
+      "label": "/retail Page",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_page_retail",
+      "community": 2,
+      "norm_label": "/retail page"
+    },
+    {
+      "label": "/jewellery Page",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_page_jewellery",
+      "community": 2,
+      "norm_label": "/jewellery page"
+    },
+    {
+      "label": "/visit Page",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_page_visit",
+      "community": 5,
+      "norm_label": "/visit page"
+    },
+    {
+      "label": "/booking Status Page",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_page_booking_status",
+      "community": 3,
+      "norm_label": "/booking status page"
+    },
+    {
+      "label": "/admin Page",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_page_admin",
+      "community": 6,
+      "norm_label": "/admin page"
+    },
+    {
+      "label": "Google Maps",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_google_maps",
+      "community": 5,
+      "norm_label": "google maps"
+    },
+    {
+      "label": "Dusk Purple / Marigold Palette",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_dusk_purple_marigold",
+      "community": 0,
+      "norm_label": "dusk purple / marigold palette"
+    },
+    {
+      "label": "Rate Limiting",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_rate_limiting",
+      "community": 3,
+      "norm_label": "rate limiting"
+    },
+    {
+      "label": "Free-Tier Constraint",
+      "file_type": "rationale",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_free_tier",
+      "community": 4,
+      "norm_label": "free-tier constraint"
+    },
+    {
+      "label": "slamdunk-five.vercel.app",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_ref_slamdunk",
+      "community": 1,
+      "norm_label": "slamdunk-five.vercel.app"
+    },
+    {
+      "label": "Apple Product Pages",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_ref_apple",
+      "community": 0,
+      "norm_label": "apple product pages"
+    },
+    {
+      "label": "Flyrobe",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_ref_flyrobe",
+      "community": 1,
+      "norm_label": "flyrobe"
+    },
+    {
+      "label": "Stage3",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_ref_stage3",
+      "community": 1,
+      "norm_label": "stage3"
+    },
+    {
+      "label": "Rent the Runway",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_ref_rent_the_runway",
+      "community": 1,
+      "norm_label": "rent the runway"
+    },
+    {
+      "label": "Airbnb",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_ref_airbnb",
+      "community": 1,
+      "norm_label": "airbnb"
+    },
+    {
+      "label": "Myntra",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_ref_myntra",
+      "community": 1,
+      "norm_label": "myntra"
+    },
+    {
+      "label": "Awwwards",
+      "file_type": "document",
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "id": "implementation_plan_ref_awwwards",
+      "community": 1,
+      "norm_label": "awwwards"
+    },
+    {
+      "label": "Rental Business Model (Lehenga + Jewellery)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_rental_business_model",
+      "community": 2,
+      "norm_label": "rental business model (lehenga + jewellery)"
+    },
+    {
+      "label": "Retail Business Model (Everything Else for Sale)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_retail_business_model",
+      "community": 2,
+      "norm_label": "retail business model (everything else for sale)"
+    },
+    {
+      "label": "Shop-Pickup-Only Fulfilment (No Delivery)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_shop_pickup_only",
+      "community": 8,
+      "norm_label": "shop-pickup-only fulfilment (no delivery)"
+    },
+    {
+      "label": "Cinematic Video Hero Opening",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_video_hero",
+      "community": 0,
+      "norm_label": "cinematic video hero opening"
+    },
+    {
+      "label": "Spin-Around (Y-Axis Rotating) Lehenga Photos",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_rotating_lehenga",
+      "community": 1,
+      "norm_label": "spin-around (y-axis rotating) lehenga photos"
+    },
+    {
+      "label": "Availability Calendar (Free/Booked Dates)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_availability_calendar",
+      "community": 2,
+      "norm_label": "availability calendar (free/booked dates)"
+    },
+    {
+      "label": "Colour-Dot Swatch Selector for Retail Dresses",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_color_swatch_retail",
+      "community": 2,
+      "norm_label": "colour-dot swatch selector for retail dresses"
+    },
+    {
+      "label": "Customer Booking Journey (Step-by-Step)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_booking_journey",
+      "community": 3,
+      "norm_label": "customer booking journey (step-by-step)"
+    },
+    {
+      "label": "UPI Advance Payment (QR, Number, ID + Reference)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_upi_payment",
+      "community": 7,
+      "norm_label": "upi advance payment (qr, number, id + reference)"
+    },
+    {
+      "label": "Double-Booking Impossible (Date Hold)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_double_booking_prevention",
+      "community": 3,
+      "norm_label": "double-booking impossible (date hold)"
+    },
+    {
+      "label": "One-Tap Payment Confirmation by Owner",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_one_tap_confirm",
+      "community": 7,
+      "norm_label": "one-tap payment confirmation by owner"
+    },
+    {
+      "label": "Auto-Cancel of Unconfirmed/Fake Bookings",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_auto_cancel_unconfirmed",
+      "community": 3,
+      "norm_label": "auto-cancel of unconfirmed/fake bookings"
+    },
+    {
+      "label": "Automatic Cleaning-Gap Days Between Bookings",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_cleaning_gap",
+      "community": 3,
+      "norm_label": "automatic cleaning-gap days between bookings"
+    },
+    {
+      "label": "WhatsApp Confirmation from Website's Own SIM",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_whatsapp_confirmation",
+      "community": 4,
+      "norm_label": "whatsapp confirmation from website's own sim"
+    },
+    {
+      "label": "SMS Confirmation from Owner's Own Phone Number",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_sms_confirmation",
+      "community": 4,
+      "norm_label": "sms confirmation from owner's own phone number"
+    },
+    {
+      "label": "Zero-Cost Messaging Rationale",
+      "file_type": "rationale",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_zero_cost_messaging",
+      "community": 4,
+      "norm_label": "zero-cost messaging rationale"
+    },
+    {
+      "label": "Admin Control Panel (Owner Self-Service)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_admin_panel",
+      "community": 6,
+      "norm_label": "admin control panel (owner self-service)"
+    },
+    {
+      "label": "Booking Extension (Extra-Days) Charges",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_extension_charges",
+      "community": 6,
+      "norm_label": "booking extension (extra-days) charges"
+    },
+    {
+      "label": "Admin Phone Push Notification on New Booking",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_admin_push_notification",
+      "community": 6,
+      "norm_label": "admin phone push notification on new booking"
+    },
+    {
+      "label": "Zero Monthly Running Cost",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_zero_running_cost",
+      "community": 4,
+      "norm_label": "zero monthly running cost"
+    },
+    {
+      "label": "Domain Cost (~Rs700-900/yr, Paid by Client)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_domain_cost",
+      "community": 4,
+      "norm_label": "domain cost (~rs700-900/yr, paid by client)"
+    },
+    {
+      "label": "What the Client Must Provide (Checklist)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_client_provides",
+      "community": 9,
+      "norm_label": "what the client must provide (checklist)"
+    },
+    {
+      "label": "Spare SIM Card for Website's WhatsApp",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_spare_sim",
+      "community": 4,
+      "norm_label": "spare sim card for website's whatsapp"
+    },
+    {
+      "label": "Google Maps 'Visit Us' + Get Directions",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_google_maps_visit_us",
+      "community": 5,
+      "norm_label": "google maps 'visit us' + get directions"
+    },
+    {
+      "label": "'Book a Trial Visit' Appointment",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_trial_appointment",
+      "community": 5,
+      "norm_label": "'book a trial visit' appointment"
+    },
+    {
+      "label": "Complete-the-Look Jewellery Suggestions",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_complete_the_look",
+      "community": 2,
+      "norm_label": "complete-the-look jewellery suggestions"
+    },
+    {
+      "label": "Browse by Occasion (Bridal/Sangeet/Mehendi/Reception)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_browse_by_occasion",
+      "community": 5,
+      "norm_label": "browse by occasion (bridal/sangeet/mehendi/reception)"
+    },
+    {
+      "label": "Free Google Business Listing (Maps Discovery)",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_google_business_listing",
+      "community": 5,
+      "norm_label": "free google business listing (maps discovery)"
+    },
+    {
+      "label": "Hindi/English One-Tap Language Switch",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_hindi_english",
+      "community": 5,
+      "norm_label": "hindi/english one-tap language switch"
+    },
+    {
+      "label": "'Tell Me When It's Free' Waitlist",
+      "file_type": "document",
+      "source_file": "CLIENT_PLAN.md",
+      "id": "client_plan_notify_when_free",
+      "community": 5,
+      "norm_label": "'tell me when it's free' waitlist"
+    },
+    {
+      "label": "Semi-Rental Business (Rent + Retail, Female-Only)",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_semi_rental_business",
+      "community": 2,
+      "norm_label": "semi-rental business (rent + retail, female-only)"
+    },
+    {
+      "label": "Rental Scope: Only Lehenga + Jewellery",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_rental_scope",
+      "community": 2,
+      "norm_label": "rental scope: only lehenga + jewellery"
+    },
+    {
+      "label": "Retail Scope: Everything Else",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_retail_scope",
+      "community": 2,
+      "norm_label": "retail scope: everything else"
+    },
+    {
+      "label": "Video Played on Hero Section (Frames Provided)",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_video_hero",
+      "community": 0,
+      "norm_label": "video played on hero section (frames provided)"
+    },
+    {
+      "label": "Y-Axis Rotating Lehenga Like Slamdunk Site",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_rotating_lehenga_slamdunk",
+      "community": 1,
+      "norm_label": "y-axis rotating lehenga like slamdunk site"
+    },
+    {
+      "label": "All Content Customizable Through Admin Page",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_admin_customizable_content",
+      "community": 6,
+      "norm_label": "all content customizable through admin page"
+    },
+    {
+      "label": "Shop Pickup for Orders (No Delivery)",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_shop_pickup",
+      "community": 8,
+      "norm_label": "shop pickup for orders (no delivery)"
+    },
+    {
+      "label": "Prebooking Charges (for Lehengas)",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_prebooking_charges",
+      "community": 7,
+      "norm_label": "prebooking charges (for lehengas)"
+    },
+    {
+      "label": "Booking Duration Extension Charges",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_extension_charges",
+      "community": 6,
+      "norm_label": "booking duration extension charges"
+    },
+    {
+      "label": "Booking Details Delivered With Shop Location",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_booking_details_with_location",
+      "community": 5,
+      "norm_label": "booking details delivered with shop location"
+    },
+    {
+      "label": "Messages from Owner's Own Number (Cut Charges)",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_whatsapp_from_own_number",
+      "community": 4,
+      "norm_label": "messages from owner's own number (cut charges)"
+    },
+    {
+      "label": "WhatsApp Details with Website Link for Engagement",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_whatsapp_with_website_link",
+      "community": 4,
+      "norm_label": "whatsapp details with website link for engagement"
+    },
+    {
+      "label": "Whole Project Made for Free (Mention Any Charges)",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_made_for_free",
+      "community": 4,
+      "norm_label": "whole project made for free (mention any charges)"
+    },
+    {
+      "label": "Rate Limiting in the Website",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_rate_limiting",
+      "community": 3,
+      "norm_label": "rate limiting in the website"
+    },
+    {
+      "label": "Retail Categories with Generic Selling Pages",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_retail_categories",
+      "community": 2,
+      "norm_label": "retail categories with generic selling pages"
+    },
+    {
+      "label": "Recommend Engaging Additions",
+      "file_type": "document",
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "id": "brief_engagement_recommendations",
+      "community": 5,
+      "norm_label": "recommend engaging additions"
+    },
+    {
+      "label": "Vivaah Hero Section Video",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_main",
+      "community": 0,
+      "norm_label": "vivaah hero section video"
+    },
+    {
+      "label": "Anime (Kling AI) Art Style",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_anime_art_style",
+      "community": 0,
+      "norm_label": "anime (kling ai) art style"
+    },
+    {
+      "label": "Marigold Garlands",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_marigold_garlands",
+      "community": 0,
+      "norm_label": "marigold garlands"
+    },
+    {
+      "label": "Fairy Lights",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_fairy_lights",
+      "community": 0,
+      "norm_label": "fairy lights"
+    },
+    {
+      "label": "Rose Petals and Rose Garden",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_rose_petals_garden",
+      "community": 0,
+      "norm_label": "rose petals and rose garden"
+    },
+    {
+      "label": "Dusk Lighting",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_dusk_lighting",
+      "community": 0,
+      "norm_label": "dusk lighting"
+    },
+    {
+      "label": "Bridal Lehenga and Ethnic Wear",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_bridal_lehenga",
+      "community": 0,
+      "norm_label": "bridal lehenga and ethnic wear"
+    },
+    {
+      "label": "Marigold-Decorated Wedding Gazebo",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_wedding_gazebo",
+      "community": 0,
+      "norm_label": "marigold-decorated wedding gazebo"
+    },
+    {
+      "label": "Narrative Motion: Fabric Close-up to Wide Gazebo Settle",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_narrative_motion",
+      "community": 0,
+      "norm_label": "narrative motion: fabric close-up to wide gazebo settle"
+    },
+    {
+      "label": "Near-Static Loop Segment with KlingAI 3.0 Watermark",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_loop_watermark",
+      "community": 0,
+      "norm_label": "near-static loop segment with klingai 3.0 watermark"
+    },
+    {
+      "label": "Dusk Bridal Colour Palette (Purple, Marigold, Rose, Deep Red, Gold)",
+      "file_type": "image",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_colour_palette",
+      "community": 0,
+      "norm_label": "dusk bridal colour palette (purple, marigold, rose, deep red, gold)"
+    },
+    {
+      "label": "Palette and Aesthetic Drive Website Design Direction",
+      "file_type": "rationale",
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "hero_video_design_direction",
+      "community": 0,
+      "norm_label": "palette and aesthetic drive website design direction"
+    }
+  ],
+  "links": [
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_doc",
+      "target": "implementation_plan_vivaah"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_nextjs"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_cloudflare_workers",
+      "target": "implementation_plan_vivaah"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_supabase"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_gsap"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_react_three_fiber"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_resend"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_turnstile"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_whatsapp_cloud_api"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_android_sms_gateway"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_upi_manual_verification"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_hero_video"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_dusk_purple_marigold"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_free_tier"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_ref_slamdunk"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_ref_flyrobe"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_ref_stage3"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_ref_rent_the_runway"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_ref_airbnb"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_ref_myntra"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "implementation_plan_ref_awwwards"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_vivaah",
+      "target": "brief_semi_rental_business"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_nextjs",
+      "target": "implementation_plan_cloudflare_workers"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_free_tier",
+      "target": "implementation_plan_cloudflare_workers"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_supabase",
+      "target": "implementation_plan_postgres"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_free_tier",
+      "target": "implementation_plan_supabase"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_gist_exclusion_constraint",
+      "target": "implementation_plan_postgres"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_react_three_fiber",
+      "target": "client_plan_rotating_lehenga"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_rate_limiting",
+      "target": "implementation_plan_upstash"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_turnstile",
+      "target": "implementation_plan_rate_limiting"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_free_tier",
+      "target": "implementation_plan_whatsapp_cloud_api"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_whatsapp_cloud_api",
+      "target": "client_plan_whatsapp_confirmation"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_whatsapp_cloud_api",
+      "target": "brief_whatsapp_from_own_number"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_free_tier",
+      "target": "implementation_plan_android_sms_gateway"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_android_sms_gateway",
+      "target": "client_plan_sms_confirmation"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_upi_manual_verification",
+      "target": "implementation_plan_bookings"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_upi_manual_verification",
+      "target": "client_plan_upi_payment"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_upi_manual_verification",
+      "target": "brief_prebooking_charges"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_upi_manual_verification",
+      "target": "client_plan_one_tap_confirm"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_double_booking_prevention",
+      "target": "implementation_plan_gist_exclusion_constraint"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_gist_exclusion_constraint",
+      "target": "implementation_plan_booking_items"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_double_booking_prevention",
+      "target": "implementation_plan_buffer_days"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_double_booking_prevention",
+      "target": "implementation_plan_pending_booking_expiry"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_double_booking_prevention",
+      "target": "client_plan_double_booking_prevention"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_buffer_days",
+      "target": "client_plan_cleaning_gap"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_pending_booking_expiry",
+      "target": "implementation_plan_bookings"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_pending_booking_expiry",
+      "target": "client_plan_auto_cancel_unconfirmed"
+    },
+    {
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_product_variants",
+      "target": "implementation_plan_products"
+    },
+    {
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_products",
+      "target": "implementation_plan_categories"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_rentals",
+      "target": "implementation_plan_products"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_retail",
+      "target": "implementation_plan_products"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_jewellery",
+      "target": "implementation_plan_products"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_colour_variants",
+      "target": "implementation_plan_product_variants"
+    },
+    {
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_booking_items",
+      "target": "implementation_plan_product_variants"
+    },
+    {
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_booking_items",
+      "target": "implementation_plan_bookings"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_booking_status",
+      "target": "implementation_plan_bookings"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_admin",
+      "target": "implementation_plan_bookings"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_admin",
+      "target": "implementation_plan_site_content"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_admin",
+      "target": "implementation_plan_settings"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_colour_variants",
+      "target": "client_plan_color_swatch_retail"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_hero_video",
+      "target": "implementation_plan_dual_video_technique"
+    },
+    {
+      "relation": "cites",
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_hero_video",
+      "target": "implementation_plan_ref_slamdunk"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_hero_video",
+      "target": "hero_video_main"
+    },
+    {
+      "relation": "cites",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_dual_video_technique",
+      "target": "implementation_plan_ref_apple"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_dual_video_technique",
+      "target": "hero_video_loop_watermark"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_dual_video_technique",
+      "target": "client_plan_video_hero"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_rentals",
+      "target": "client_plan_rental_business_model"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_retail",
+      "target": "client_plan_retail_business_model"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_jewellery",
+      "target": "client_plan_complete_the_look"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_visit",
+      "target": "implementation_plan_google_maps"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_booking_status",
+      "target": "client_plan_booking_journey"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_admin",
+      "target": "client_plan_admin_panel"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_page_admin",
+      "target": "brief_admin_customizable_content"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_google_maps",
+      "target": "client_plan_google_maps_visit_us"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_dusk_purple_marigold",
+      "target": "hero_video_colour_palette"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_dusk_purple_marigold",
+      "target": "hero_video_design_direction"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_rate_limiting",
+      "target": "brief_rate_limiting"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_free_tier",
+      "target": "brief_made_for_free"
+    },
+    {
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_free_tier",
+      "target": "client_plan_zero_running_cost"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "IMPLEMENTATION_PLAN.md",
+      "weight": 1.0,
+      "source": "implementation_plan_ref_slamdunk",
+      "target": "brief_rotating_lehenga_slamdunk"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_rental_business_model",
+      "target": "brief_rental_scope"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_rental_business_model",
+      "target": "client_plan_retail_business_model"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_availability_calendar",
+      "target": "client_plan_rental_business_model"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_complete_the_look",
+      "target": "client_plan_rental_business_model"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_retail_business_model",
+      "target": "brief_retail_scope"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_retail_business_model",
+      "target": "brief_retail_categories"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_shop_pickup_only",
+      "target": "brief_shop_pickup"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_video_hero",
+      "target": "brief_video_hero"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_video_hero",
+      "target": "hero_video_main"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_rotating_lehenga",
+      "target": "brief_rotating_lehenga_slamdunk"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_color_swatch_retail",
+      "target": "brief_retail_categories"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_double_booking_prevention",
+      "target": "client_plan_booking_journey"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_auto_cancel_unconfirmed",
+      "target": "client_plan_booking_journey"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_cleaning_gap",
+      "target": "client_plan_booking_journey"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_upi_payment",
+      "target": "brief_prebooking_charges"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_upi_payment",
+      "target": "brief_made_for_free"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_one_tap_confirm",
+      "target": "client_plan_upi_payment"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_double_booking_prevention",
+      "target": "brief_rate_limiting"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_whatsapp_confirmation",
+      "target": "brief_whatsapp_from_own_number"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_whatsapp_confirmation",
+      "target": "brief_whatsapp_with_website_link"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_zero_cost_messaging",
+      "target": "client_plan_whatsapp_confirmation"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_spare_sim",
+      "target": "client_plan_whatsapp_confirmation"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_sms_confirmation",
+      "target": "brief_whatsapp_from_own_number"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_zero_cost_messaging",
+      "target": "client_plan_sms_confirmation"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_zero_cost_messaging",
+      "target": "brief_whatsapp_from_own_number"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_admin_panel",
+      "target": "brief_admin_customizable_content"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_admin_push_notification",
+      "target": "client_plan_admin_panel"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_extension_charges",
+      "target": "client_plan_admin_panel"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_extension_charges",
+      "target": "brief_extension_charges"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_zero_running_cost",
+      "target": "brief_made_for_free"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_domain_cost",
+      "target": "brief_made_for_free"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_google_maps_visit_us",
+      "target": "brief_booking_details_with_location"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_google_maps_visit_us",
+      "target": "client_plan_google_business_listing"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_trial_appointment",
+      "target": "brief_engagement_recommendations"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_browse_by_occasion",
+      "target": "brief_engagement_recommendations"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_google_business_listing",
+      "target": "brief_engagement_recommendations"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_hindi_english",
+      "target": "brief_engagement_recommendations"
+    },
+    {
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "CLIENT_PLAN.md",
+      "weight": 1.0,
+      "source": "client_plan_notify_when_free",
+      "target": "brief_engagement_recommendations"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "weight": 1.0,
+      "source": "brief_semi_rental_business",
+      "target": "brief_rental_scope"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "weight": 1.0,
+      "source": "brief_semi_rental_business",
+      "target": "brief_retail_scope"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "graphify-out/converted/vivaahprompt1_d6847dc8.md",
+      "weight": 1.0,
+      "source": "brief_video_hero",
+      "target": "hero_video_main"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_main",
+      "target": "hero_video_anime_art_style"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_main",
+      "target": "hero_video_marigold_garlands"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_main",
+      "target": "hero_video_fairy_lights"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_main",
+      "target": "hero_video_rose_petals_garden"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_main",
+      "target": "hero_video_dusk_lighting"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_main",
+      "target": "hero_video_bridal_lehenga"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_main",
+      "target": "hero_video_wedding_gazebo"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_main",
+      "target": "hero_video_narrative_motion"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_design_direction",
+      "target": "hero_video_anime_art_style"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_colour_palette",
+      "target": "hero_video_dusk_lighting"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_narrative_motion",
+      "target": "hero_video_loop_watermark"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "videos/heroSection/hero_video",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "hero_video_design_direction",
+      "target": "hero_video_colour_palette"
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "free_tier_stack",
+      "label": "Free-Tier Service Stack",
+      "nodes": [
+        "implementation_plan_cloudflare_workers",
+        "implementation_plan_supabase",
+        "implementation_plan_upstash",
+        "implementation_plan_resend"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md"
+    },
+    {
+      "id": "messaging_channels",
+      "label": "Customer Messaging Channels",
+      "nodes": [
+        "implementation_plan_whatsapp_cloud_api",
+        "implementation_plan_android_sms_gateway",
+        "implementation_plan_resend"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "IMPLEMENTATION_PLAN.md"
+    },
+    {
+      "id": "booking_flow",
+      "label": "Booking & Double-Booking Prevention Flow",
+      "nodes": [
+        "implementation_plan_bookings",
+        "implementation_plan_booking_items",
+        "implementation_plan_gist_exclusion_constraint",
+        "implementation_plan_pending_booking_expiry",
+        "implementation_plan_buffer_days"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "IMPLEMENTATION_PLAN.md"
+    },
+    {
+      "id": "client_provides_checklist",
+      "label": "What the Client Must Provide",
+      "nodes": [
+        "client_plan_client_provides",
+        "client_plan_spare_sim",
+        "client_plan_upi_payment",
+        "client_plan_google_maps_visit_us",
+        "client_plan_domain_cost"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md"
+    },
+    {
+      "id": "booking_journey_flow",
+      "label": "Customer Booking Journey",
+      "nodes": [
+        "client_plan_booking_journey",
+        "client_plan_upi_payment",
+        "client_plan_double_booking_prevention",
+        "client_plan_one_tap_confirm",
+        "client_plan_auto_cancel_unconfirmed",
+        "client_plan_cleaning_gap"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md"
+    },
+    {
+      "id": "zero_cost_messaging_stack",
+      "label": "Zero-Cost Confirmation Messaging",
+      "nodes": [
+        "client_plan_zero_cost_messaging",
+        "client_plan_whatsapp_confirmation",
+        "client_plan_sms_confirmation",
+        "client_plan_spare_sim"
+      ],
+      "relation": "implement",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLIENT_PLAN.md"
+    },
+    {
+      "id": "hero_video_palette_formation",
+      "label": "Aesthetic Elements Form the Dusk Bridal Colour Palette",
+      "nodes": [
+        "hero_video_marigold_garlands",
+        "hero_video_fairy_lights",
+        "hero_video_rose_petals_garden",
+        "hero_video_dusk_lighting",
+        "hero_video_bridal_lehenga",
+        "hero_video_colour_palette"
+      ],
+      "relation": "form",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "videos/heroSection/hero_video"
+    }
+  ]
+}

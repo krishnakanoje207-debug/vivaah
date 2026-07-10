@@ -1,0 +1,7 @@
+# Local prep dependencies (background removal + dusk composite).
+# rembg pulls in onnxruntime, which currently has wheels for Python <= 3.13.
+# If install fails on Python 3.14, use a Python 3.12 venv OR just run the
+# background-removal cell inside tools/wan_i2v_colab.ipynb (no local install).
+rembg>=2.0.59
+Pillow>=10.3.0
+onnxruntime>=1.17.0
