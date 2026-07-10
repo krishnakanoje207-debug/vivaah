@@ -1,0 +1,10 @@
+{
+  "basePath": "/rentals/lahenga1/360",
+  "count": 32,
+  "ext": "webp",
+  "pad": 3,
+  "width": 576,
+  "height": 720,
+  "arcDegrees": 90.0,
+  "loop": false
+}
