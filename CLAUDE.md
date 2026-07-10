@@ -12,8 +12,10 @@ Single shop, single owner-admin. Full brand name: **“Vivaah Dresses and Suits�
   - `BOOKING_ENGINE_SPEC.md` — state machine, flows, API routes, test invariants; §2.7 jewellery cross-sell drawer, §2.8 reviews. Retail gets its own `0002_retail.sql` (Fable-reviewed) in Phase 3.
   - `COMMS_FLOW_SPEC.md` — WhatsApp/SMS/email ladder, webhook security, quota queue (Phase 5).
 
-## Current status (10 July 2026, evening) — OPUS: DO REVISION 1
-Preview 0 (P0.1–P0.5) is built, committed, and verified locally; Cloudflare deploy still awaits the user's `wrangler login`. Owner reviewed and gave 8 corrections → **next work: `specs/REVISION_1.md` R1.1–R1.6** (hero playback bug-fix first, rebrand, v2 re-skin, two-act product page with auto-swing + gallery + stub reviews, category-first galleries, redeploy). Phase 1 (Supabase) comes after Revision 1 is accepted. Escalate to Fable: any spec change, adapter friction, and the gates after P1/P2/P4/P5.
+## Current status (10 July 2026, late night) — REVISION 1 DONE, awaiting deploy/Phase 1
+Preview 1 built + committed (R1.0–R1.5 + live-review fixes, commit efe43b4): v2 violet/gold/porcelain re-skin, "Vivaah Dresses and Suits" rebrand, category-first galleries, hero video FIXED (grain/position bug), and the lahenga viewer reworked per owner — FULL uncropped 1280×720 frames (watermark painted out), canvas rendering (smooth), native-width cap (sharp), studio-vignette + edge-feather (seamless), name overlaid on stage. `next build` green.
+**ALWAYS verify UI by rendering (headless Edge screenshot), not just HTML** — a hero bug shipped twice from HTML-only checks. Dev: `cd site && npm run dev` (don't run build while dev runs — shared `.next`).
+**Blocked on user:** Cloudflare `wrangler login` (to deploy R1.6), logo file (`site/public/brand/`), Supabase account (Phase 1). **Next:** deploy Preview 1, or start P1 → Fable schema gate (#12). Escalate to Fable: any spec change, adapter friction, gates after P1/P2/P4/P5.
 
 ## Locked decisions (do not re-litigate)
 - **Stack:** Next.js 16 App Router → Cloudflare Workers via `@opennextjs/cloudflare` · Supabase (DB/auth/storage) · Tailwind v4 · GSAP + ScrollTrigger · Resend · Upstash Redis.
