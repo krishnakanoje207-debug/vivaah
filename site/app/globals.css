@@ -199,6 +199,17 @@
   }
 }
 
+/* Hero overlay starts hidden (JS/GSAP reveals it as the scene settles).
+   Reduced-motion and no-JS users see it immediately. */
+[data-hero] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-hero] {
+    opacity: 1;
+  }
+}
+
 /* =============================================================================
    Motion (§4) — reveal defaults; reduced-motion renders final state
    ============================================================================= */
