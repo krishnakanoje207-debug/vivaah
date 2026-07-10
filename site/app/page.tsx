@@ -4,13 +4,8 @@ import { Reveal } from "@/components/site/Reveal";
 import { Ornament } from "@/components/site/Ornament";
 import { Button } from "@/components/ui/Button";
 import { OCCASIONS, SHOP } from "@/lib/site";
-
-// Preview 0 stub — replaced by the real /rentals viewer cards in P0.5.
-const FEATURED = [
-  { slug: "sage-rose-lehenga", name: "Sage Rose", note: "Hand-embroidered net" },
-  { slug: "marigold-silk-lehenga", name: "Marigold Silk", note: "Zardozi bodice" },
-  { slug: "rosewood-velvet-lehenga", name: "Rosewood Velvet", note: "Reception drape" },
-];
+import { featuredRentals } from "@/lib/rentals";
+import { RentalCard } from "@/components/site/RentalCard";
 
 const STEPS = [
   { n: "01", t: "Choose your dates", d: "Pick a lehenga and the days you need it. The calendar shows what's free." },
@@ -48,33 +43,10 @@ export default function Home() {
           </Reveal>
 
           <Reveal className="mt-12 grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURED.map((p) => (
-              <Link key={p.slug} href={`/rentals/${p.slug}`} data-reveal className="group block">
-                <article className="overflow-hidden rounded-card bg-silk-100 shadow-card transition-shadow duration-[180ms] group-hover:shadow-lift">
-                  <div className="relative aspect-[4/5] overflow-hidden">
-                    {/* Spin-on-scroll canvas slots in here (P0.5). Placeholder for now. */}
-                    <div
-                      className="absolute inset-0 transition-transform duration-500 group-hover:scale-[1.03]"
-                      style={{
-                        background:
-                          "linear-gradient(160deg, var(--color-silk-100) 0%, var(--color-silk-200) 100%)",
-                      }}
-                    />
-                    <span className="absolute left-3 top-3 rounded-full bg-rose-500 px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide text-silk-50">
-                      Bridal pick
-                    </span>
-                  </div>
-                  <div className="flex items-baseline justify-between px-5 py-4">
-                    <div>
-                      <h3 className="text-[1.35rem] leading-tight">{p.name}</h3>
-                      <p className="mt-0.5 text-caption text-ink-400">{p.note}</p>
-                    </div>
-                    <p className="tabular text-[0.9375rem] font-semibold text-ink-900">
-                      ₹— <span className="font-normal text-ink-400">/ day</span>
-                    </p>
-                  </div>
-                </article>
-              </Link>
+            {featuredRentals.map((p) => (
+              <div key={p.slug} data-reveal>
+                <RentalCard p={p} />
+              </div>
             ))}
           </Reveal>
         </div>
