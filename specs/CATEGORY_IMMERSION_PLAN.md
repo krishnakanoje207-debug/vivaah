@@ -30,8 +30,9 @@ Ordering: W3 (sarees) then W4 (lehengas) back-to-back but with distinct art dire
 ### W5 — "Curated for your moment" section on each category page
 Categories are **query-param filters** on /rentals and /retail (no per-category routes yet). Implement as a parameterized section on both gallery pages that renders when `?category=` is active: Fluid-Saree-style editorial intro ("Curated for your most memorable moments" voice) with the category name in Fraunces italic + supporting copy per category. If the owner later wants real category landing routes, this section becomes their hero — build it as a standalone component (`CuratedMoment.tsx`) so it lifts cleanly.
 
-### W6 — "Browse by occasion" big-card section on the homepage
-Replace the current occasion **chips** section with the Fluid Saree big-card version (kids `4-2-*`): three full-image cards (Bridal / Reception / Sangeet), porcelain-50 display titles, violet gradient scrims, arch tops per §3b. Links stay `/rentals?occasion=…`. Until owner photos exist, cards use violet-900 grain + gradient placeholders — **no stock**.
+### W6 — "Browse by category" big-card section on the homepage
+**(User corrected 17 Jul: category cards, not occasion cards.)** Use the Fluid Saree big-card treatment (kids `4-2-*` show the pattern: full-image cards, porcelain-50 display titles, dark scrims) but populate with **categories**, arch tops per §3b, links `/rentals?category=…` / `/retail?category=…`.
+**Thumbnails: DONE 17 Jul** — all 16 categories have self-hosted images in `site/public/categories/<slug>.jpg` (660×880, 3:4). Curated from the Kombai canvas image pool (11) + Pexels API search (5: short-kurtis, co-ord-sets, night-suits, kurta-pant-sets, kaftans). Licenses + source URLs in `public/categories/SOURCES.md`; user explicitly approved stock-as-placeholder, overriding §7 — swap for owner photography later. The gallery-page arch tiles already render them via `Category.image`.
 
 ## Order & verification
 W1 → W6 → W3 → W4 (video is the long pole — start the Colab run early, build W4 around the placeholder still until clips land) → W5. W2 rides Kombai's credit refills in parallel.
