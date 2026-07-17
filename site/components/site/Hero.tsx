@@ -4,23 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { Button } from "@/components/ui/Button";
 import { Ornament } from "@/components/site/Ornament";
-import { SHOP } from "@/lib/site";
 
 /**
- * Hero (§5a + IMPLEMENTATION_PLAN §5). Play-once intro crossfades into a seamless
- * ping-pong loop; overlay copy fades in as the camera settles.
- *
- * R1.1 playback fixes: if autoplay is blocked the video is NOT hidden — the still
- * shows as poster and we retry play() on the first user interaction (the v1 bug
- * was silently swapping to the still, which read as "video not playing"). On
- * `ended`, the loop is started BEFORE the opacity swap (same frame) so there is
- * no flash. Reduced-motion shows the settled still with copy visible immediately.
+ * Editorial Luxe Hero (§5a). 
+ * 60/40 Split: High-fashion video on the left, refined bridal edit on the right.
+ * Separated by a signature gold hairline. Keeps the ping-pong playback logic.
  */
 export function Hero() {
   const overlayRef = useRef<HTMLDivElement>(null);
-  const hairlineRef = useRef<HTMLSpanElement>(null);
   const introRef = useRef<HTMLVideoElement>(null);
   const loopRef = useRef<HTMLVideoElement>(null);
+  const separatorRef = useRef<HTMLSpanElement>(null);
   const [showLoop, setShowLoop] = useState(false);
   const [playVideo, setPlayVideo] = useState(true);
 
@@ -30,38 +24,33 @@ export function Hero() {
     const items = overlay ? overlay.querySelectorAll<HTMLElement>("[data-hero]") : [];
 
     const reveal = () => {
-      gsap.to(items, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out", stagger: 0.08 });
-      if (hairlineRef.current) {
-        gsap.fromTo(
-          hairlineRef.current,
-          { scaleX: 0 },
-          { scaleX: 1, duration: 0.6, ease: "power2.out", delay: 0.2 }
-        );
+      gsap.to(items, { opacity: 1, y: 0, duration: 1, ease: "power2.out", stagger: 0.1 });
+      if (separatorRef.current) {
+        gsap.to(separatorRef.current, { scaleY: 1, duration: 1.2, ease: "power2.inOut", delay: 0.3 });
       }
     };
 
-    gsap.set(items, { y: 16 });
+    gsap.set(items, { opacity: 0, y: 24 });
+    if (separatorRef.current) gsap.set(separatorRef.current, { scaleY: 0, transformOrigin: "top" });
 
     if (reduce) {
       setPlayVideo(false);
       gsap.set(items, { opacity: 1, y: 0 });
-      if (hairlineRef.current) gsap.set(hairlineRef.current, { scaleX: 1 });
+      if (separatorRef.current) gsap.set(separatorRef.current, { scaleY: 1 });
       return;
     }
 
-    const settle = window.setTimeout(reveal, 4600);
+    const settle = window.setTimeout(reveal, 4200);
     const intro = introRef.current;
 
     const onEnded = () => {
       const loop = loopRef.current;
       if (!loop) return;
-      // Start the loop first, then swap opacity next frame → no flash of still.
       loop.play().catch(() => {});
       requestAnimationFrame(() => setShowLoop(true));
     };
     intro?.addEventListener("ended", onEnded);
 
-    // Retry playback on first interaction if autoplay was blocked.
     const onInteract = () => {
       intro?.play().then(removeInteract).catch(() => {});
     };
@@ -78,12 +67,7 @@ export function Hero() {
       window.addEventListener("keydown", onInteract);
     };
 
-    intro?.play().catch((err: unknown) => {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("[hero] autoplay blocked, will retry on interaction:", err);
-      }
-      addInteract();
-    });
+    intro?.play().catch(() => addInteract());
 
     return () => {
       window.clearTimeout(settle);
@@ -93,85 +77,87 @@ export function Hero() {
   }, []);
 
   return (
+    // -mt-16 pulls the hero under the sticky nav so the transparent nav shows
+    // the hero (not the porcelain body) behind it.
     <section
       data-dark-hero
-      className="relative isolate overflow-hidden bg-violet-950 text-porcelain-50 on-dark"
+      className="relative isolate -mt-16 min-h-screen overflow-hidden bg-violet-950 text-porcelain-50 on-dark"
     >
-      {/* Media stack. NOTE: do not add `.grain` here — it sets position:relative
-          and would override `absolute`, collapsing this layer (that was the
-          "no video/still visible" bug). */}
-      <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-        {/* Base: settled still (fallback + reduced-motion + pre-play/poster) */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/hero/hero-still.webp')" }}
-        />
-        {playVideo && (
-          <>
-            <video
-              ref={introRef}
-              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
-              style={{ opacity: showLoop ? 0 : 1 }}
-              src="/hero/hero-intro.mp4"
-              poster="/hero/hero-poster.webp"
-              muted
-              playsInline
-              preload="auto"
-            />
-            <video
-              ref={loopRef}
-              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
-              style={{ opacity: showLoop ? 1 : 0 }}
-              src="/hero/hero-loop.mp4"
-              muted
-              playsInline
-              loop
-              preload="auto"
-            />
-          </>
-        )}
-        {/* Scrim for text legibility (tokens only) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/55 via-violet-950/25 to-violet-950/65" />
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-[6fr_4fr] min-h-screen">
+        {/* Media Block (60%) */}
+        <div className="relative w-full h-[50vh] md:h-auto overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: "url('/hero/hero-still.webp')" }}
+          />
+          {playVideo && (
+            <>
+              <video
+                ref={introRef}
+                className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+                style={{ opacity: showLoop ? 0 : 1 }}
+                src="/hero/hero-intro.mp4"
+                poster="/hero/hero-poster.webp"
+                muted
+                playsInline
+                preload="auto"
+              />
+              <video
+                ref={loopRef}
+                className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+                style={{ opacity: showLoop ? 1 : 0 }}
+                src="/hero/hero-loop.mp4"
+                muted
+                playsInline
+                loop
+                preload="auto"
+              />
+            </>
+          )}
+          {/* Top edge gradient to settle the video into the dark frame */}
+          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-violet-950/60 to-transparent pointer-events-none" />
+        </div>
 
-      {/* Overlay copy */}
-      <div
-        ref={overlayRef}
-        className="shell flex min-h-[88svh] flex-col items-center justify-center py-28 text-center"
-      >
-        <p data-hero className="eyebrow on-dark">
-          Rent · Buy · Adorn
-        </p>
-        <h1 data-hero className="mt-5 max-w-3xl text-h1 text-porcelain-50">
-          Dressed for every <em className="italic">celebration</em>.
-        </h1>
-        <span
-          ref={hairlineRef}
-          aria-hidden="true"
-          className="mt-6 block h-px w-24 origin-center bg-gold-500/70"
+        {/* Separator Line */}
+        <span 
+          ref={separatorRef}
+          className="hidden md:block absolute left-[60%] top-0 bottom-0 w-px bg-gold-500/20" 
+          aria-hidden="true" 
         />
-        <p data-hero className="mt-6 max-w-xl text-violet-100 text-[1.0625rem] leading-relaxed">
-          Rent bridal &amp; festive wear, shop dresses and suits, and add jewellery to match —
-          reserved online, collected at our shop.
-        </p>
-        <div data-hero className="mt-9 flex flex-wrap items-center justify-center gap-4">
-          <Button href="/rentals" variant="primary-dark">
-            Explore rentals
-          </Button>
-          <Button href="/visit" variant="ghost-dark">
-            Visit the shop
-          </Button>
+
+        {/* Content Block (40%) */}
+        <div 
+          ref={overlayRef}
+          className="w-full flex flex-col justify-center px-8 py-20 md:px-16 lg:px-24"
+        >
+          <p data-hero className="eyebrow on-dark">
+            The Bridal Edit
+          </p>
+          <h1 data-hero className="mt-6 text-h1 max-w-md leading-[1.1] text-porcelain-50">
+            Find your <em className="italic">bridal glow</em>.
+          </h1>
+          <p data-hero className="mt-8 max-w-sm text-violet-300 text-[1.0625rem] leading-relaxed">
+            Rent heirloom-quality lehengas, shop evening gowns, and add jewellery to match — reserved online, collected at our boutique.
+          </p>
+          <div data-hero className="mt-10 flex flex-wrap gap-4">
+            <Button href="/rentals" variant="primary-dark">
+              Explore rentals
+            </Button>
+            <Button href="/visit" variant="ghost-dark">
+              Visit the boutique
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Dusk veil — gradient into the light body, with the ✦ seam (§5) */}
-      <div className="relative">
+      {/* Dusk veil transition */}
+      <div className="absolute bottom-0 left-0 right-0">
         <div
           className="pointer-events-none h-40 w-full"
           style={{ background: "linear-gradient(to bottom, transparent, var(--color-porcelain-50))" }}
           aria-hidden="true"
         />
-        <div className="shell -mt-6 pb-2">
+        <div className="shell -mt-8 pb-3">
           <Ornament />
         </div>
       </div>

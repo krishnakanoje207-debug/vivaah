@@ -1,11 +1,13 @@
 // Owner's category lists (July 2026). Mirrors the seeds in specs/schema.sql;
 // moves to the `categories` table in Phase 1. `count` is a stub until real
-// inventory exists.
+// inventory exists. `image` is optional — tiles fall back to the porcelain
+// gradient until the owner's own photography lands (no stock imagery, §7).
 
 export type Category = {
   slug: string;
   name: string;
   count: number;
+  image?: string;
 };
 
 export const RENTAL_CATEGORIES: Category[] = [

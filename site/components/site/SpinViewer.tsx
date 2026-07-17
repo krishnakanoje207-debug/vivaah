@@ -210,16 +210,16 @@ export function SpinViewer({
           aria-label={alt}
         />
 
-        {/* Circular drag glyph — floats until first interaction */}
+        {/* Circular drag glyph — floats until first interaction (§5b) */}
         <div
           className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ${
             interacted ? "opacity-0" : "opacity-90"
           }`}
           aria-hidden="true"
         >
-          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-            <circle cx="28" cy="28" r="20" stroke="var(--color-gold-600)" strokeWidth="1.5" opacity="0.85" />
-            <path d="M18 28h20M18 28l4-4M18 28l4 4M38 28l-4-4M38 28l-4 4" stroke="var(--color-gold-600)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="10" stroke="var(--color-gold-600)" strokeWidth="1" opacity="0.8" />
+            <path d="M9 14h10M9 14l2-2M9 14l2 2M19 14l-2-2M19 14l-2 2" stroke="var(--color-gold-600)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
 

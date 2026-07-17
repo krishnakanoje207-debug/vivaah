@@ -10,18 +10,25 @@ const NAV_H = 64;
 
 export function Nav() {
   const [open, setOpen] = useState(false);
-  // overDark = a dark hero (marked [data-dark-hero]) is behind the nav near the top.
-  const [overDark, setOverDark] = useState(false);
+  // tone: "dark" (violet-950) | "light" (stage/porcelain) | null (not transparent)
+  const [navTone, setNavTone] = useState<"dark" | "light" | null>(null);
 
   useEffect(() => {
-    const hero = document.querySelector<HTMLElement>("[data-dark-hero]");
     const update = () => {
-      if (!hero) {
-        setOverDark(false);
-        return;
+      const darkHero = document.querySelector<HTMLElement>("[data-dark-hero]");
+      const stageHero = document.querySelector<HTMLElement>("[data-stage-hero]");
+      
+      const scrollY = window.scrollY;
+      
+      if (darkHero && scrollY < darkHero.offsetHeight - NAV_H) {
+        setNavTone("dark");
+      } else if (stageHero && scrollY < stageHero.offsetHeight - NAV_H) {
+        setNavTone("light");
+      } else {
+        setNavTone(null);
       }
-      setOverDark(window.scrollY < hero.offsetHeight - NAV_H);
     };
+    
     update();
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
@@ -31,16 +38,20 @@ export function Nav() {
     };
   }, []);
 
-  const shellBar = overDark
-    ? "bg-transparent border-transparent on-dark"
+  const isTransparent = navTone !== null;
+  const overDark = navTone === "dark";
+  
+  const shellBar = isTransparent
+    ? `bg-transparent border-transparent ${overDark ? "on-dark" : ""}`
     : "bg-porcelain-50/85 backdrop-blur border-porcelain-200";
+    
   const linkColor = overDark ? "text-violet-300" : "text-ink-600";
   const linkHover = overDark ? "hover:text-porcelain-50" : "hover:text-ink-900";
-  const bar = overDark ? "bg-porcelain-50" : "bg-ink-900";
+  const bar = (overDark || !isTransparent) ? (overDark ? "bg-porcelain-50" : "bg-ink-900") : "bg-ink-900";
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b transition-colors duration-300 ${shellBar}`}
+      className={`sticky top-0 z-50 border-b transition-all duration-500 ${shellBar}`}
     >
       <nav className="shell flex h-16 items-center justify-between gap-6">
         <Brand tone={overDark ? "light-on-dark" : "dark-on-light"} />
@@ -97,7 +108,6 @@ export function Nav() {
   );
 }
 
-// Non-functional in Preview 1 — the content dimension ships with the DB.
 function LangToggle({ overDark }: { overDark: boolean }) {
   const border = overDark ? "border-porcelain-50/30" : "border-porcelain-200";
   const inactive = overDark ? "text-violet-300 hover:text-porcelain-50" : "text-ink-600 hover:text-ink-900";
