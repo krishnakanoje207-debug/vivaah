@@ -1,8 +1,71 @@
-export default function AdminSettingsPage() {
+import { sql } from "@/lib/db";
+import {
+  BookingRulesForm,
+  ShopForm,
+  PaymentsForm,
+  ChargesForm,
+} from "./SettingsForms";
+
+export const dynamic = "force-dynamic";
+
+type SettingRow = { key: string; value: unknown };
+
+function num(v: unknown, fallback = 0): number {
+  return typeof v === "number" ? v : fallback;
+}
+function obj<T extends Record<string, unknown>>(v: unknown, fallback: T): T {
+  return v && typeof v === "object" && !Array.isArray(v) ? { ...fallback, ...(v as T) } : fallback;
+}
+function str(v: unknown): string {
+  return typeof v === "string" ? v : "";
+}
+
+export default async function AdminSettingsPage() {
+  const rows = await sql<SettingRow>`select key, value from settings`;
+  const map = new Map(rows.map((r) => [r.key, r.value]));
+
+  const shop = obj(map.get("shop_info"), {
+    name: "",
+    address: "",
+    maps_url: "",
+    hours: "",
+    phone: "",
+  });
+  const upi = obj(map.get("upi"), { id: "", number: "", qr_path: "" });
+  const charges = obj(map.get("charges_copy"), { en: "", hi: "" });
+
   return (
-    <div>
-      <h1 className="font-display text-h2 text-ink-900">Settings</h1>
-      <p className="mt-2 text-body text-ink-600">Coming in this build.</p>
+    <div className="mx-auto max-w-3xl">
+      <header>
+        <p className="eyebrow">Vivaah</p>
+        <h1 className="mt-1 font-display text-h2 text-ink-900">Settings</h1>
+        <p className="mt-2 text-body text-ink-600">
+          Shop details, booking rules and payment information.
+        </p>
+      </header>
+
+      <div className="mt-8 flex flex-col gap-6">
+        <BookingRulesForm
+          initial={{
+            buffer_days: num(map.get("buffer_days"), 2),
+            booking_expiry_minutes: num(map.get("booking_expiry_minutes"), 120),
+            sms_daily_quota: num(map.get("sms_daily_quota"), 100),
+          }}
+        />
+        <ShopForm
+          initial={{
+            name: str(shop.name),
+            address: str(shop.address),
+            maps_url: str(shop.maps_url),
+            hours: str(shop.hours),
+            phone: str(shop.phone),
+          }}
+        />
+        <PaymentsForm
+          initial={{ id: str(upi.id), number: str(upi.number), qr_path: str(upi.qr_path) }}
+        />
+        <ChargesForm initial={{ en: str(charges.en), hi: str(charges.hi) }} />
+      </div>
     </div>
   );
 }
