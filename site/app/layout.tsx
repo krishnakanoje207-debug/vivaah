@@ -3,6 +3,7 @@ import { Fraunces, Instrument_Sans, Noto_Serif_Devanagari, Mukta } from "next/fo
 import "./globals.css";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
+import { SiteChrome } from "@/components/site/SiteChrome";
 import { SHOP } from "@/lib/site";
 
 // Display serif — variable, optical sizing on. Weights kept light (340–420) in CSS.
@@ -51,9 +52,10 @@ export default function RootLayout({
       className={`${fraunces.variable} ${instrument.variable} ${notoDeva.variable} ${mukta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-porcelain-50 text-ink-900">
-        <Nav />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        {/* SiteChrome hides Nav/Footer on /admin (admin has its own chrome). */}
+        <SiteChrome nav={<Nav />} footer={<Footer />}>
+          {children}
+        </SiteChrome>
       </body>
     </html>
   );
