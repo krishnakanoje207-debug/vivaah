@@ -71,4 +71,4 @@ Owner notifications (new booking, UTR submitted, extension request, gateway offl
 | Customer phone ≠ WhatsApp number | booking form has optional separate "WhatsApp number" field; wa_contacts keys on the WhatsApp number, SMS on the phone number |
 
 ## 6. Secrets & config (Cloudflare env)
-`WA_PHONE_NUMBER_ID · WA_ACCESS_TOKEN · WA_APP_SECRET · WA_VERIFY_TOKEN · GATEWAY_URL · GATEWAY_AUTH · GATEWAY_CALLBACK_SECRET · RESEND_API_KEY · UPSTASH_REDIS_REST_URL/TOKEN · SUPABASE_SERVICE_ROLE_KEY (server only, never bundled client-side)`. Admin-editable at runtime (settings table): quota, template toggle, template copy, reminder times.
+`WA_PHONE_NUMBER_ID · WA_ACCESS_TOKEN · WA_APP_SECRET · WA_VERIFY_TOKEN · GATEWAY_URL · GATEWAY_AUTH · GATEWAY_CALLBACK_SECRET · RESEND_API_KEY · UPSTASH_REDIS_REST_URL/TOKEN · DATABASE_URL — Neon owner role (server only, never bundled client-side; v1.1)`. Admin-editable at runtime (settings table): quota, template toggle, template copy, reminder times.

@@ -1,7 +1,19 @@
 -- =============================================================================
--- Vivaah — initial schema (F1) · v1.0
--- Target: Supabase Postgres. Apply verbatim as migration 0001_init.
+-- Vivaah — initial schema (F1) · v1.1
+-- Target: Neon Postgres (v1.1, 18 Jul 2026: Supabase → Neon + R2; user decision
+--   — Supabase free tier pauses after 7 days idle and deletes long-paused
+--   projects; Neon scale-to-zero auto-wakes and never deletes for inactivity).
+-- Apply verbatim as migration 0001_init.
 -- Opus: do NOT alter constraint/trigger/RLS logic; escalate to Fable instead.
+--
+-- ACCESS MODEL (v1.1): the database is reached ONLY from server code
+-- (Cloudflare Worker via @neondatabase/serverless). Two roles:
+--   · owner role (Neon default, table owner) — all writes + admin panel reads.
+--     Admin authz = app-layer session auth (single owner-admin, secure cookie);
+--     there is no DB-level JWT. Owner bypasses RLS (Postgres table-owner rule).
+--   · app_public (created below, password set in Neon console) — storefront
+--     catalogue reads only. RLS + grants make booking/comms tables unreachable
+--     on this connection even if app code has a bug.
 --
 -- DATE CONVENTION (used everywhere, app included):
 --   booked_range  = daterange(pickup_date, return_date + 1, '[)')
@@ -20,10 +32,8 @@ create type extension_status as enum ('pending','approved','rejected');
 create type message_status   as enum ('queued','sent','failed');
 
 -- ---------- helpers ----------
-create or replace function public.is_admin() returns boolean
-language sql stable as $$
-  select coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false)
-$$;
+-- (v1.1: is_admin()/auth.jwt() removed — admin authz lives in the app layer;
+--  the admin panel uses the owner connection, which bypasses RLS as table owner.)
 
 create or replace function public.touch_updated_at() returns trigger
 language plpgsql as $$
@@ -261,12 +271,24 @@ create table public.wa_contacts (
 );
 
 -- =============================================================================
--- RLS — deny by default. Storefront reads public catalogue with anon key;
--- ALL booking/comms writes go through server routes using the service-role key
--- (bypasses RLS); admin panel uses authenticated sessions with app_metadata.role='admin'.
+-- RLS — deny by default (v1.1, two-role model). Storefront catalogue reads use
+-- the low-privilege app_public connection (policies below). ALL booking/comms
+-- reads+writes and the admin panel use the owner connection (bypasses RLS as
+-- table owner; guarded by app-layer admin session auth).
 -- The booking-status page (/booking/[code]) is served by a server route keyed
--- on the unguessable code — bookings are NEVER anon-readable.
+-- on the unguessable code — bookings are NEVER readable on app_public.
 -- =============================================================================
+-- app_public: created here without login; enable login + set password in the
+-- Neon console after applying the migration (or: alter role app_public login
+-- password '...'). The Worker holds two connection strings: DATABASE_URL
+-- (owner) and DATABASE_URL_PUBLIC (app_public).
+create role app_public nologin;
+grant usage on schema public to app_public;
+grant select on public.categories, public.products, public.product_variants,
+                public.site_content, public.settings, public.reviews
+  to app_public;
+-- NO grants on bookings/booking_items/extension_requests/sms_queue/wa_contacts:
+-- those tables are unreachable on the app_public connection.
 alter table public.categories         enable row level security;
 alter table public.products           enable row level security;
 alter table public.product_variants   enable row level security;
@@ -279,45 +301,22 @@ alter table public.sms_queue          enable row level security;
 alter table public.wa_contacts        enable row level security;
 alter table public.reviews            enable row level security;
 
--- public catalogue reads
+-- public catalogue reads (apply only to app_public; owner bypasses RLS)
 create policy categories_public_read on public.categories
-  for select using (is_active or is_admin());
+  for select to app_public using (is_active);
 create policy products_public_read on public.products
-  for select using (is_active or is_admin());
+  for select to app_public using (is_active);
 create policy variants_public_read on public.product_variants
-  for select using (is_active or is_admin());
+  for select to app_public using (is_active);
 create policy site_content_public_read on public.site_content
-  for select using (true);
+  for select to app_public using (true);
 create policy settings_public_read on public.settings
-  for select using (is_public or is_admin());
+  for select to app_public using (is_public);
 create policy reviews_public_read on public.reviews
-  for select using (is_approved or is_admin());
-
--- admin full control (writes)
-create policy categories_admin_all on public.categories
-  for all using (is_admin()) with check (is_admin());
-create policy products_admin_all on public.products
-  for all using (is_admin()) with check (is_admin());
-create policy variants_admin_all on public.product_variants
-  for all using (is_admin()) with check (is_admin());
-create policy site_content_admin_all on public.site_content
-  for all using (is_admin()) with check (is_admin());
-create policy settings_admin_all on public.settings
-  for all using (is_admin()) with check (is_admin());
-create policy bookings_admin_all on public.bookings
-  for all using (is_admin()) with check (is_admin());
-create policy booking_items_admin_all on public.booking_items
-  for all using (is_admin()) with check (is_admin());
-create policy extensions_admin_all on public.extension_requests
-  for all using (is_admin()) with check (is_admin());
-create policy sms_queue_admin_all on public.sms_queue
-  for all using (is_admin()) with check (is_admin());
-create policy wa_contacts_admin_all on public.wa_contacts
-  for all using (is_admin()) with check (is_admin());
-create policy reviews_admin_all on public.reviews
-  for all using (is_admin()) with check (is_admin());
--- (no anon policies on bookings/comms tables: deny by default; review INSERTs
---  go through a server route — service role — with Turnstile + rate limiting)
+  for select to app_public using (is_approved);
+-- (v1.1: the is_admin() write policies are gone — admin writes ride the owner
+--  connection, which RLS does not constrain. Review INSERTs go through a server
+--  route on the owner connection with Turnstile + rate limiting.)
 
 -- =============================================================================
 -- Availability helper — the ONLY sanctioned way to read a product's calendar
@@ -331,9 +330,10 @@ language sql stable security definer set search_path = public as $$
     and status not in ('cancelled','returned')
     and upper(blocked_range) >= current_date
 $$;
-grant execute on function public.product_unavailable_ranges(uuid) to anon, authenticated;
+revoke execute on function public.product_unavailable_ranges(uuid) from public;
+grant execute on function public.product_unavailable_ranges(uuid) to app_public;
 
--- ---------- storage buckets (run via Supabase dashboard/CLI, noted here) ----------
--- product-images  : public read, admin write
--- spin-frames     : public read, admin write
--- site-assets     : public read, admin write   (hero videos, UPI QR, banners)
+-- ---------- object storage (v1.1: Cloudflare R2, created via dashboard/wrangler) ----------
+-- One bucket `vivaah-assets`, public read via custom-domain binding, prefixes:
+--   product-images/  spin-frames/  site-assets/   (hero videos, UPI QR, banners)
+-- Writes only from the Worker (R2 binding) behind admin session auth.

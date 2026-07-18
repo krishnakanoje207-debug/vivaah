@@ -81,7 +81,7 @@ Rentals are NOT just lehengas: 8 garment categories (see schema category seeds) 
 | `/api/bookings/[code]/extension` | POST | code | 3/day/code |
 | `/api/bookings/[code]/cancel` | POST | code (policy-gated) | 3/day/code |
 | `/api/products/[id]/reviews` | POST | anon + Turnstile | 2/day/IP |
-| `/api/admin/**` | * | Supabase session + `is_admin` | 5/15min login |
+| `/api/admin/**` | * | Admin session cookie (app-layer, v1.1) | 5/15min login |
 | Webhooks (`/api/hooks/whatsapp`, `/api/hooks/sms-gateway`) | POST | signature verification (see COMMS spec) | CF edge |
 
 Booking-status responses expose: code, item names/images, dates, status, amounts, shop info — **never** phone/UTR of anyone else; include own phone masked (`98•••••210`).

@@ -42,7 +42,7 @@
 
 ## 2. Build order — re-sequenced so the site is reviewable ASAP
 
-The owner-review loop ("I'll review it directly on the website") pulls the visual layers forward. Supabase comes *after* the first preview: Preview 0 runs on stubbed JSON data.
+The owner-review loop ("I'll review it directly on the website") pulls the visual layers forward. The database (Neon, v1.1) comes *after* the first preview: Preview 0 runs on stubbed JSON data.
 
 ### Preview 0 — reviewable site in days (Opus, ~95%)
 Goal: a Cloudflare preview URL showing the real look and the lahenga1 viewer.
@@ -57,7 +57,7 @@ Goal: a Cloudflare preview URL showing the real look and the lahenga1 viewer.
 Hero playback fix · rebrand to “Vivaah Dresses and Suits” (rentals + retail + jewellery, logo slot) · re-skin to DESIGN_SPEC **v2** (violet/gold/porcelain — marigold/rose removed as “generic”) · product page rebuilt as two-act stage layout with auto-swing + swipeable gallery + stub reviews · category-first galleries (owner's 8+8 category lists) · redeploy.
 
 ### Phase 1 — Foundation (Fable F1 + F6 done; Opus wires it)
-Supabase project, schema migration (F1 output — now includes `reviews` + category seeds), auth, RLS, storage buckets; swap stub data → DB.
+Neon project + R2 bucket (v1.1), schema migration (F1 output — now includes `reviews` + category seeds), admin session auth, two-role RLS; swap stub data → DB.
 
 ### Phase 2 — Rental engine (Fable F2 spec → Opus build → Fable F4 gate)
 Availability calendar, booking flow + jewellery bundles, UPI step, hold/expiry job, booking-status page + extension requests.

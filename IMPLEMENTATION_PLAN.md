@@ -1,6 +1,7 @@
 # Vivaah — Bridal Rental & Retail Website: Implementation Plan
 
-**Status: 🔒 LOCKED — v1.0, 3 July 2026.** All architectural decisions are final; only the §10 content inputs (rates, policies, catalogue) remain, and none of them block the start of development. Changes after this point are scope changes.
+**Status: 🔒 LOCKED — v1.1, 18 July 2026** (v1.0 locked 3 July 2026). All architectural decisions are final; only the §10 content inputs (rates, policies, catalogue) remain, and none of them block the start of development. Changes after this point are scope changes.
+**v1.1 amendment (user decision, 18 Jul 2026): Supabase → Neon Postgres + Cloudflare R2 + app-layer admin session auth.** Reason: Supabase free tier pauses projects after 7 days of DB inactivity and permanently deletes long-paused projects (manual dashboard restore required meanwhile); Neon scale-to-zero auto-wakes on request (~0.5s) and has no inactivity-deletion policy. Nothing was built on Supabase (Phase 1 had not started), so the change is spec-only: schema.sql v1.1 reworks RLS to a two-role model (owner + `app_public`), images move to R2, auth becomes a single-admin session cookie. All Supabase references below are amended in place.
 **Source:** `vivaahprompt1.docx` + 151 hero-section frames (`videos/heroSection/`)
 **Verdict: the project is possible, and possible for ~₹0/month. The brief originally contained three logic conflicts — all have been decided and resolved (see §2).**
 
@@ -55,13 +56,13 @@ The reference site is on Vercel, but **Vercel's free Hobby tier prohibits commer
 
 1. **Next.js 16 deployed to Cloudflare Workers** via the official **`@opennextjs/cloudflare`** adapter (`npx create-cloudflare` scaffolds it). Free tier: **100,000 requests/day**, 10 ms CPU/request — ample for a single-shop site.
 2. **Render catalogue pages statically (SSG/ISR)** — homepage, rental gallery, retail listings, product pages regenerate on admin edits (on-demand revalidation). Static assets on Cloudflare **don't count against the Workers request quota and have unlimited free bandwidth**, so browsing traffic costs ~nothing; only dynamic actions (booking submission, availability checks, admin, webhooks) invoke Workers.
-3. **Product images**: stored in Supabase Storage but always served through the site's own domain path with **Cloudflare edge caching** (`Cache-Control: immutable`), so Supabase's 5 GB/month egress is barely touched — the CDN absorbs repeat views. Images pre-compressed to WebP/AVIF at upload time (client-side compression in the admin panel, since free Cloudflare has no image-resizing service).
-4. **Cron triggers** (free, 3 schedules): ① Supabase keep-alive ping, ② expire unpaid pending bookings, ③ daily SMS-quota reset / queue flush.
+3. **Product images** (v1.1): stored in **Cloudflare R2** (10 GB free, zero egress fees, commercial OK), served through the site's own domain via the Worker's R2 binding with **Cloudflare edge caching** (`Cache-Control: immutable`). Images pre-compressed to WebP/AVIF at upload time (client-side compression in the admin panel, since free Cloudflare has no image-resizing service).
+4. **Cron triggers** (free, 2 schedules — v1.1: the Supabase keep-alive ping is no longer needed, Neon needs none): ① expire unpaid pending bookings, ② daily SMS-quota reset / queue flush.
 5. **WhatsApp webhook + SMS-gateway callbacks** run as Worker routes on the same deployment — no extra service.
 6. **Domain** (client-purchased, ~₹800/yr): DNS on Cloudflare (free), which also unlocks the free **WAF rate-limiting rule** (§7), automatic HTTPS, and Bot Fight Mode. Deploys via GitHub → Cloudflare CI (free) — push to `main` = live.
 7. **Dev/preview**: every git branch gets a free preview URL (`*.pages.dev`-style), so the client can review changes before they go live.
 
-Fallback option if the OpenNext adapter causes friction during build: split the app — static frontend on Cloudflare Pages + all API logic in plain Workers + Hono. Same free limits, slightly more wiring, zero adapter risk. Supabase's free tier has no commercial restriction, so the backend stack is unaffected either way.
+Fallback option if the OpenNext adapter causes friction during build: split the app — static frontend on Cloudflare Pages + all API logic in plain Workers + Hono. Same free limits, slightly more wiring, zero adapter risk. Neon's free tier has no commercial restriction, so the backend stack is unaffected either way.
 
 ### 2.3 ✅ DECIDED — Payments: UPI QR + UPI number + UPI ID, manual verification (₹0)
 
@@ -75,7 +76,7 @@ The slamdunk site rotates a **3D basketball model** — a sphere is trivial in T
 
 - **Double-booking race condition (✅ confirmed as a requirement):** once an item is booked for a date range, no one else can book it for any overlapping duration. Enforced at the database level with a PostgreSQL `daterange` + **GiST exclusion constraint** (not application-level checks, which have race windows) — the database physically rejects a second overlapping booking even if two customers submit at the same instant. *Pending* bookings (awaiting UPI verification) also hold their dates until they expire, so a slot can't be sniped mid-payment. The availability calendar shows booked/held ranges as unselectable. Includes **buffer days** between bookings for dry-cleaning/alterations — admin-configurable.
 - **Extension charges ambiguity:** "extension of booking duration" needs rules — per-day rate? Only if the item isn't booked next? Extensions must re-check the availability calendar and respect the next booking's start date. Admin sets per-item or global extension rates.
-- **Supabase free tier pauses after 7 days of inactivity** — prevented with a scheduled ping (Cloudflare cron trigger / GitHub Actions, both free). Free tier also has **no automatic backups** — a weekly `pg_dump` via free GitHub Actions solves it.
+- **Neon free tier scale-to-zero (v1.1):** compute suspends after 5 min idle and auto-wakes on the next request (~0.5 s cold start) — no pause/deletion risk, no keep-alive needed. Belt-and-braces backups: a weekly `pg_dump` via free GitHub Actions.
 - **The hero frames carry a "KlingAI 3.0" watermark** (bottom-right) and are 1280×720 — soft on large desktop screens. Crop ~64 px off the bottom-right or overlay a UI element there; optionally upscale to 1080p with Real-ESRGAN (free) before encoding.
 - **Anime aesthetic vs. real inventory:** the hero is anime-style while products are real photos. It works as an intentional artistic identity (and it's beautiful), but the transition from hero to product sections needs a deliberate design bridge (matching colour palette: those marigold oranges, rose pinks, dusk purples) so it doesn't feel like two different websites.
 
@@ -93,15 +94,17 @@ All decisions are locked: (a) **WhatsApp automated** via official Cloud API usin
 |---|---|---|---|
 | Framework | **Next.js 16** (App Router) | — | SSR/ISR for SEO on catalogue pages, API routes, React ecosystem for the 3D/animation work |
 | Hosting | **Cloudflare Workers/Pages** via `@opennextjs/cloudflare` | 100k req/day, free static bandwidth, commercial OK | Only major free host permitting commercial use; global CDN |
-| Database + Auth + Storage | **Supabase** | 500 MB DB, 1 GB storage, 5 GB egress, 50k MAU | Postgres (exclusion constraints for bookings!), Row-Level Security, email auth (⚠️ built-in phone OTP needs paid Twilio — customer phones verified via own SMS gateway / WhatsApp instead, §7), image storage — one service |
+| Database | **Neon Postgres** (v1.1) | 0.5 GB storage, 100 CU-h/mo compute, scale-to-zero | Postgres (exclusion constraints for bookings!), RLS, serverless driver built for Workers, auto-wake — no pause/deletion risk |
+| Image/object storage | **Cloudflare R2** (v1.1) | 10 GB, zero egress fees, commercial OK | Product images, spin frames, site assets; native Worker binding |
+| Admin auth | **App-layer session** (v1.1) | free | Single owner-admin: credentials + secure httpOnly cookie; rate-limited login (§7). Customer phones verified via own SMS gateway / WhatsApp (§7) |
 | Animations | **GSAP + ScrollTrigger** (now 100% free incl. plugins) | — | Scroll-scrubbed hero + section reveals, same as reference site |
 | 3D / 360 viewer | **react-three-fiber + drei** or a lightweight custom canvas frame-scrubber | — | Matches slamdunk approach |
 | Styling | **Tailwind CSS v4** | — | Speed, consistency |
 | Email notifications | **Resend** | 3,000 emails/mo free | Owner booking alerts + customer confirmations |
 | Rate limiting | **Cloudflare WAF free rule** (edge) + **Upstash Redis** (500k cmds/mo) for per-endpoint limits | free | See §7 |
-| Image CDN | Cloudflare cache in front of Supabase storage + WebP/AVIF | free | Keeps Supabase's 5 GB egress from being exhausted |
+| Image CDN | Cloudflare cache in front of R2 + WebP/AVIF | free | R2 egress is already free; cache trims Worker requests |
 | Analytics | **Cloudflare Web Analytics** or **Umami Cloud free** | free | Engagement measurement without cookies |
-| Backups | GitHub Actions weekly `pg_dump` → private repo | free | Covers Supabase free tier's no-backup gap |
+| Backups | GitHub Actions weekly `pg_dump` → private repo | free | Belt-and-braces on top of Neon's short free-tier restore window |
 
 **Cost summary:** ₹0/month infrastructure · domain ~₹800/yr (borne by client) · a spare SIM for the WhatsApp system number · optional: WhatsApp utility templates ~₹0.115/msg outside free windows · SMS ₹0 (client's own number, daily free quota) · payments ₹0 (UPI direct).
 
@@ -170,7 +173,7 @@ Overlay: brand name, tagline, and CTA ("Book your bridal look") fade in via GSAP
                       pricing & charges, site content blocks, banners, settings
 ```
 
-**Database core (Postgres/Supabase):**
+**Database core (Postgres/Neon):**
 `products` (type: rental|retail, category, price, rental_price, prebook_charge, extension_rate, images[], spin_frames[]) · `product_variants` (product_id, colour_name, colour_hex — rendered as the swatch dot, images[], sizes/stock, price_override nullable, is_active) — **retail items always have ≥1 variant** (single-colour items get one default variant, so the storefront and admin logic stay uniform; rentals can use the same table later if lehengas ever come in colour options) · `bookings` (customer, phone, `booked_range daterange`, status: pending→confirmed→picked_up→returned|cancelled, payment_ref, extension_of) · **`booking_items`** (booking_id, product_id, variant_id, **plus `booked_range` and `status` mirrored from the parent booking via trigger** — required for the per-item constraint below) — one booking can hold **a lehenga + bundled jewellery pieces** as separate items sharing the same dates (the brief's "jewellery rented with rental dresses"); each rental item is availability-checked · `categories` · `site_content` (key→JSON blocks for admin-editable copy/banners) · `settings` (buffer days, shop info, charges text) · **exclusion constraint** on `booking_items`: `EXCLUDE USING gist (product_id WITH =, booked_range WITH &&) WHERE (status NOT IN ('cancelled','returned'))` — makes double-booking impossible at the DB level, race-proof, for every item in a bundle.
 
 **Colour-variant behaviour:** the colour filter on listing pages matches against variant colours (a red-and-blue dress appears under both filters); reservations store the variant so the owner knows exactly which colour to keep aside; if a colour sells out it shows as a greyed-out swatch (optionally with "notify me"); admin product form manages variants inline — add a colour, name it, pick the swatch hex, upload that colour's photos, set per-size stock.
@@ -186,7 +189,7 @@ Overlay: brand name, tagline, and CTA ("Book your bridal look") fade in via GSAP
 Three layers of abuse protection:
 1. **Edge:** Cloudflare free plan includes WAF rate-limiting — e.g., max 10 requests/10 s per IP on `/api/*`, plus bot-fight mode. Zero code.
 2. **Application:** Upstash Redis sliding-window limits on sensitive endpoints — booking creation (e.g., 3/hour/phone number), OTP/auth attempts (5/15 min), admin login (5/15 min). Plus **Cloudflare Turnstile** (free, invisible CAPTCHA) on the booking form to stop bots before they hit the API.
-3. **Phone verification without paid SMS providers:** ⚠️ Supabase's built-in phone OTP requires a paid SMS provider (Twilio etc.) — do **not** use it. Instead, verify the customer's number through channels we already own for free: OTP sent via the **owner's Android SMS gateway** (counts against the same daily quota, so it's reserved for rental bookings only), or treat the customer's **WhatsApp CONFIRM message to the system number as implicit verification** (they proved they own that WhatsApp number). Unverified + unpaid pre-bookings auto-expire after an admin-configurable window (e.g., 2 hours) so bots/fakes can't hold inventory.
+3. **Phone verification without paid SMS providers:** ⚠️ never adopt a hosted phone-OTP service (they all need a paid SMS provider — Twilio etc.). Instead, verify the customer's number through channels we already own for free: OTP sent via the **owner's Android SMS gateway** (counts against the same daily quota, so it's reserved for rental bookings only), or treat the customer's **WhatsApp CONFIRM message to the system number as implicit verification** (they proved they own that WhatsApp number). Unverified + unpaid pre-bookings auto-expire after an admin-configurable window (e.g., 2 hours) so bots/fakes can't hold inventory.
 
 ---
 
@@ -201,7 +204,7 @@ Derived from the hero frames' palette — **dusk purple/indigo backgrounds, mari
 | Phase | Scope | Est. effort |
 |---|---|---|
 | **0. Content inputs** | Client answers the remaining §10 questions (rates, policies, catalogue size); domain purchase; 360° photoshoot begins | 1 week (client) |
-| **1. Foundation** | Repo, Next.js + Cloudflare + Supabase setup, schema + RLS + exclusion constraint, auth | 3–4 days |
+| **1. Foundation** | Repo, Next.js + Cloudflare + Neon + R2 setup, schema + RLS + exclusion constraint, admin session auth | 3–4 days |
 | **2. Hero + shell** | Video encode + dual-video hero, nav, footer, theme system, homepage | 3–4 days |
 | **3. Rental engine** | 360 viewer, availability calendar, booking flow (incl. jewellery bundles) + UPI step, booking-status page + extension requests, expiry job | 5–7 days |
 | **4. Retail** | Categories, listings w/ swatch previews, product pages w/ colour-variant selector, reserve-for-pickup flow | 4–5 days |
@@ -273,8 +276,8 @@ These are business-content values that get entered into admin settings — the s
 
 | Risk | Trigger | Mitigation |
 |---|---|---|
-| Supabase project pauses | 7 days no activity | Cron ping (free) |
-| Supabase 5 GB egress exceeded | Image-heavy traffic spike | Cloudflare CDN caching + WebP/AVIF + lazy-load |
+| Neon cold start (~0.5 s) | First request after 5 min idle | Acceptable for a shop site; catalogue pages are static anyway (v1.1 — replaces the Supabase pause/deletion risk, which needed a cron ping) |
+| Neon 0.5 GB DB storage exceeded | Catalogue growth | Images live in R2, DB holds text/ranges only — headroom is large; monitor in Neon console |
 | Cloudflare 100k req/day exceeded | ~viral traffic | Static-render catalogue pages (don't hit Workers per view) |
 | No DB backups on free tier | Data loss | Weekly GitHub Actions `pg_dump` |
 | Customer never taps "Get confirmation on WhatsApp" | No free service window opens | SMS (guaranteed channel) + optional auto utility template (₹0.115), admin-toggleable |
