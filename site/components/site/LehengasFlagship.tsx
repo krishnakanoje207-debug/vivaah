@@ -1,81 +1,151 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Reveal } from "@/components/site/Reveal";
+
+gsap.registerPlugin(ScrollTrigger);
 
 /**
  * Lehengas flagship — full-viewport immersive homepage "room" (CATEGORY_IMMERSION_PLAN W4).
- * The deliberate LIGHT counterpart to the dark SareesFlagship room: the owner's real
- * lahenga1 turntable frame on a seamless near-white porcelain stage with a studio
- * vignette. Copy is right-anchored (the saree room is left-anchored) so the two read
- * as two curated rooms, not a repeated component. CTA is the light-surface primary —
- * violet-800 / porcelain-50 (§1 roles), NOT gold — a second point of contrast with W3.
- *
- * Motion: a slow Ken Burns breathe on the frame (SpinViewer's 88-frame preload would be
- * over-engineered for an ambient section). The animation is transform-only and applied
- * via `motion-safe:`, so prefers-reduced-motion shows the static frame with copy visible.
+ * Redesigned as a DARK immersive room (matching var_0486628442ff) with background video 
+ * and the "Fluid" transformation idiom.
+ * 
+ * This section acts as the regal bridal vault, using deep violet tones and gold 
+ * accents to contrast with the airy rental collection. It mirrors the transformation
+ * behavior of the Saree room but with right-anchored copy to maintain the room-to-room
+ * editorial narrative.
  */
 export function LehengasFlagship() {
-  return (
-    <section className="relative isolate flex min-h-[100svh] items-center overflow-hidden bg-porcelain-50 text-ink-900">
-      {/* Transform-only Ken Burns; gated by motion-safe (reduced-motion → static frame). */}
-      <style>{`@keyframes lf-kenburns{from{transform:scale(1.04)}to{transform:scale(1.12)}}`}</style>
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-      {/* Full-bleed porcelain stage — garment on seamless near-white ground */}
-      <div className="absolute inset-0 -z-10 overflow-hidden bg-stage" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/rentals/lahenga1/360/020.webp"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover object-[38%_center] motion-safe:[animation:lf-kenburns_26s_ease-in-out_infinite_alternate]"
-          style={{ filter: "contrast(1.06) saturate(1.08)" }}
-        />
-        {/* Studio vignette — whisper of edge fall-off; never touches the garment */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(125% 100% at 42% 46%, transparent 68%, color-mix(in srgb, var(--color-ink-900) 7%, transparent))",
-          }}
-        />
-        {/* Porcelain scrim — clear over the garment (left/centre), opaque only under the
-            right-anchored copy where it blends with the empty stage. */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to left, var(--color-porcelain-50) 0%, color-mix(in srgb, var(--color-porcelain-50) 82%, transparent) 32%, transparent 60%)",
-          }}
-        />
+  useEffect(() => {
+    const container = containerRef.current;
+    const media = mediaRef.current;
+    const content = contentRef.current;
+    const video = videoRef.current;
+    if (!container || !media) return;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      // Static full-bleed layout is the correct reduced state — skip the
+      // scale/round/fade scrub entirely and don't autoplay the background video.
+      video?.pause();
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      // Fluid Hero Transformation: scale-down and round-off
+      gsap.to(media, {
+        scrollTrigger: {
+          trigger: container,
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        },
+        scale: 0.6,
+        borderRadius: "24px",
+        y: "20vh",
+        opacity: 0.4,
+        ease: "none",
+      });
+
+      // Content fade-out parallax
+      if (content) {
+        gsap.to(content, {
+          scrollTrigger: {
+            trigger: container,
+            start: "top top",
+            end: "40% top",
+            scrub: true,
+          },
+          opacity: 0,
+          y: -60,
+          ease: "none",
+        });
+      }
+    }, container);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section 
+      ref={containerRef}
+      id="lehengas-flagship"
+      className="on-dark relative flex h-[110svh] flex-col items-center justify-center overflow-hidden bg-violet-950 text-porcelain-50 text-center isolate"
+    >
+      {/* Background Media: Immersive Video Transformation */}
+      <div 
+        ref={mediaRef}
+        className="absolute inset-0 -z-10 overflow-hidden will-change-transform" 
+        aria-hidden="true"
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/rentals/lahenga1/360/020.webp"
+          preload="metadata"
+          className="h-full w-full object-cover opacity-60"
+        >
+          <source src="/hero/hero-intro.mp4" type="video/mp4" />
+        </video>
+        
+        {/* Deep vault scrims */}
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/40 via-transparent to-violet-950/80" />
+        <div className="absolute inset-0 bg-violet-950/10" />
       </div>
 
-      <div className="shell flex w-full justify-end py-28 md:py-36">
-        <Reveal className="max-w-xl md:text-right">
-          <p data-reveal className="eyebrow">
-            Rentals · Bridal Lehengas
+      {/* Hero Content */}
+      <div 
+        ref={contentRef}
+        className="relative z-10 shell py-20"
+      >
+        <Reveal>
+          <p data-reveal className="eyebrow on-dark mb-8">
+            Rentals · The Bridal Vault
           </p>
-          <span
-            data-reveal
-            aria-hidden="true"
-            className="mt-6 block h-px w-24 bg-gold-500/70 md:ml-auto"
-          />
-          <h2 data-reveal className="mt-6 text-h2 leading-[1.1]">
-            A lehenga made for your <em className="italic">brightest</em> day.
-          </h2>
-          <p
-            data-reveal
-            className="mt-7 max-w-md text-ink-600 leading-relaxed text-[1.0625rem] md:ml-auto"
-          >
-            Hand-embroidered ghagras and heirloom dupattas, shown on the studio stage —
-            reserved online for your date, collected in person at the shop.
+          <h1 data-reveal data-delay="0.1" className="text-6xl md:text-8xl max-w-4xl mx-auto leading-[1.1] font-display font-[340]">
+            The lehenga, <br />
+            <em className="italic text-gold-500 font-[400]">reimagined</em>.
+          </h1>
+          <p data-reveal data-delay="0.2" className="mt-10 max-w-md mx-auto text-violet-100/80 leading-relaxed text-[1.125rem]">
+            Hand-embroidered ghagras and heirloom dupattas — reserved online
+            for your date, collected in person at our boutique.
           </p>
-          <div data-reveal className="mt-10">
+          <div data-reveal data-delay="0.3" className="mt-14 flex flex-wrap items-center justify-center gap-6">
             <Link
               href="/rentals?category=bridal-lehengas"
-              className="inline-flex items-center justify-center rounded-[10px] bg-violet-800 px-8 py-3.5 font-semibold text-porcelain-50 transition-colors hover:bg-violet-700"
+              className="inline-flex items-center justify-center rounded-[10px] bg-gold-500 px-10 py-4 font-semibold text-violet-950 transition-all duration-300 hover:bg-gold-600 hover:text-white"
             >
               Explore lehenga rentals
             </Link>
+            <Link
+              href="/visit"
+              className="inline-flex items-center justify-center rounded-[10px] border border-porcelain-50/30 px-10 py-4 font-semibold text-porcelain-50 transition-all duration-300 hover:bg-white/5"
+            >
+              Visit the shop
+            </Link>
           </div>
         </Reveal>
+      </div>
+
+      {/* Dusk Veil Transition */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-porcelain-50 to-transparent pointer-events-none" />
+      
+      {/* Scroll Seam Ornament */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-xs opacity-40">
+        <div className="ornament">
+          <span className="text-[0.625rem]">✦</span>
+        </div>
       </div>
     </section>
   );
