@@ -1,0 +1,28 @@
+// Kombai Tech Stack Configuration
+// Each value must be a string or an array of strings.
+// Example: "Framework": "Vite" or "Project Type": ["React", "Vue"]
+{
+  "Router": [
+    "Built-In",
+    "Expo Router",
+    "Vue Router",
+    "React Navigation",
+    "App Router",
+    "Pages Router"
+  ],
+  "TS/JS": [
+    "TS",
+    "JS"
+  ],
+  "Build Tool": "Vite",
+  "Framework": [
+    "Vite",
+    "NextJS 15",
+    "NextJS 14",
+    "NextJS 16"
+  ],
+  "Project Type": [
+    "Vanilla JS",
+    "React"
+  ]
+}

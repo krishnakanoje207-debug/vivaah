@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { CategoryTiles } from "@/components/site/CategoryTiles";
 import { Ornament } from "@/components/site/Ornament";
+import { CuratedMoment } from "@/components/site/CuratedMoment";
 import { RETAIL_CATEGORIES } from "@/lib/categories";
 
 export const metadata: Metadata = {
@@ -10,28 +12,43 @@ export const metadata: Metadata = {
     "Shop our permanent collection of party wear suits, one-piece dresses, and co-ord sets. Reserve your silhouette online and collect in-store.",
 };
 
-export default function RetailPage() {
+export default async function RetailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category: slug } = await searchParams;
+  const category = slug ? RETAIL_CATEGORIES.find((c) => c.slug === slug) : undefined;
+
   return (
-    <section className="bg-porcelain-50 pt-32 pb-32 md:pt-44">
+    <>
+      {category && <CuratedMoment category={category} />}
+      <section className="bg-porcelain-50 pt-32 pb-32 md:pt-44">
       <div className="shell">
-        <div className="text-center max-w-4xl mx-auto">
-          <Reveal>
-            <p data-reveal className="eyebrow">
-              The Boutique Collection
-            </p>
-            <h1 data-reveal className="mt-6 text-h1 leading-[1.05] tracking-tight">
-              Curated for your <em className="italic text-gold-600">lifestyle</em>
-            </h1>
-            <p data-reveal className="mt-10 text-ink-600 text-[1.125rem] leading-relaxed max-w-2xl mx-auto">
-              From day-wear elegance to festive soirées. Browse by silhouette, reserve your size and color online, and collect your permanent pieces at our boutique.
-            </p>
-          </Reveal>
-        </div>
+        {/* Header Section — suppressed while a category filter is active
+            (the CuratedMoment hero above stands in for it) */}
+        {!category && (
+          <>
+            <div className="text-center max-w-4xl mx-auto">
+              <Reveal>
+                <p data-reveal className="eyebrow">
+                  The Boutique Collection
+                </p>
+                <h1 data-reveal className="mt-6 text-h1 leading-[1.05] tracking-tight">
+                  Curated for your <em className="italic text-gold-600">lifestyle</em>
+                </h1>
+                <p data-reveal className="mt-10 text-ink-600 text-[1.125rem] leading-relaxed max-w-2xl mx-auto">
+                  From day-wear elegance to festive soirées. Browse by silhouette, reserve your size and color online, and collect your permanent pieces at our boutique.
+                </p>
+              </Reveal>
+            </div>
 
-        <Ornament className="mt-20 mx-auto max-w-sm opacity-25" />
+            <Ornament className="mt-20 mx-auto max-w-sm opacity-25" />
+          </>
+        )}
 
-        {/* Categories Section */}
-        <div className="mt-24">
+        {/* Categories Section (doubles as filter nav) */}
+        <div id="collection" className={category ? "" : "mt-24"}>
           <Reveal>
             <div data-reveal className="flex items-end justify-between gap-6 border-b border-porcelain-200 pb-8 mb-16">
               <div>
@@ -49,18 +66,27 @@ export default function RetailPage() {
           </Reveal>
         </div>
 
-        {/* Phase 1 Messaging — Elevated Placeholder */}
+        {/* Phase 1 Messaging — Elevated Placeholder (category-named while filtered) */}
         <div className="mt-32 pt-24 border-t border-porcelain-200 text-center">
           <Reveal>
             <div data-reveal className="max-w-xl mx-auto py-12 px-8 bg-porcelain-100/30 arch border border-porcelain-200/40">
               <span className="text-gold-500 text-2xl block mb-6">✦</span>
               <p className="font-display text-[1.35rem] text-ink-900/60 leading-relaxed italic">
-                "Our digital inventory and swatch selection for the retail collection is arriving soon. Visit us in-person to browse the complete ensemble."
+                {category ? (
+                  <>
+                    "Our {category.name.toLowerCase()} are arriving to the site soon. The rack is already at the shop — <Link href="/visit" className="not-italic text-gold-600 underline decoration-gold-500/40 underline-offset-4 hover:decoration-gold-600">visit us</Link> to browse this collection in person."
+                  </>
+                ) : (
+                  <>
+                    "Our digital inventory and swatch selection for the retail collection is arriving soon. Visit us in-person to browse the complete ensemble."
+                  </>
+                )}
               </p>
             </div>
           </Reveal>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }

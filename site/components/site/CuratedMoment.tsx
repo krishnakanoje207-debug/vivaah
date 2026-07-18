@@ -1,0 +1,107 @@
+import { Reveal } from "@/components/site/Reveal";
+import type { Category } from "@/lib/categories";
+
+/**
+ * "Curated for your moment" — full-viewport category hero for a filtered view
+ * (CATEGORY_IMMERSION_PLAN W5). Fluid Saree art direction, mirrored from
+ * SareesFlagship: the category's own image full-bleed under a directional violet
+ * scrim, left-anchored copy with the category name as the H1-scale Fraunces italic
+ * display heading, a short per-category blurb, and one gold-500 / violet-950 pill
+ * CTA (§1 poster pairing) anchoring down to the product grid. It stands in for the
+ * page header while a category filter is active, so it lifts cleanly into a real
+ * category landing hero if per-category routes ever ship.
+ *
+ * Static (no client JS): the Reveal wrapper carries the GSAP fade; under
+ * prefers-reduced-motion Reveal renders the final state immediately.
+ */
+
+// Per-category supporting copy (1–2 sentences). Keyed by the load-bearing slug —
+// covers every rental + retail category, so the section reads for any matched filter.
+const COPY: Record<string, string> = {
+  // Rentals
+  "bridal-lehengas":
+    "The centrepiece of your wedding day — hand-worked lehengas in zardozi, gota, and real zari, reserved for your date and yours alone.",
+  "side-lehengas":
+    "For the sisters, the cousins, the closest friends — festive lehengas that hold their own beside the bride without ever competing.",
+  "indo-western":
+    "Where the drape meets the silhouette. Fusion pieces for the sangeet, the cocktail, the moment you want to move.",
+  "ready-to-wear-sarees":
+    "The grace of a saree, pre-draped and ready in minutes — pinned to perfection so you arrive composed, never rushed.",
+  "rajasthani-poshak":
+    "Heritage from the desert courts — mirror, bandhani, and gota in the poshak your festivities were made for.",
+  "chaniya-cholis":
+    "Twirl-ready for Navratri and every garba night — layered ghagras that catch the light with each turn.",
+  gowns:
+    "Floor-sweeping drama for receptions and evenings out — sculpted gowns that make an entrance before you say a word.",
+  sarees:
+    "Six yards of ceremony — Banarasi weaves, festive georgettes, and heirloom drapes for the days you will remember longest.",
+  // Retail
+  "three-piece-suits":
+    "Suit, dupatta, and bottoms in considered harmony — festive sets you will reach for season after season.",
+  "party-wear-suits":
+    "For the evening that calls for a little shimmer — embellished suits made to be seen, and kept.",
+  "one-piece":
+    "Effortless from afternoon to evening. One-piece silhouettes that ask for nothing but you.",
+  "short-kurtis":
+    "Everyday ease with an eye for detail — short kurtis that pair with whatever already lives in your wardrobe.",
+  "co-ord-sets":
+    "Two pieces, one intention. Coordinated sets that do the styling for you.",
+  "night-suits":
+    "The soft landing at the end of a long day — night sets in breathable cottons and quiet prints.",
+  "kurta-pant-sets":
+    "The dependable two-piece — kurta and pant in easy proportions for work, errands, and everything in between.",
+  kaftans:
+    "Unhurried elegance — flowing kaftans for warm days, slow evenings, and celebrations at home.",
+};
+
+export function CuratedMoment({ category }: { category: Category }) {
+  return (
+    <section className="on-dark grain relative isolate flex min-h-[100svh] items-center overflow-hidden bg-violet-950 text-porcelain-50">
+      {/* Full-bleed category image + violet grade for AA on the left copy column */}
+      <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        {category.image && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={category.image}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-[72%_center] md:object-[center_28%]"
+          />
+        )}
+        {/* Overall violet grade to unify the frame with the brand palette */}
+        <div className="absolute inset-0 bg-violet-950/30" />
+        {/* Directional scrim — darkest under the left-anchored copy */}
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-950/90 via-violet-950/55 to-violet-950/20" />
+      </div>
+
+      <div className="shell w-full py-28 md:py-36">
+        <Reveal className="max-w-xl">
+          <p data-reveal className="eyebrow on-dark">
+            Curated for your moments
+          </p>
+          <span
+            data-reveal
+            aria-hidden="true"
+            className="mt-6 block h-px w-24 bg-gold-500/70"
+          />
+          <h1 data-reveal className="mt-6 text-h1 text-porcelain-50 leading-[1.05]">
+            <em className="italic">{category.name}</em>
+          </h1>
+          <p
+            data-reveal
+            className="mt-7 max-w-md text-violet-100 leading-relaxed text-[1.0625rem]"
+          >
+            {COPY[category.slug]}
+          </p>
+          <div data-reveal className="mt-10">
+            <a
+              href="#collection"
+              className="inline-flex items-center justify-center rounded-[10px] bg-gold-500 px-8 py-3.5 font-semibold text-violet-950 transition-colors hover:bg-gold-600 hover:text-porcelain-50"
+            >
+              View the collection
+            </a>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}

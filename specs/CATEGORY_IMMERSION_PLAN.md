@@ -14,6 +14,9 @@ Known landmarks (verified 17 Jul):
 
 ## Work items
 
+### W0 — Revert homepage hero to full-bleed (owner decision 17 Jul) — **added 17 Jul**
+Owner: the Kombai 60/40 split hero "looks messy" — restore the **Preview 1 full-bleed hero** (`Hero.tsx` as of commit `efe43b4`: media stack absolute behind overlaid copy, R1.1 autoplay-retry + no-flash loop swap, reduced-motion still). Resolves the §5a split-vs-full-bleed open item: **full-bleed**. ⚠️ The Kombai pass also touched `Nav.tsx` (over-dark detection) and `page.tsx`; keep the old hero's copy (not Kombai's "bridal glow" voice). *(Correction 18 Jul: the restored hero DOES carry `-mt-16` — the seam was screenshot-verified clean with Nav's over-dark detection, so this is fine as shipped.)*
+
 ### W1 — /visit + /policies re-skin (Claude, no credits) — *option 3, my half*
 Match the shipped Editorial Luxe idiom: editorial headers with Fraunces italics, gold hairlines, arch map frame on /visit, staggered rhythm. No logic changes. /visit also hosts "Book a trial" targets from the hero + nav — keep anchors working.
 
@@ -23,8 +26,8 @@ One page-scoped Kombai task; reuse the master-prompt constraints from this sessi
 ### W3 — Sarees flagship section — **Fluid Saree template**
 A full-viewport (100svh) immersive homepage section for sarees, harvested from the Fluid Saree variant: its softer/fluid art direction, gold-pill CTA, italic display headings. Placement: after featured rentals, before how-it-works. CTA → `/rentals?category=sarees` (slug is load-bearing). Imagery: owner photography or WAN-generated stills only.
 
-### W4 — Lehengas flagship section — **Editorial Luxe + video, "fully immersed"**
-The shipped 60/40 split-hero treatment (video block + editorial copy column + gold hairline separator) repurposed as a 100svh homepage section for lehengas. **Video dependency**: generate a lehenga beauty clip via **WAN 2.1 I2V on free Colab** (`tools/wan_i2v_colab.ipynb`) seeded from the owner's real lahenga1 frames (`videos/lahenga1/`) — brand-accurate, ₹0, no stock. Encode play-once→ping-pong per IMPLEMENTATION_PLAN §5 (same as hero). GTX 1650 never renders locally. CTA → `/rentals?category=bridal-lehengas`.
+### W4 — Lehengas flagship section — **full-bleed video, "fully immersed"**
+**(Re-art-directed 17 Jul twice: owner rejected the 60/40 split as "messy" — see W0 — and retired ALL WAN/Colab generation. No video dependency.)** Full-bleed 100svh homepage section for lehengas built on the **owner's real lahenga1 frames** (the watermark-cleaned viewer frames — brand-accurate, actual inventory, ₹0): a light **porcelain stage room** (the reference look the owner loves — garment on seamless near-white stage, studio vignette) as deliberate contrast to W3's dark saree room. Motion: subtle only (slow Ken Burns scale, or the SpinViewer's pendulum in auto mode if trivially reusable — no new media generation). CTA → `/rentals?category=bridal-lehengas`.
 Ordering: W3 (sarees) then W4 (lehengas) back-to-back but with distinct art direction so they read as two curated rooms, not a repeated component.
 
 ### W5 — "Curated for your moment" section on each category page
@@ -32,6 +35,7 @@ Categories are **query-param filters** on /rentals and /retail (no per-category 
 
 ### W6 — "Browse by category" big-card section on the homepage
 **(User corrected 17 Jul: category cards, not occasion cards.)** Use the Fluid Saree big-card treatment (kids `4-2-*` show the pattern: full-image cards, porcelain-50 display titles, dark scrims) but populate with **categories**, arch tops per §3b, links `/rentals?category=…` / `/retail?category=…`.
+**Implementation approved 18 Jul** — shipped as two horizontal scroll-rails (rent/own) of arch cards rather than a big-card grid; owner reviewed and approved ("category showcase is alright") — do not rework toward the canvas big-card layout.
 **Thumbnails: DONE 17 Jul** — all 16 categories have self-hosted images in `site/public/categories/<slug>.jpg` (660×880, 3:4). Curated from the Kombai canvas image pool (11) + Pexels API search (5: short-kurtis, co-ord-sets, night-suits, kurta-pant-sets, kaftans). Licenses + source URLs in `public/categories/SOURCES.md`; user explicitly approved stock-as-placeholder, overriding §7 — swap for owner photography later. The gallery-page arch tiles already render them via `Category.image`.
 
 ## Order & verification

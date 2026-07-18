@@ -15,3 +15,7 @@ node_modules/
 
 # Scratch / temp
 /scratch/
+
+# Stock hero film intermediates (~190M; final outputs live in site/public/hero/)
+/videos/heroFilm_stock/raw/
+/videos/heroFilm_stock/seg/

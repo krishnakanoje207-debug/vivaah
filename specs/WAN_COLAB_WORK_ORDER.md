@@ -1,5 +1,7 @@
 # WAN Colab Work Order — Vivaah Hero Film (4 shots)
 
+> **⚠️ SUPERSEDED 17 Jul 2026 — owner decision.** The WAN takes (10/11 generated, on Drive) were judged unusable ("as worse as it can") and the owner is done generating. The hero film is now composed from **Pexels stock clips** (owner-picked + curated, women-only, free commercial license) run through the same compose pipeline (§9: trim → violet/gold grade → 720p → play-once + ping-pong-loop encode). Clip list + licenses: `videos/heroFilm_stock/SOURCES.md`. §8-9 of this doc remain the compose reference; §§0-7 (generation) are historical.
+
 **Goal:** generate the 4 shots of the new homepage hero film on a **free Google Colab T4 GPU**, at **₹0**, then hand the raw clips back to OpenMontage, which does all the finishing (best-take pick, brand color grade, upscale to 1280×720, and the play-once-then-ping-pong-loop encode).
 
 This work order was produced by the OpenMontage `cinematic` pipeline (research → proposal → script → scene, all checkpointed under `D:\OpenMontage\projects\vivaah-hero\`). The creative source of truth is `specs/HERO_VIDEO_BRIEF.md`; this document is the executable hand-off.

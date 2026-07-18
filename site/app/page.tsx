@@ -3,18 +3,18 @@ import { Hero } from "@/components/site/Hero";
 import { Reveal } from "@/components/site/Reveal";
 import { Ornament } from "@/components/site/Ornament";
 import { Button } from "@/components/ui/Button";
-import { OCCASIONS, SHOP } from "@/lib/site";
+import { SHOP } from "@/lib/site";
 import { featuredRentals } from "@/lib/rentals";
 import { RentalCard } from "@/components/site/RentalCard";
-import { RETAIL_CATEGORIES } from "@/lib/categories";
+import { CategoryShowcase } from "@/components/site/CategoryShowcase";
+import { SareesFlagship } from "@/components/site/SareesFlagship";
+import { LehengasFlagship } from "@/components/site/LehengasFlagship";
 
 const STEPS = [
   { n: "01", t: "Reserve your look", d: "Discover pieces that speak to you and secure your dates online. Our calendar tracks availability in real time." },
   { n: "02", t: "Secure with UPI", d: "Pay a small advance to hold your bridal or festive ensemble. Once reserved, your dates are locked." },
   { n: "03", t: "Final collection", d: "Visit our boutique for a personal fitting, collect your outfit, and return it after your celebration." },
 ];
-
-const RETAIL_TEASER = RETAIL_CATEGORIES.slice(0, 3);
 
 export default function Home() {
   return (
@@ -55,6 +55,12 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Sarees flagship — full-viewport immersive room (CATEGORY_IMMERSION_PLAN W3) */}
+      <SareesFlagship />
+
+      {/* Lehengas flagship — light porcelain-stage room (CATEGORY_IMMERSION_PLAN W4) */}
+      <LehengasFlagship />
+
       {/* How it works — Refined horizontal timeline */}
       <section className="bg-porcelain-100 py-24 md:py-40">
         <div className="shell">
@@ -86,72 +92,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Occasions — Organic scatter grid for female events */}
-      <section className="bg-porcelain-50 py-24 md:py-36">
-        <div className="shell text-center">
-          <Reveal>
-            <p data-reveal className="eyebrow">
-              Curated moments
-            </p>
-            <h2 data-reveal className="mt-4 text-h2">
-              Browse by <em className="italic">occasion</em>
-            </h2>
-            <div data-reveal className="mt-16 flex flex-wrap justify-center gap-x-5 gap-y-5 max-w-3xl mx-auto">
-              {OCCASIONS.map((o, i) => (
-                <Link
-                  key={o}
-                  href={`/rentals?occasion=${o.toLowerCase()}`}
-                  className={`inline-flex rounded-full border border-porcelain-200 bg-porcelain-100 px-8 py-3.5 text-[1rem] text-ink-900 transition-all hover:border-gold-600 hover:bg-porcelain-50 hover:shadow-card ${
-                    i % 4 === 1 ? "md:-translate-y-3" : i % 4 === 3 ? "md:translate-y-3" : ""
-                  }`}
-                >
-                  {o}
-                </Link>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Retail strip — Jharokha arch categories */}
-      <section className="bg-porcelain-100 py-24 md:py-36">
-        <div className="shell">
-          <Reveal>
-            <div data-reveal className="flex flex-wrap items-end justify-between gap-6">
-              <div>
-                <p className="eyebrow">Beyond the rental</p>
-                <h2 className="mt-4 text-h2">The boutique, to <em className="italic">own</em></h2>
-              </div>
-              <Link
-                href="/retail"
-                className="text-[0.9375rem] font-medium text-gold-600 hover:underline underline-offset-8"
-              >
-                Shop the permanent collection →
-              </Link>
-            </div>
-          </Reveal>
-          <Reveal className="mt-16 grid gap-10 sm:grid-cols-3">
-            {RETAIL_TEASER.map((c) => (
-              <Link key={c.slug} href={`/retail?category=${c.slug}`} data-reveal className="group block">
-                <div className="arch relative flex aspect-[4/3] items-end overflow-hidden bg-stage shadow-card transition-all duration-500 group-hover:shadow-lift group-hover:-translate-y-1">
-                  <div
-                    className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.03]"
-                    style={{
-                      background:
-                        "linear-gradient(165deg, var(--color-porcelain-100) 0%, var(--color-porcelain-200) 100%)",
-                    }}
-                    aria-hidden="true"
-                  />
-                  <div className="absolute inset-0 bg-violet-950/5 group-hover:opacity-0 transition-opacity" />
-                  <span className="relative m-8 font-display text-[1.75rem] text-ink-900 leading-tight">
-                    {c.name}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </Reveal>
-        </div>
-      </section>
+      {/* Browse by category — two big-card rails (rent / own), CATEGORY_IMMERSION_PLAN W6 */}
+      <CategoryShowcase />
 
       {/* Visit — Dark editorial bookend split */}
       <section className="on-dark grain bg-violet-900 py-28 md:py-40 text-porcelain-50">
