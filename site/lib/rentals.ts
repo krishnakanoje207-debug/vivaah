@@ -1,4 +1,9 @@
+// Rental catalogue reads — SERVER CODE ONLY (imports lib/dbPublic, the
+// app_public RLS connection). Keep imports of this file in server components.
+import { cache } from "react";
 import type { SpinConfig } from "@/components/site/SpinViewer";
+import { sqlPublic } from "@/lib/dbPublic";
+import { RENTAL_CATEGORIES, type Category } from "@/lib/categories";
 
 export type Review = {
   name: string;
@@ -15,11 +20,11 @@ export type Rental = {
   category: string; // rental category slug (lib/categories.ts)
   colourName: string;
   colourHex: string;
-  pricePerDay: number | null; // sample rates — real ones set in admin (Phase 1)
-  prebook: number | null;
+  pricePerDay: number | null; // rental_price
+  prebook: number | null; // prebook_charge
   spin: SpinConfig | null; // null until turntable frames exist
   description: string;
-  reviews: Review[]; // stub sample reviews until Phase 2 submission ships
+  reviews: Review[];
 };
 
 // Even-spaced frame stills for the swipeable gallery (front → back).
@@ -28,86 +33,145 @@ export function galleryFrames(spin: SpinConfig, n = 5): string[] {
   return idx.map((i) => `${spin.basePath}/${String(i).padStart(spin.pad, "0")}.${spin.ext}`);
 }
 
-// Mirrors site/public/rentals/lahenga1/360/metadata.json. All 87 frames
-// (2.6°/frame → smooth swing), FULL uncropped 1280×720 frame (watermark painted out).
-const LAHENGA1_SPIN: SpinConfig = {
-  basePath: "/rentals/lahenga1/360",
-  count: 87,
-  ext: "webp",
-  pad: 3,
-  width: 1280,
-  height: 720,
-  arcDegrees: 225,
-  loop: false,
-};
-
-export const RENTALS: Rental[] = [
-  {
-    slug: "sage-rose",
-    name: "Sage Rose",
-    note: "Hand-embroidered net",
-    occasion: "Reception",
-    category: "bridal-lehengas",
-    colourName: "Sage green",
-    colourHex: "#b7c9a8",
-    pricePerDay: 2500,
-    prebook: 1500,
-    spin: LAHENGA1_SPIN,
-    description:
-      "A soft sage-green lehenga in embroidered net, with pastel floral thread-work and a scalloped hem. The sheer dupatta carries the same delicate motifs — an unhurried, romantic look for receptions and sangeets.",
-    reviews: [
-      {
-        name: "Ananya R.",
-        rating: 5,
-        body: "Rented this for my reception — even lovelier in person, and the fit was perfect after a quick alteration at the shop.",
-        verified: true,
-      },
-      {
-        name: "Priya M.",
-        rating: 5,
-        body: "The embroidery is so delicate. Being able to spin it online before visiting saved me so much time.",
-        verified: true,
-      },
-      {
-        name: "Simran K.",
-        rating: 4,
-        body: "Beautiful colour and drape. Booking and pickup were smooth.",
-        verified: false,
-      },
-    ],
-  },
-  {
-    slug: "ivory-indo-western",
-    name: "Ivory Indo-Western",
-    note: "Cape drape",
-    occasion: "Sangeet",
-    category: "indo-western",
-    colourName: "Ivory",
-    colourHex: "#efe9dd",
-    pricePerDay: null,
-    prebook: null,
-    spin: null,
-    description: "Photography in progress. This piece will get its own turntable view soon.",
-    reviews: [],
-  },
-  {
-    slug: "midnight-gown",
-    name: "Midnight Gown",
-    note: "Sequin bodice",
-    occasion: "Reception",
-    category: "gowns",
-    colourName: "Midnight violet",
-    colourHex: "#2f1e4d",
-    pricePerDay: null,
-    prebook: null,
-    spin: null,
-    description: "Photography in progress. This piece will get its own turntable view soon.",
-    reviews: [],
-  },
-];
-
-export const featuredRentals = RENTALS.slice(0, 3);
-export const getRental = (slug: string) => RENTALS.find((r) => r.slug === slug);
-
 export const formatINR = (n: number) =>
   new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
+
+// The DB `spin` jsonb is the admin/canonical shape (specs/schema.sql:65); the
+// SpinViewer wants the fuller SpinConfig. The extra render fields (ext/pad/
+// width/height) are fixed turntable-pipeline conventions — every frame set is
+// 3-pad webp at 1280×720 (see any /public/rentals/*/360/metadata.json) — so we
+// default them here rather than store them per product.
+type DbSpin = { basePath: string; frames: number; arcDegrees: number; loop: boolean };
+
+function toSpinConfig(s: DbSpin | null): SpinConfig | null {
+  if (!s || !s.basePath || !s.frames) return null;
+  return {
+    basePath: s.basePath,
+    count: s.frames,
+    ext: "webp",
+    pad: 3,
+    width: 1280,
+    height: 720,
+    arcDegrees: s.arcDegrees,
+    loop: s.loop,
+  };
+}
+
+const numOrNull = (v: string | null): number | null => (v == null ? null : Number(v));
+const titleCase = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : "");
+
+// One product row shared by the list + detail queries (reviews joined separately).
+type ProductRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: { en?: string; hi?: string } | null;
+  occasions: string[] | null;
+  spin: DbSpin | null;
+  rental_price: string | null;
+  prebook_charge: string | null;
+  category_slug: string | null;
+  colour_name: string | null;
+  colour_hex: string | null;
+};
+
+function toRental(r: ProductRow, reviews: Review[]): Rental {
+  const occasion = titleCase(r.occasions?.[0] ?? "");
+  return {
+    slug: r.slug,
+    name: r.name,
+    note: occasion,
+    occasion,
+    category: r.category_slug ?? "",
+    colourName: r.colour_name ?? "",
+    colourHex: r.colour_hex ?? "#efe9dd",
+    pricePerDay: numOrNull(r.rental_price),
+    prebook: numOrNull(r.prebook_charge),
+    spin: toSpinConfig(r.spin),
+    description: r.description?.en ?? "",
+    reviews,
+  };
+}
+
+// Active rental products, optionally filtered to one category slug. List cards
+// never render reviews, so those are left empty here (loaded only per product).
+export async function getRentals(categorySlug?: string): Promise<Rental[]> {
+  const rows = await sqlPublic<ProductRow>`
+    select p.id, p.slug, p.name, p.description, p.occasions, p.spin,
+           p.rental_price, p.prebook_charge,
+           c.slug as category_slug,
+           v.colour_name, v.colour_hex
+      from products p
+      left join categories c on c.id = p.category_id
+      left join lateral (
+        select colour_name, colour_hex from product_variants
+         where product_id = p.id and is_active
+         order by created_at limit 1
+      ) v on true
+     where p.type = 'rental' and p.is_active
+       and (${categorySlug ?? null}::text is null or c.slug = ${categorySlug ?? null})
+     order by p.created_at`;
+  return rows.map((r) => toRental(r, []));
+}
+
+export async function getFeaturedRentals(): Promise<Rental[]> {
+  return (await getRentals()).slice(0, 3);
+}
+
+// One product + its approved reviews. Wrapped in cache() so generateMetadata and
+// the page component share a single round-trip per request. Null → 404.
+export const getRental = cache(async (slug: string): Promise<Rental | null> => {
+  const rows = await sqlPublic<ProductRow>`
+    select p.id, p.slug, p.name, p.description, p.occasions, p.spin,
+           p.rental_price, p.prebook_charge,
+           c.slug as category_slug,
+           v.colour_name, v.colour_hex
+      from products p
+      left join categories c on c.id = p.category_id
+      left join lateral (
+        select colour_name, colour_hex from product_variants
+         where product_id = p.id and is_active
+         order by created_at limit 1
+      ) v on true
+     where p.type = 'rental' and p.is_active and p.slug = ${slug}`;
+  const row = rows[0];
+  if (!row) return null;
+
+  const reviewRows = await sqlPublic<{
+    customer_name: string;
+    rating: number;
+    body: string;
+    verified: boolean;
+  }>`
+    select customer_name, rating, body, (booking_id is not null) as verified
+      from reviews
+     where product_id = ${row.id} and is_approved
+     order by created_at desc`;
+
+  const reviews: Review[] = reviewRows.map((r) => ({
+    name: r.customer_name,
+    rating: r.rating,
+    body: r.body,
+    verified: r.verified,
+  }));
+  return toRental(row, reviews);
+});
+
+// Active rental categories (from the categories table, sort_order), enriched
+// with the curated local thumbnail + a live active-product count for the tiles.
+export async function getRentalCategories(): Promise<Category[]> {
+  const rows = await sqlPublic<{ slug: string; name: string; count: number }>`
+    select c.slug, c.name, count(p.id)::int as count
+      from categories c
+      left join products p
+        on p.category_id = c.id and p.type = 'rental' and p.is_active
+     where c.section = 'rental' and c.is_active
+     group by c.id, c.slug, c.name, c.sort_order
+     order by c.sort_order`;
+  return rows.map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    count: r.count,
+    image: RENTAL_CATEGORIES.find((c) => c.slug === r.slug)?.image,
+  }));
+}

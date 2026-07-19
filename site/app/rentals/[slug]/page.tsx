@@ -6,11 +6,10 @@ import { SwipeGallery } from "@/components/site/SwipeGallery";
 import { ReviewStars } from "@/components/site/ReviewStars";
 import { Button } from "@/components/ui/Button";
 import { Ornament } from "@/components/site/Ornament";
-import { RENTALS, getRental, formatINR, galleryFrames } from "@/lib/rentals";
+import { getRental, formatINR, galleryFrames } from "@/lib/rentals";
 
-export function generateStaticParams() {
-  return RENTALS.map((r) => ({ slug: r.slug }));
-}
+// Reads live rental data (app_public Neon connection); rendered per request.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -18,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const p = getRental(slug);
+  const p = await getRental(slug);
   return { title: p ? `${p.name} | Bridal Rental | Vivaah` : "Lehenga" };
 }
 
@@ -28,7 +27,7 @@ export default async function RentalProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const p = getRental(slug);
+  const p = await getRental(slug);
   if (!p) notFound();
 
   const avg =

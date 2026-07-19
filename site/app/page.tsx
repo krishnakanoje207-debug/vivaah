@@ -4,7 +4,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { Ornament } from "@/components/site/Ornament";
 import { Button } from "@/components/ui/Button";
 import { SHOP } from "@/lib/site";
-import { featuredRentals } from "@/lib/rentals";
+import { getFeaturedRentals } from "@/lib/rentals";
 import { RentalCard } from "@/components/site/RentalCard";
 import { CategoryShowcase } from "@/components/site/CategoryShowcase";
 import { SareesFlagship } from "@/components/site/SareesFlagship";
@@ -16,7 +16,12 @@ const STEPS = [
   { n: "03", t: "Final collection", d: "Visit our boutique for a personal fitting, collect your outfit, and return it after your celebration." },
 ];
 
-export default function Home() {
+// Reads live rental data (app_public Neon connection); rendered per request.
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const featured = await getFeaturedRentals();
+
   return (
     <>
       <Hero />
@@ -42,7 +47,7 @@ export default function Home() {
           </Reveal>
 
           <Reveal className="mt-20 grid grid-cols-1 gap-x-10 gap-y-20 sm:grid-cols-2 lg:grid-cols-3 items-start">
-            {featuredRentals.slice(0, 3).map((p, i) => (
+            {featured.map((p, i) => (
               <div 
                 key={p.slug} 
                 data-reveal 

@@ -5,8 +5,7 @@ import { RentalCard } from "@/components/site/RentalCard";
 import { CategoryTiles } from "@/components/site/CategoryTiles";
 import { Ornament } from "@/components/site/Ornament";
 import { CuratedMoment } from "@/components/site/CuratedMoment";
-import { RENTALS } from "@/lib/rentals";
-import { RENTAL_CATEGORIES } from "@/lib/categories";
+import { getRentals, getRentalCategories } from "@/lib/rentals";
 
 export const metadata: Metadata = {
   title: "The Bridal Rental Edit | Vivaah Dresses and Suits",
@@ -14,14 +13,18 @@ export const metadata: Metadata = {
     "Browse heirloom-quality bridal lehengas, silk sarees, and festive gowns. Reserve your silhouette online and collect at our boutique.",
 };
 
+// Reads live rental data (app_public Neon connection); rendered per request.
+export const dynamic = "force-dynamic";
+
 export default async function RentalsPage({
   searchParams,
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category: slug } = await searchParams;
-  const category = slug ? RENTAL_CATEGORIES.find((c) => c.slug === slug) : undefined;
-  const items = category ? RENTALS.filter((p) => p.category === slug) : RENTALS;
+  const categories = await getRentalCategories();
+  const category = slug ? categories.find((c) => c.slug === slug) : undefined;
+  const items = await getRentals(category?.slug);
 
   return (
     <>
@@ -63,7 +66,7 @@ export default async function RentalsPage({
           </Reveal>
           <Reveal>
             <div data-reveal>
-              <CategoryTiles base="/rentals" categories={RENTAL_CATEGORIES} />
+              <CategoryTiles base="/rentals" categories={categories} />
             </div>
           </Reveal>
         </div>
