@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Preloader } from "@/components/site/Preloader";
 import { SectionEdge } from "@/components/site/SectionEdge";
-import { GoldFrame } from "@/components/site/GoldFrame";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { WordmarkClose } from "@/components/site/WordmarkClose";
 import { Reveal } from "@/components/site/Reveal";
@@ -82,68 +81,66 @@ export default function HomePage() {
     <>
       <Preloader />
 
-      {/* ---------- Hero: type on porcelain ---------------------------------
-          Not a film. The threshold film is /rentals' and is the only one on the
-          site (§8.2). What carries this screen is the sentence itself. */}
-      <section className="relative bg-porcelain-50 pt-24 pb-20 md:pt-32 md:pb-28">
-        <div className="shell">
-          <p className="eyebrow">Rentals, retail and jewellery, one shop</p>
+      {/* ---------- Hero: type over the garden ------------------------------
+          A still photograph, full bleed, with the type sitting on it. Not a
+          film: v3 §8.2 keeps the only scrubbed full-bleed surface on /rentals,
+          and a still breaks none of that.
+
+          The scrim is the load-bearing part. The photograph is bright on the
+          right and mid-toned across the middle, so porcelain type laid on it
+          raw would fail AA in half the frame. A violet-950 wash plus a stronger
+          left-hand gradient gives the words a ground wherever they actually sit,
+          which is the same rule the /rentals threshold follows (§2.2). */}
+      <section className="on-dark relative isolate flex min-h-[86vh] items-end overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero/hero-garden.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 h-full w-full object-cover"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-violet-950/45"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-gradient-to-r from-violet-950/85 via-violet-950/45 to-transparent"
+        />
+
+        <div className="shell pt-40 pb-20 md:pb-28">
+          <p className="eyebrow on-dark">Rentals, retail and jewellery, one shop</p>
 
           <RippleHeading
             as="h1"
-            className="mt-6 max-w-[20ch] text-h1 text-ink-900"
+            className="mt-6 max-w-[16ch] text-h1 text-porcelain-50"
           >
             New pieces on the rail, most days.
           </RippleHeading>
 
-          {/* Two corrections from the 1920px audit, both the same mistake:
-              a wide container plus a capped image leaves a dead band between the
-              columns, and `items-center` strands a short text block in the middle
-              of a taller row. So this sits in the reading shell, the image column
-              is capped, and the row aligns to the top. `.shell-wide` is for grids
-              that genuinely fill it (the doors, the proof list), not for a two
-              column text-and-image split. */}
-          <div className="mt-14 grid items-start gap-12 md:grid-cols-[1fr_minmax(0,400px)] lg:gap-16">
-            <div>
-              <p className="max-w-[46ch] text-ink-600">
-                Bridal and festive wear rented by the date, suits and kurtis reserved
-                online and collected in person, with jewellery to match the outfit.
-              </p>
+          <p className="mt-8 max-w-[46ch] text-porcelain-50">
+            Bridal and festive wear rented by the date, suits and kurtis reserved
+            online and collected in person, with jewellery to match the outfit.
+          </p>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/rentals"
-                  className="rounded-control bg-violet-800 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:bg-violet-700"
-                >
-                  See what is in for rent
-                </Link>
-                <Link
-                  href="/visit"
-                  className="rounded-control border border-ink-900/20 px-6 py-3 font-medium text-ink-900 transition-colors duration-[180ms] hover:border-ink-900/40"
-                >
-                  Plan a visit
-                </Link>
-              </div>
-
-              <p className="mt-6 text-caption text-ink-600">
-                Fittings happen in the shop. Nothing is posted.
-              </p>
-            </div>
-
-            {/* The one photograph on this screen, and the only frame on the page
-                besides the story's. Parallax gives it a little independence from
-                the type without moving anything but a transform. */}
-            <Parallax distance={28}>
-              <GoldFrame tone="light">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/hero/hero-still.webp"
-                  alt="A bridal lehenga on the rail in the shop"
-                  className="aspect-[3/4] w-full object-cover"
-                />
-              </GoldFrame>
-            </Parallax>
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Link
+              href="/rentals"
+              className="rounded-control bg-porcelain-50 px-6 py-3 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
+            >
+              See what is in for rent
+            </Link>
+            <Link
+              href="/visit"
+              className="rounded-control border border-porcelain-50/40 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:border-porcelain-50/80"
+            >
+              Plan a visit
+            </Link>
           </div>
+
+          <p className="mt-6 text-caption text-porcelain-50">
+            Fittings happen in the shop. Nothing is posted.
+          </p>
         </div>
       </section>
 
@@ -151,7 +148,7 @@ export default function HomePage() {
       <section className="relative bg-porcelain-100 py-24 md:py-36">
         <SectionEdge
           seed={11}
-          paper="var(--color-porcelain-50)"
+          paper="var(--color-violet-950)"
           reveal="var(--color-porcelain-100)"
         />
 
