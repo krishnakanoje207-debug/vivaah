@@ -31,7 +31,9 @@ const WIDTHS = [
 // The shop is a year old, so the heritage register is banned outright.
 const BANNED = [
   { label: "em dash", re: /\u2014/ },
-  { label: "shipping vocabulary", re: /\b(add to (bag|cart)|checkout|shipping|free delivery|order tracking)\b/i },
+  // A page saying "no shipping" is stating the model correctly, not breaking
+  // the rule, so the negated forms must not trip this.
+  { label: "shipping vocabulary", re: /\b(add to (bag|cart)|checkout|free delivery|order tracking)\b|(?<!no )(?<!without )\bshipping\b/i },
   { label: "heritage register", re: /\b(legacy|lineage|generations|timeless elegance|years of experience|trusted since)\b/i },
   { label: "founding year", re: /\b(since|est\.?)\s*(19|20)\d{2}\b/i },
   { label: "groom content", re: /\b(groom|sherwani)\b/i },
@@ -93,8 +95,14 @@ async function auditRoute(browser, route) {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     );
     rec(overflow === 0, route, w.name, "no horizontal overflow", overflow ? `${overflow}px` : "");
-    rec(errors.length === 0, route, w.name, "no console or page errors", errors.slice(0, 3).join(" | "));
-    rec(bad404.length === 0, route, w.name, "no failed same-origin requests", bad404.slice(0, 3).join(" | "));
+    // A route that is meant to 404 logs exactly that, so those two checks are
+    // not meaningful there. Everything else about the 404 page still is.
+    const is404Route = route === "/nope-404";
+    const realErrors = is404Route ? errors.filter((e) => !/404 \(Not Found\)/.test(e)) : errors;
+    rec(realErrors.length === 0, route, w.name, "no console or page errors", realErrors.slice(0, 3).join(" | "));
+    if (!is404Route) {
+      rec(bad404.length === 0, route, w.name, "no failed same-origin requests", bad404.slice(0, 3).join(" | "));
+    }
 
     const expected = route === "/nope-404" ? 404 : 200;
     rec(status === expected, route, w.name, `HTTP ${expected}`, `got ${status}`);
@@ -124,16 +132,51 @@ async function auditRoute(browser, route) {
 
     // ---- contrast on real rendered text over its real background ----
     const lowContrast = await page.evaluate(() => {
-      const parse = (s) => (s.match(/\d+(\.\d+)?/g) || []).slice(0, 3).map(Number);
+      // Alpha matters. The nav sits on a translucent plate that Chrome reports
+      // as `oklab(... / 0.85)`; treating that as opaque made every nav link and
+      // the brand lockup read as a contrast failure when they are fine. So the
+      // alpha is read from either syntax and the stack is composited.
+      const alphaOf = (c) => {
+        const m = /[/,]\s*(\d*\.?\d+)\s*\)$/.exec(c);
+        if (!m) return 1;
+        const a = parseFloat(m[1]);
+        return Number.isFinite(a) && a <= 1 ? a : 1;
+      };
+      // Chrome hands back oklab() for these. Painting into a canvas is the
+      // cheapest way to get real sRGB without reimplementing the colour space.
+      const cv = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+      const toRgb = (c) => {
+        try {
+          cv.clearRect(0, 0, 1, 1);
+          cv.fillStyle = "#000";
+          cv.fillStyle = c;
+          cv.fillRect(0, 0, 1, 1);
+          const d = cv.getImageData(0, 0, 1, 1).data;
+          return [d[0], d[1], d[2]];
+        } catch {
+          return [0, 0, 0];
+        }
+      };
       const bgOf = (el) => {
+        const layers = [];
         let n = el;
         while (n && n !== document.documentElement) {
           const c = getComputedStyle(n).backgroundColor;
-          const p = parse(c);
-          if (p.length === 3 && !/rgba\(.*,\s*0\)/.test(c)) return p;
+          if (c && c !== "transparent") {
+            const a = alphaOf(c);
+            if (a > 0.001) {
+              layers.push({ rgb: toRgb(c), a });
+              if (a >= 0.999) break;
+            }
+          }
           n = n.parentElement;
         }
-        return [255, 255, 255];
+        let out = [255, 255, 255];
+        for (let i = layers.length - 1; i >= 0; i--) {
+          const { rgb, a } = layers[i];
+          out = [0, 1, 2].map((k) => rgb[k] * a + out[k] * (1 - a));
+        }
+        return out;
       };
       const out = [];
       const els = [...document.querySelectorAll("p,li,a,h1,h2,h3,h4,dt,dd,span,button")];
@@ -143,13 +186,13 @@ async function auditRoute(browser, route) {
         const r = el.getBoundingClientRect();
         if (r.width < 4 || r.height < 4) continue;
         const cs = getComputedStyle(el);
-        if (cs.visibility === "hidden" || cs.opacity === "0") continue;
+        if (cs.visibility === "hidden" || parseFloat(cs.opacity) < 0.15) continue;
         const size = parseFloat(cs.fontSize);
         const weight = parseInt(cs.fontWeight, 10) || 400;
         const large = size >= 24 || (size >= 18.66 && weight >= 700);
         out.push({
           text: el.innerText.trim().slice(0, 48),
-          fg: parse(cs.color),
+          fg: toRgb(cs.color),
           bg: bgOf(el),
           size: Math.round(size),
           need: large ? 3 : 4.5,

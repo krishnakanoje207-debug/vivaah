@@ -27,7 +27,14 @@
   --color-ink-400: #8e8798;
 
   /* ---- Gold: THE accent (antique). Links, eyebrows, hairlines, ornaments ---- */
-  --color-gold-600: #a9853a; /* accents on light */
+  --color-gold-600: #a9853a; /* accents on light, 16px+ only */
+  /* gold-700 exists for SMALL gold text on light grounds. gold-600 at the
+     eyebrow's 11px measures 3.29:1 on porcelain-50, 3.04 on porcelain-100 and
+     2.88 on stage, against the 4.5:1 WCAG requires of anything that is not
+     large text. v2's approved-pairs list allowed "gold-600 on porcelain at
+     16px+ OR 500 weight", but weight does not make 11px large, so that rule was
+     wrong. This clears 4.5:1 on all three light grounds (4.53 worst case). */
+  --color-gold-700: #856527;
   --color-gold-500: #c2a155; /* accents on dark, hover */
   --color-gold-100: #f4eedc;
 
@@ -177,7 +184,7 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     font-weight: 500;
-    color: var(--color-gold-600);
+    color: var(--color-gold-700); /* small text: see the token's note */
   }
   .on-dark .eyebrow,
   .eyebrow.on-dark {

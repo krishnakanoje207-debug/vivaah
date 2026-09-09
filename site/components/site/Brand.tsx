@@ -14,7 +14,8 @@ export function Brand({
   className?: string;
 }) {
   const text = tone === "light-on-dark" ? "text-porcelain-50" : "text-ink-900";
-  const sub = tone === "light-on-dark" ? "text-violet-300" : "text-gold-600";
+  // 8px on light: needs the small-text gold (see --color-gold-700 in globals).
+  const sub = tone === "light-on-dark" ? "text-violet-300" : "text-gold-700";
 
   return (
     <Link href="/" aria-label={`${SHOP.name} home`} className={`inline-block leading-none ${className}`}>
