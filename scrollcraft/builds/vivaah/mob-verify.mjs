@@ -1,0 +1,21 @@
+import { chromium, devices } from "playwright-core";
+import { mkdirSync } from "node:fs";
+const OUT = "lab/verify-0909"; mkdirSync(OUT, { recursive: true });
+const b = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe" });
+const ctx = await b.newContext({ ...devices["Pixel 7"] });
+const p = await ctx.newPage();
+await p.goto("http://localhost:3000/rentals", { waitUntil: "networkidle" });
+await p.waitForTimeout(2500);
+console.log("vw:", await p.evaluate(() => window.innerWidth));
+console.log("rail visible:", await p.evaluate(() => {
+  const n = document.querySelector('nav[aria-label="Rooms"]');
+  return n ? getComputedStyle(n).display !== "none" && n.getBoundingClientRect().width > 0 : false;
+}));
+console.log("h-overflow:", await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth));
+await p.evaluate(() => document.getElementById("week")?.scrollIntoView());
+await p.waitForTimeout(1200);
+await p.screenshot({ path: `${OUT}/m-week.png` });
+await p.evaluate(() => document.getElementById("craft")?.scrollIntoView());
+await p.waitForTimeout(1200);
+await p.screenshot({ path: `${OUT}/m-craft.png` });
+await b.close(); console.log("done");
