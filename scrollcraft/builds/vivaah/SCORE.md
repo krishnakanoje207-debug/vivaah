@@ -116,6 +116,13 @@ threshold, peak has the largest span.
 
 ## Per-page grammars (full site remake)
 
+> **Superseded, 9 September 2026.** The table below predates the owner's decision
+> to move "Threshold and rooms" off the home page and onto `/rentals`, so its
+> Home and Rentals-listing rows are both wrong, and its "Split stage" and
+> "Gallery / catalog" rows were never ratified. The authoritative page map is
+> **`specs/DESIGN_SPEC_V3.md` §8**. Read this table as the original proposal, and
+> do not build from it.
+
 Each page gets its own grammar. This is deliberate: it is what stops the site
 being one shape repeated, and it gives the fingerprint registry genuine spread.
 

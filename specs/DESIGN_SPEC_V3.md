@@ -33,6 +33,9 @@ should be resolved (either author a v3 addendum for those pages, or narrow
 `SCORE.md`'s scope note) before anyone builds against the "Split stage"
 product-page row.
 
+**Resolved on 9 September 2026 by §8, which is the authoritative page map. Read
+that section rather than this paragraph, and rather than `SCORE.md`'s table.**
+
 ---
 
 ## 1. Typography — display face becomes a Didone
@@ -631,6 +634,91 @@ replacement film must satisfy.
 - **v2's home sections are no longer on the home page.** `CategoryShowcase`,
   `SareesFlagship`, `LehengasFlagship` and the v2 `Hero` belong to a grammar this
   document replaces. The components are left in the tree, unimported by `/`.
-- **§0's scope caveat still stands.** Nothing here builds the "Split stage"
-  product page or the "Gallery/catalog" listing pages, and that contradiction
-  between SCORE.md's stated scope and this document's brief is still unresolved.
+- **§0's scope caveat is now resolved in §8.** Nothing here builds the "Split
+  stage" product page or the "Gallery/catalog" listing pages, and §8 records why
+  neither is ratified and what governs those routes in the meantime.
+
+---
+
+## 8. Page grammar map (9 September 2026) — resolves §0
+
+§0 left one thing open: `SCORE.md`'s per-page table (reproduced at §2.3) assigns
+grammars to pages this document never ratified. That table is now stale in a
+second way as well, because the owner moved the "Threshold and rooms" grammar off
+the home page and onto `/rentals` on 9 September, after it was written.
+
+**This section is the authoritative page map. Where it and `SCORE.md`'s table
+disagree, this section wins.** "Ratified" means this document licenses a build
+against that grammar. Where a row is not ratified, **v2 governs**, and the
+`SCORE.md` row is a proposal rather than a work order.
+
+| Route | Grammar in force | Ratified by | Built |
+|---|---|---|---|
+| `/rentals` | Threshold and rooms (§2, amended by §8.1) | v3 | Yes, 9 Sep |
+| `/` (home) | Open, see §8.2 | — | Interim only |
+| `/retail` | Category-first gallery (v2 §5c) | v2 | Yes |
+| `/jewellery` | Category-first gallery, dark ground (v2 §5c) | v2 | Yes (W2, `d34c52b`) |
+| `/rentals/[slug]` | Two-act stage, then details (v2 §5b) | v2 | Stub |
+| `/visit`, `/policies` | v2 | v2 | Yes |
+| 404 | v3 §4.2 | v3 | Yes |
+
+`SCORE.md`'s "Gallery / catalog" rows for the listing pages and its "Split stage"
+row for the product page are **not ratified here** and must not be built against
+without a further amendment to this document. §8.1 and §8.3 say why.
+
+### 8.1 `/rentals` absorbs the catalogue; it does not sit beside it
+
+The page as built runs Threshold → I The week → II The arithmetic → III The craft
+(the peak) → **IV The collection** → the Return (Visit). Room IV *is* the
+catalogue: the category tiles and the rental cards, on porcelain-50, entered
+through the same hard cut as every other boundary.
+
+So "Gallery / catalog", which `SCORE.md` assigns to the rentals listing, is not a
+second grammar competing with "Threshold and rooms" for this route. It is folded
+in as one room, and §2's rule that every boundary changes all three of {ground,
+material, device} still holds at its edges.
+
+This also answers the objection the arrangement invites, that a visitor who wants
+only the rail should not have to scroll an argument to reach it. She does not:
+the room index carries a "The collection" entry that jumps straight there. That
+is the business requirement §2.3 names, applied within one page rather than
+across the three trades.
+
+### 8.2 The home page's grammar is deliberately left open
+
+The home page is being rebuilt from the shop's own story
+(`KOMBAI_MAIN_PAGE_PROMPT.md`) and its grammar is **not** decided here. Two
+constraints bind that rebuild whatever shape it takes, and both follow from §2's
+bans rather than from taste:
+
+1. **It may not carry a second full-bleed scrubbed film.** The threshold is the
+   only one on the site and it belongs to `/rentals`. A home page with its own
+   would make the threshold ordinary, which is the one thing §2.1 spends the
+   whole page budget to prevent.
+2. **It may not reuse the room sequence.** Two routes running the same six rooms
+   is precisely the "one shape repeated" failure the per-page grammar split
+   exists to prevent.
+
+When it ships, record the grammar it landed on as §8.4 and append its row to
+`FINGERPRINTS.md` at the same time.
+
+### 8.3 The product page: v2 §5b governs until a v4 says otherwise
+
+`SCORE.md` argues "Split stage" for `/rentals/[slug]` on real grounds: the pattern
+draft is a two-sided argument, and that grammar's close (the divider travels to
+one edge and the CTA takes the winning column) is literally the booking step.
+That is a good argument, and it is **still only an argument**. Nothing in this
+document ratifies it and no page has been designed against it.
+
+Until it is ratified, **v2 §5b governs, and the Phase 2 booking engine should be
+built against v2 §5b.** Ratifying "Split stage" is a design decision with a real
+downstream cost, because the booking flow's layout sits inside it, so it belongs
+in a v4 delta authored before Phase 2's product-page work starts, not in a build
+note written afterwards.
+
+**A conflict any such v4 must settle first.** §3.3 gives the pattern seam to
+`/rentals` Room III as the page's peak, and `SCORE.md` separately calls the same
+seam "the whole spine of the rental product page". Both cannot be true. A device
+that carries two pages is not a peak on either. Either the product page uses a
+different device, or the seam moves off `/rentals` Room III and that room is
+rescored. Do not build a second draggable seam before that is decided.
