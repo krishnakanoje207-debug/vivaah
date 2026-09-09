@@ -4,7 +4,10 @@
 --   — Supabase free tier pauses after 7 days idle and deletes long-paused
 --   projects; Neon scale-to-zero auto-wakes and never deletes for inactivity).
 -- Apply verbatim as migration 0001_init.
--- Opus: do NOT alter constraint/trigger/RLS logic; escalate to Fable instead.
+-- The constraint/trigger/RLS logic is load-bearing: do not alter it as a side
+-- effect of other work. Fable is retired (8 Sep 2026) and Opus 5 owns this
+-- file, so a deliberate change is authored here as a versioned amendment and
+-- re-verified with `node site/scripts/verify-schema.mjs` against the live DB.
 --
 -- ACCESS MODEL (v1.1): the database is reached ONLY from server code
 -- (Cloudflare Worker via @neondatabase/serverless). Two roles:
