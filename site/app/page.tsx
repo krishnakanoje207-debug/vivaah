@@ -86,7 +86,7 @@ export default function HomePage() {
           Not a film. The threshold film is /rentals' and is the only one on the
           site (§8.2). What carries this screen is the sentence itself. */}
       <section className="relative bg-porcelain-50 pt-24 pb-20 md:pt-32 md:pb-28">
-        <div className="shell-wide">
+        <div className="shell">
           <p className="eyebrow">Rentals, retail and jewellery, one shop</p>
 
           <RippleHeading
@@ -96,7 +96,14 @@ export default function HomePage() {
             New pieces on the rail, most days.
           </RippleHeading>
 
-          <div className="mt-14 grid gap-12 md:grid-cols-[1fr_1.25fr] md:items-start lg:gap-20">
+          {/* Two corrections from the 1920px audit, both the same mistake:
+              a wide container plus a capped image leaves a dead band between the
+              columns, and `items-center` strands a short text block in the middle
+              of a taller row. So this sits in the reading shell, the image column
+              is capped, and the row aligns to the top. `.shell-wide` is for grids
+              that genuinely fill it (the doors, the proof list), not for a two
+              column text-and-image split. */}
+          <div className="mt-14 grid items-start gap-12 md:grid-cols-[1fr_minmax(0,400px)] lg:gap-16">
             <div>
               <p className="max-w-[46ch] text-ink-600">
                 Bridal and festive wear rented by the date, suits and kurtis reserved
@@ -132,7 +139,7 @@ export default function HomePage() {
                 <img
                   src="/hero/hero-still.webp"
                   alt="A bridal lehenga on the rail in the shop"
-                  className="aspect-[4/5] w-full object-cover"
+                  className="aspect-[3/4] w-full object-cover"
                 />
               </GoldFrame>
             </Parallax>
@@ -152,14 +159,14 @@ export default function HomePage() {
             beside it, so this section is not shaped like the hero above it. The
             image is height-capped rather than aspect-driven, because at 1920 a
             4:5 crop in a 45% column is 1100px tall and swallows the screen. */}
-        <div className="shell-wide">
-          <div className="grid gap-14 md:grid-cols-[0.8fr_1fr] md:items-center lg:gap-24">
+        <div className="shell">
+          <div className="grid items-center gap-14 md:grid-cols-[minmax(0,400px)_1fr] lg:gap-20">
             <Parallax distance={34}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/categories/side-lehengas.jpg"
                 alt="A piece being fitted in the shop"
-                className="arch max-h-[68vh] w-full object-cover shadow-card"
+                className="arch aspect-[4/5] w-full object-cover shadow-card"
               />
             </Parallax>
 
@@ -261,7 +268,7 @@ export default function HomePage() {
         />
 
         <div className="shell-wide">
-          <div className="grid gap-12 md:grid-cols-[0.85fr_1.3fr] md:items-start lg:gap-24">
+          <div className="grid gap-12 md:grid-cols-[minmax(0,26rem)_1fr] md:items-start lg:gap-24">
             <div>
               <p className="eyebrow">Proof</p>
               <RippleHeading className="mt-5 max-w-[16ch] text-h2 text-ink-900">
