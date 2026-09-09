@@ -5,7 +5,7 @@ export const SHOP = {
   name: "Vivaah Dresses and Suits",
   short: "Vivaah",
   lockup: "Dresses & Suits", // small line under the wordmark
-  tagline: "Bridal & festive wear to rent or buy — with jewellery to match.",
+  tagline: "Bridal and festive wear to rent or buy, with jewellery to match.",
   // Placeholder shop details — replaced by admin settings later.
   address: "Shop address, City",
   hours: "Mon–Sat, 11am – 8pm",
