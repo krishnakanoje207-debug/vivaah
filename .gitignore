@@ -22,3 +22,8 @@ node_modules/
 
 # Verification screenshots from scrollcraft runs (regenerate via the .mjs scripts)
 scrollcraft/builds/*/lab/
+
+# Local matting environment and model weights (tools/cut_subject.py; ~GBs)
+tools/.venv-matte/
+tools/models/
+tools/matte-out/

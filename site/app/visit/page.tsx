@@ -77,6 +77,20 @@ const BRING = [
   },
 ];
 
+// One ruled row of the practical block. Shared by all four so they cannot drift
+// apart. Up to 2xl: label in the margin, value in a wide column, note pinned
+// right. Past 2xl that shape breaks down — the value is four words and the note
+// is 15rem, so a 1640px row had ~950px of nothing between them — so at 2xl the
+// row becomes a stacked cell and the four of them go two up (see the Reveal).
+const ROW =
+  "grid gap-3 border-b border-ink-900/15 py-8 " +
+  "md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_minmax(0,15rem)] md:items-baseline md:gap-10 md:py-10 " +
+  "2xl:grid-cols-[minmax(0,1fr)] 2xl:items-start 2xl:gap-4";
+
+// The note that closes each row: right-aligned against the value while the row
+// is horizontal, left-aligned under it once the row stacks.
+const NOTE = "text-caption text-ink-600 md:text-right 2xl:max-w-[46ch] 2xl:text-left";
+
 export default function VisitPage() {
   return (
     <>
@@ -87,7 +101,13 @@ export default function VisitPage() {
           would be a phone layout stretched wide (shared contract §H.1). */}
       <section className="bg-porcelain-50 pt-24 pb-20 md:pt-28 md:pb-28">
         <div className="shell-wide">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,7rem)_minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-16">
+          {/* Three tracks up to 2xl; four past it. At 2560 the heading runs out
+              at ~1030px inside a 1400px track and the standfirst is pinned to
+              the right edge, so the row had a 460px hole in the middle of it.
+              `2xl:contents` dissolves the standfirst's wrapper so its two
+              paragraphs become grid items of their own, which closes the hole
+              by putting something in it rather than by stretching the type. */}
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,7rem)_minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-16 2xl:grid-cols-[minmax(0,7rem)_minmax(0,1fr)_minmax(0,26ch)_minmax(0,26ch)]">
             <div>
               <p className="eyebrow">Visit us</p>
               <div className="mt-4 hidden h-px bg-gold-600/40 lg:block" />
@@ -97,12 +117,12 @@ export default function VisitPage() {
               Fitting happens in person.
             </RippleHeading>
 
-            <div className="lg:pt-3">
-              <p className="max-w-[38ch] text-ink-600">
+            <div className="lg:pt-3 2xl:contents">
+              <p className="max-w-[38ch] text-ink-600 2xl:pt-3">
                 Nothing is posted. Come in, try pieces on, and we pin and alter them
                 here, in front of you.
               </p>
-              <p className="mt-5 max-w-[38ch] text-caption text-ink-600">
+              <p className="mt-5 max-w-[38ch] text-caption text-ink-600 2xl:mt-0 2xl:pt-3">
                 Two of us run the shop, and we handle every fitting ourselves.
               </p>
             </div>
@@ -137,16 +157,13 @@ export default function VisitPage() {
               </p>
             </div>
 
-            <Reveal className="border-t border-ink-900/15">
-              <div
-                data-reveal
-                className="grid gap-3 border-b border-ink-900/15 py-8 md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_minmax(0,15rem)] md:items-baseline md:gap-10 md:py-10"
-              >
+            <Reveal className="border-t border-ink-900/15 2xl:grid 2xl:grid-cols-2 2xl:gap-x-16">
+              <div data-reveal className={ROW}>
                 <p className="eyebrow">Address</p>
                 <p className="max-w-[22ch] font-display text-h2 text-ink-900">
                   {SHOP.address}
                 </p>
-                <p className="text-caption text-ink-600 md:text-right">
+                <p className={NOTE}>
                   <a
                     href={SHOP.mapsUrl}
                     target="_blank"
@@ -158,24 +175,18 @@ export default function VisitPage() {
                 </p>
               </div>
 
-              <div
-                data-reveal
-                className="grid gap-3 border-b border-ink-900/15 py-8 md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_minmax(0,15rem)] md:items-baseline md:gap-10 md:py-10"
-              >
+              <div data-reveal className={ROW}>
                 <p className="eyebrow">Hours</p>
                 <p className="tabular max-w-[22ch] font-display text-h2 text-ink-900">
                   {SHOP.hours}
                 </p>
-                <p className="text-caption text-ink-600 md:text-right">
+                <p className={NOTE}>
                   Come during these hours, or tell us when you are coming so a piece you
                   have seen is waiting.
                 </p>
               </div>
 
-              <div
-                data-reveal
-                className="grid gap-3 border-b border-ink-900/15 py-8 md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_minmax(0,15rem)] md:items-baseline md:gap-10 md:py-10"
-              >
+              <div data-reveal className={ROW}>
                 <p className="eyebrow">Phone</p>
                 <p className="max-w-[22ch] font-display text-h2 text-ink-900">
                   <a
@@ -185,23 +196,18 @@ export default function VisitPage() {
                     {SHOP.phone}
                   </a>
                 </p>
-                <p className="text-caption text-ink-600 md:text-right">
-                  Call during shop hours and one of us will pick up.
-                </p>
+                <p className={NOTE}>Call during shop hours and one of us will pick up.</p>
               </div>
 
               {/* The owner has not given the town, so there is nothing honest to
                   write here yet. A placeholder is honest; an invented landmark is
                   not (shared contract §A). */}
-              <div
-                data-reveal
-                className="grid gap-3 border-b border-ink-900/15 py-8 md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_minmax(0,15rem)] md:items-baseline md:gap-10 md:py-10"
-              >
+              <div data-reveal className={ROW}>
                 <p className="eyebrow">Getting here</p>
                 <p className="max-w-[22ch] font-display text-h2 text-ink-600">
                   TODO(owner)
                 </p>
-                <p className="text-caption text-ink-600 md:text-right">
+                <p className={NOTE}>
                   Town, nearest landmark and where to park, once the owner confirms them.
                 </p>
               </div>
@@ -222,14 +228,18 @@ export default function VisitPage() {
         />
 
         <div className="shell-wide">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,30rem)_minmax(0,24rem)] lg:items-end lg:justify-between lg:gap-20">
-            <div>
+          {/* Past 2xl the header row takes the step band's own four columns:
+              the heading over steps 1 and 2, the note over step 4. Pinning the
+              two to the outer edges instead (space-between) put a 1150px gap
+              between them that answered to nothing below it. */}
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,30rem)_minmax(0,24rem)] lg:items-end lg:justify-between lg:gap-20 2xl:grid-cols-4 2xl:justify-normal 2xl:gap-x-12">
+            <div className="2xl:col-span-2">
               <p className="eyebrow">When you come in</p>
               <RippleHeading className="mt-5 text-h2 text-ink-900">
                 Four things happen here.
               </RippleHeading>
             </div>
-            <p className="text-ink-600">
+            <p className="text-ink-600 2xl:col-start-4">
               Two of us, one rail, and the date you are dressing for. Everything below
               happens in the shop.
             </p>
@@ -260,7 +270,36 @@ export default function VisitPage() {
         />
 
         <div className="shell">
-          <div className="grid items-start gap-12 md:grid-cols-[minmax(0,340px)_1fr] lg:gap-20">
+          <div className="grid items-start gap-12 md:grid-cols-[1fr_minmax(0,420px)] lg:gap-20">
+            {/* The photograph leads on the phone, as it did, and moves to the
+                capped right column from md up: a 340px plate on the left of a
+                1616px shell left the text with 1100px it could not fill, and
+                nothing at all holding the right edge. */}
+            <Reveal className="md:order-1">
+              <p data-reveal className="eyebrow">
+                What to bring
+              </p>
+              <RippleHeading className="mt-5 max-w-[16ch] text-h2 text-ink-900">
+                Bring the date, and whatever you are matching to.
+              </RippleHeading>
+
+              {/* Each entry goes sideways at 2xl — term against the rule's left
+                  edge, what it means against its right — so the ruled row is
+                  filled by its own text instead of running 700px past it. */}
+              <dl className="mt-10 border-t border-ink-900/15">
+                {BRING.map((b) => (
+                  <div
+                    key={b.t}
+                    data-reveal
+                    className="border-b border-ink-900/15 py-6 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_minmax(0,52ch)] 2xl:items-baseline 2xl:gap-10"
+                  >
+                    <dt className="font-display text-h3 text-ink-900">{b.t}</dt>
+                    <dd className="mt-2 max-w-[52ch] text-ink-600 2xl:mt-0">{b.d}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Reveal>
+
             <Parallax distance={30}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -269,24 +308,6 @@ export default function VisitPage() {
                 className="arch aspect-[4/5] w-full object-cover shadow-card"
               />
             </Parallax>
-
-            <Reveal>
-              <p data-reveal className="eyebrow">
-                What to bring
-              </p>
-              <RippleHeading className="mt-5 max-w-[16ch] text-h2 text-ink-900">
-                Bring the date, and whatever you are matching to.
-              </RippleHeading>
-
-              <dl className="mt-10 border-t border-ink-900/15">
-                {BRING.map((b) => (
-                  <div key={b.t} data-reveal className="border-b border-ink-900/15 py-6">
-                    <dt className="font-display text-h3 text-ink-900">{b.t}</dt>
-                    <dd className="mt-2 max-w-[52ch] text-ink-600">{b.d}</dd>
-                  </div>
-                ))}
-              </dl>
-            </Reveal>
           </div>
         </div>
       </section>

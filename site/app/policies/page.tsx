@@ -75,7 +75,16 @@ const TERMS = [
 
 // The row template is shared by the ledger's head and every clause, so the three
 // columns line up down the whole document.
-const LEDGER = "md:grid-cols-[minmax(0,4rem)_minmax(0,20rem)_1fr] md:gap-10";
+//
+// Two column sets, because one cannot serve both widths. Up to 2xl the clauses
+// run one per row and `[4rem 20rem 1fr]` fills the track almost exactly. Past
+// 2xl the clause area is ~1640px and a 62ch clause ends less than two thirds of
+// the way across it, leaving 500px of empty paper under every rule; so at 2xl
+// the clauses go two up (below) and each one gets a narrower set that fills its
+// half.
+const LEDGER =
+  "md:grid-cols-[minmax(0,4rem)_minmax(0,20rem)_1fr] md:gap-10 " +
+  "2xl:grid-cols-[minmax(0,3rem)_minmax(0,15rem)_minmax(0,1fr)] 2xl:gap-8";
 
 export default function PoliciesPage() {
   return (
@@ -83,16 +92,28 @@ export default function PoliciesPage() {
       {/* ---------- Masthead ------------------------------------------------
           The heading takes the width and the meta panel holds the right edge,
           so the top of the page is a spread rather than one column down the
-          middle (shared contract §H.1). */}
+          middle (shared contract §H.1).
+
+          Past 2xl that pair is not enough: the heading stops at its own 16ch
+          and the panel is pinned to the right edge, which left a 1000px hole
+          down the middle of the masthead at 2560. So at 2xl the heading and
+          the standfirst become their own two tracks inside the left half — the
+          heading is let off its measure there because the track is what bounds
+          it — and the row reads across in three parts instead of two. */}
       <section className="bg-porcelain-50 pt-24 pb-20 md:pt-28 md:pb-24">
         <div className="shell-wide">
           <div className="grid gap-12 lg:grid-cols-[1fr_minmax(0,20rem)] lg:items-end lg:gap-24">
-            <div>
-              <p className="eyebrow">Rental terms</p>
-              <RippleHeading as="h1" className="mt-5 max-w-[16ch] text-h1 text-ink-900">
-                What we ask, and what we do.
-              </RippleHeading>
-              <p className="mt-8 max-w-[58ch] text-ink-600">
+            <div className="2xl:grid 2xl:grid-cols-[minmax(0,1fr)_minmax(0,32ch)] 2xl:items-end 2xl:gap-16">
+              <div>
+                <p className="eyebrow">Rental terms</p>
+                <RippleHeading
+                  as="h1"
+                  className="mt-5 max-w-[16ch] text-h1 text-ink-900 2xl:max-w-none"
+                >
+                  What we ask, and what we do.
+                </RippleHeading>
+              </div>
+              <p className="mt-8 max-w-[58ch] text-ink-600 2xl:mt-0">
                 The details behind every booking, kept plain and fair. Here is what each
                 part will cover once the shop confirms its terms.
               </p>
@@ -149,16 +170,23 @@ export default function PoliciesPage() {
 
             <div>
               {/* The ledger head. Hidden on the phone, where the stacked rows
-                  label themselves and a column head would be noise. */}
+                  label themselves and a column head would be noise, and hidden
+                  again at 2xl, where the clauses go two up and a single set of
+                  column heads would label only the left one. */}
               <div
-                className={`hidden border-b border-ink-900/25 pb-4 text-caption text-ink-600 md:grid ${LEDGER}`}
+                className={`hidden border-b border-ink-900/25 pb-4 text-caption text-ink-600 md:grid 2xl:hidden ${LEDGER}`}
               >
                 <span className="eyebrow">No.</span>
                 <span className="eyebrow">Term</span>
                 <span className="eyebrow">What it will cover</span>
               </div>
 
-              <Reveal>
+              {/* Two clauses per row past 2xl. Four short clauses stacked down a
+                  1640px column is the "made for phones" read: each rule runs the
+                  full width while its text stops at 62ch. Two up halves the
+                  track so the text fills what it is ruled against, and the
+                  document is half as tall. Reading order is unchanged. */}
+              <Reveal className="2xl:grid 2xl:grid-cols-2 2xl:gap-x-16 2xl:border-t 2xl:border-ink-900/25">
                 {TERMS.map((t) => (
                   <article
                     key={t.id}
@@ -191,24 +219,32 @@ export default function PoliciesPage() {
         <div className="shell-wide">
           <Ornament className="max-w-[7rem]" />
 
+          {/* Same three-part spread as the masthead, and for the same reason:
+              a heading held to 18ch beside a panel pinned right left a ~980px
+              hole at 2560. At 2xl the body and the two doors move into their
+              own track between the heading and the panel. */}
           <div className="mt-10 grid items-start gap-12 lg:grid-cols-[1fr_minmax(0,22rem)] lg:gap-24">
-            <div>
-              <p className="eyebrow">Being finalised</p>
-              <RippleHeading className="mt-5 max-w-[18ch] text-h2 text-porcelain-50">
-                Full terms are being set by the shop.
-              </RippleHeading>
-              <p className="mt-8 max-w-[62ch] text-violet-300">
-                Full terms are being set by the shop through its admin panel, and will
-                appear here in both English and Hindi. Until then, our team will walk you
-                through everything in person or over the phone.
-              </p>
-              <div className="mt-10 flex flex-wrap gap-4">
-                <Button href="/visit" variant="primary-dark">
-                  Visit the shop
-                </Button>
-                <Button href="/rentals" variant="ghost-dark">
-                  Explore rentals
-                </Button>
+            <div className="2xl:grid 2xl:grid-cols-[minmax(0,1fr)_minmax(0,38ch)] 2xl:gap-16">
+              <div>
+                <p className="eyebrow">Being finalised</p>
+                <RippleHeading className="mt-5 max-w-[18ch] text-h2 text-porcelain-50 2xl:max-w-[26ch]">
+                  Full terms are being set by the shop.
+                </RippleHeading>
+              </div>
+              <div>
+                <p className="mt-8 max-w-[62ch] text-violet-300 2xl:mt-0">
+                  Full terms are being set by the shop through its admin panel, and will
+                  appear here in both English and Hindi. Until then, our team will walk you
+                  through everything in person or over the phone.
+                </p>
+                <div className="mt-10 flex flex-wrap gap-4">
+                  <Button href="/visit" variant="primary-dark">
+                    Visit the shop
+                  </Button>
+                  <Button href="/rentals" variant="ghost-dark">
+                    Explore rentals
+                  </Button>
+                </div>
               </div>
             </div>
 
