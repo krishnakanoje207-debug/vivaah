@@ -34,15 +34,15 @@ export function RentalCard({ p }: { p: Rental }) {
       <div className="flex items-baseline justify-between px-1 pt-4">
         <div>
           <h3 className="text-[1.35rem] leading-tight">{p.name}</h3>
-          <p className="mt-0.5 text-caption text-ink-400">{p.note}</p>
+          <p className="mt-0.5 text-caption text-ink-600">{p.note}</p>
         </div>
         <p className="tabular text-[0.9375rem] font-semibold text-ink-900">
           {p.pricePerDay ? (
             <>
-              ₹{formatINR(p.pricePerDay)} <span className="font-normal text-ink-400">/ day</span>
+              ₹{formatINR(p.pricePerDay)} <span className="font-normal text-ink-600">/ day</span>
             </>
           ) : (
-            <span className="font-normal text-ink-400">Coming soon</span>
+            <span className="font-normal text-ink-600">Coming soon</span>
           )}
         </p>
       </div>

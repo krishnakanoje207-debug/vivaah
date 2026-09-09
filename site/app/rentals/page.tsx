@@ -90,7 +90,7 @@ export default async function RentalsPage({
               Browse by <em className="italic">silhouette</em>
             </h2>
           </div>
-          <span className="hidden text-caption uppercase italic tracking-widest text-ink-400 opacity-60 sm:block">
+          <span className="hidden text-caption uppercase italic tracking-widest text-ink-600 opacity-60 sm:block">
             Filtered by her perspective
           </span>
         </div>
@@ -125,13 +125,13 @@ export default async function RentalsPage({
               data-reveal
               className="arch mx-auto max-w-xl border border-porcelain-200/40 bg-porcelain-100/30 px-8 py-12 text-center"
             >
-              <span className="mb-6 block text-2xl text-gold-500">✦</span>
+              <span aria-hidden="true" className="mb-6 block text-2xl text-gold-600">✦</span>
               <p className="font-display text-[1.35rem] italic leading-relaxed text-ink-900/60">
                 &ldquo;Our {category?.name.toLowerCase()} are being photographed for the site. The
                 rack is already waiting at the shop.{" "}
                 <Link
                   href="/visit"
-                  className="not-italic text-gold-600 underline decoration-gold-500/40 underline-offset-4 hover:decoration-gold-600"
+                  className="not-italic text-gold-700 underline decoration-gold-500/40 underline-offset-4 hover:decoration-gold-600"
                 >
                   Visit us
                 </Link>{" "}
@@ -158,7 +158,7 @@ export default async function RentalsPage({
             >
               <div className="absolute inset-0 bg-violet-950/[0.01] transition-colors duration-700 group-hover:bg-violet-950/[0.03]" />
               <div className="relative z-10">
-                <span className="mb-8 block text-3xl text-gold-500 opacity-60">✦</span>
+                <span aria-hidden="true" className="mb-8 block text-3xl text-gold-600 opacity-60">✦</span>
                 <p className="font-display text-[1.625rem] italic leading-[1.4] text-ink-900/70 transition-colors duration-700 group-hover:text-ink-900">
                   &ldquo;A bride is not just dressed; she is{" "}
                   <em className="not-italic">adorned</em>.&rdquo;
@@ -224,7 +224,7 @@ export default async function RentalsPage({
                   className="aspect-[4/5] w-full bg-stage object-cover"
                 />
               </GoldFrame>
-              <figcaption className="mt-4 text-caption text-ink-400">
+              <figcaption className="mt-4 text-caption text-ink-600">
                 Reserved by the date, returned after the day it was needed.
               </figcaption>
             </figure>
@@ -250,7 +250,7 @@ export default async function RentalsPage({
 
           <div className="mt-14 flex flex-wrap gap-x-20 gap-y-10">
             <div>
-              <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-400">To buy</p>
+              <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-600">To buy</p>
               <CountFigure
                 value={TYPICAL_PURCHASE_PRICE}
                 prefix="₹"
@@ -258,12 +258,12 @@ export default async function RentalsPage({
               />
             </div>
             <div>
-              <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-400">Times worn</p>
+              <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-600">Times worn</p>
               <CountFigure value={1} className="mt-2 font-display text-h1 leading-none" />
             </div>
             {rentFrom ? (
               <div>
-                <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-400">
+                <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-600">
                   To rent, from
                 </p>
                 <CountFigure
@@ -275,7 +275,7 @@ export default async function RentalsPage({
             ) : null}
           </div>
 
-          <p className="mt-12 max-w-[54ch] text-caption text-ink-400">
+          <p className="mt-12 max-w-[54ch] text-caption text-ink-600">
             The purchase figure is a typical market price for a bridal lehenga. The rental
             figure is ours, and current.
           </p>
@@ -300,7 +300,7 @@ export default async function RentalsPage({
                   Drag the seam. The photograph resolves into the garment&rsquo;s own draft:
                   the panel seams, the hem, the placement of every motif.
                 </p>
-                <p data-reveal className="mt-4 max-w-[42ch] text-caption text-ink-400">
+                <p data-reveal className="mt-4 max-w-[42ch] text-caption text-ink-600">
                   Drawn from the piece itself, not an illustration of it. Arrow keys move
                   the seam if you would rather not drag.
                 </p>

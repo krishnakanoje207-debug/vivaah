@@ -205,10 +205,17 @@
   }
 
   /* Gold hairline with centred ✦ ornament (§5). */
+  /* The mark is 30px, so it is large text and needs 3:1. gold-500 measures
+     2.28:1 on porcelain, which fails; gold-600 clears it at 3.29:1. The dark
+     ground keeps gold-500, which measures 7.39:1 there. */
   .ornament {
     display: flex;
     align-items: center;
     gap: 1rem;
+    color: var(--color-gold-600);
+  }
+  .on-dark .ornament,
+  .ornament.on-dark {
     color: var(--color-gold-500);
   }
   .ornament::before,

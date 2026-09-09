@@ -159,6 +159,7 @@ async function auditRoute(browser, route) {
       };
       const bgOf = (el) => {
         const layers = [];
+        let opaque = false;
         let n = el;
         while (n && n !== document.documentElement) {
           const c = getComputedStyle(n).backgroundColor;
@@ -166,7 +167,10 @@ async function auditRoute(browser, route) {
             const a = alphaOf(c);
             if (a > 0.001) {
               layers.push({ rgb: toRgb(c), a });
-              if (a >= 0.999) break;
+              if (a >= 0.999) {
+                opaque = true;
+                break;
+              }
             }
           }
           n = n.parentElement;
@@ -176,45 +180,95 @@ async function auditRoute(browser, route) {
           const { rgb, a } = layers[i];
           out = [0, 1, 2].map((k) => rgb[k] * a + out[k] * (1 - a));
         }
-        return out;
+        return { rgb: out, opaque };
+      };
+
+      // Type sitting over a photograph or the threshold film has no background
+      // colour to measure: the chain is transparent all the way up, so this
+      // would compare it against the body's porcelain and report a failure for
+      // light type that is in fact sitting on dark video. Those placements are
+      // protected by scrims and were measured against the graded footage by
+      // hand (DESIGN_SPEC_V3 §7.4), so they are counted separately here rather
+      // than guessed at. A machine cannot read a moving background.
+      // Collected once: elementsFromPoint cannot be used here, because the
+      // threshold film and the category tile images are pointer-events:none and
+      // hit-testing skips them entirely. Rect intersection does not care.
+      const mediaRects = [...document.querySelectorAll("video,img")]
+        .map((m) => m.getBoundingClientRect())
+        .filter((r) => r.width > 24 && r.height > 24);
+
+      const overMedia = (el) => {
+        const r = el.getBoundingClientRect();
+        return mediaRects.some(
+          (m) => r.left < m.right && r.right > m.left && r.top < m.bottom && r.bottom > m.top
+        );
       };
       const out = [];
+      let skippedOverMedia = 0;
       const els = [...document.querySelectorAll("p,li,a,h1,h2,h3,h4,dt,dd,span,button")];
+      // Only elements that own their text. A container reports the computed
+      // colour it inherits, which is not what is painted when its children set
+      // their own: a card link inheriting ink-900 over a violet-950 card looks
+      // like 1.12:1 while every visible word inside it is porcelain. Measuring
+      // the leaf that actually holds the text is the only honest reading, and it
+      // also stops one string being reported twice as its <li> and its <a>.
+      const ownText = (e) =>
+        [...e.childNodes]
+          .filter((n) => n.nodeType === 3)
+          .map((n) => n.textContent)
+          .join("")
+          .trim();
+
       for (const el of els) {
-        if (!el.innerText || !el.innerText.trim()) continue;
+        if (!ownText(el)) continue;
         if (el.getAttribute("aria-hidden") === "true" || el.closest("[aria-hidden='true']")) continue;
         const r = el.getBoundingClientRect();
         if (r.width < 4 || r.height < 4) continue;
         const cs = getComputedStyle(el);
         if (cs.visibility === "hidden" || parseFloat(cs.opacity) < 0.15) continue;
+        const { rgb } = bgOf(el);
+        // Any text overlapping a photograph or the film is unmeasurable here,
+        // whether or not an opaque ancestor exists further up: what the eye sees
+        // is the image, not that ancestor. The category tiles sit on a scrim
+        // over their photograph and the nav runs over the threshold film, and
+        // both were measured against the real footage by hand (V3 sec 7.4).
+        if (overMedia(el)) {
+          skippedOverMedia++;
+          continue;
+        }
         const size = parseFloat(cs.fontSize);
         const weight = parseInt(cs.fontWeight, 10) || 400;
         const large = size >= 24 || (size >= 18.66 && weight >= 700);
         out.push({
-          text: el.innerText.trim().slice(0, 48),
+          text: ownText(el).slice(0, 48),
           fg: toRgb(cs.color),
-          bg: bgOf(el),
+          bg: rgb,
           size: Math.round(size),
           need: large ? 3 : 4.5,
           tag: el.tagName,
         });
       }
-      return out;
+      out.skippedOverMedia = skippedOverMedia;
+      return { items: out, skippedOverMedia };
     });
 
-    const fails = lowContrast
+    const fails = lowContrast.items
       .map((c) => ({ ...c, r: +ratio(c.fg, c.bg).toFixed(2) }))
       .filter((c) => c.r < c.need)
-      // Text sitting over a photograph resolves to the container's colour here,
-      // which is not what the eye sees; those need a human, not this check.
-      .slice(0, 6);
+      .slice(0, 8);
     rec(
       fails.length === 0,
       route,
       w.name,
       "text contrast clears AA",
-      fails.map((f) => `${f.tag} ${f.r}:1 (needs ${f.need}) "${f.text}"`).join(" | ")
+      fails.map((f) => `${f.tag} ${f.r}:1 (needs ${f.need}, ${f.size}px) "${f.text}"`).join(" | ")
     );
+    if (lowContrast.skippedOverMedia) {
+      console.log(
+        `  note [${w.name}] ${lowContrast.skippedOverMedia} elements sit over media; ` +
+          `scrims measured by hand, see DESIGN_SPEC_V3 §7.4`
+      );
+    }
 
     // ---- screenshot slices for the eye ----
     mkdirSync(`${OUT}${route === "/" ? "/home" : route}`, { recursive: true });

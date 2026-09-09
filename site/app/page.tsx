@@ -125,7 +125,7 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <p className="mt-6 text-caption text-ink-400">
+              <p className="mt-6 text-caption text-ink-600">
                 Fittings happen in the shop. Nothing is posted.
               </p>
             </div>
@@ -203,11 +203,11 @@ export default function HomePage() {
                 className="mt-10 grid gap-x-8 gap-y-3 border-t border-ink-900/10 pt-6 text-caption sm:grid-cols-2"
               >
                 <div>
-                  <dt className="text-ink-400">Why people come back</dt>
+                  <dt className="text-ink-600">Why people come back</dt>
                   <dd className="mt-1 text-ink-600">TODO(owner)</dd>
                 </div>
                 <div>
-                  <dt className="text-ink-400">The town</dt>
+                  <dt className="text-ink-600">The town</dt>
                   <dd className="mt-1 text-ink-600">TODO(owner)</dd>
                 </div>
               </dl>
@@ -250,7 +250,7 @@ export default function HomePage() {
                 <p className="eyebrow mt-6">{d.eyebrow}</p>
                 <h3 className="mt-3 text-h3 text-ink-900">{d.heading}</h3>
                 <p className="mt-3 text-ink-600">{d.body}</p>
-                <span className="mt-4 inline-block text-caption text-gold-600 transition-transform duration-[180ms] group-hover:translate-x-1">
+                <span className="mt-4 inline-block text-caption text-gold-700 transition-transform duration-[180ms] group-hover:translate-x-1">
                   {d.cta}
                 </span>
               </Link>
@@ -286,7 +286,7 @@ export default function HomePage() {
                   data-reveal
                   className="flex gap-6 border-b border-ink-900/10 py-5 first:border-t"
                 >
-                  <span className="tabular text-caption text-gold-600">
+                  <span className="tabular text-caption text-gold-700">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <span className="text-ink-900">{c}</span>
