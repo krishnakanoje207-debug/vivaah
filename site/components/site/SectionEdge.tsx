@@ -85,10 +85,17 @@ function buildTorn(seed: number): Torn {
   for (const lane of lanes) {
     const centre = lane * W + (rnd() - 0.5) * (W / count) * 0.4;
     // Narrow and deep: a roll, not a swell. Wide shallow curves read as waves.
-    const half = 58 + rnd() * 62;
+    //
+    // These numbers are in viewBox units and the box is drawn with
+    // `preserveAspectRatio="none"`, so they are NOT rendered at the same scale:
+    // 1600 units of width map to the viewport (~0.9x at 1440) while 160 units of
+    // height map to a 74-104px band (~0.6x). A roll authored square here renders
+    // half as deep as it is wide. The first build missed that and the curls read
+    // as shallow bowls, so the width is cut and the depth raised to compensate.
+    const half = 38 + rnd() * 34;
     const x0 = Math.max(-40, centre - half);
     const x1 = Math.min(W + 40, centre + half);
-    const depth = 52 + rnd() * 30; // how far the roll hangs into the revealed room
+    const depth = 74 + rnd() * 26; // how far the roll hangs into the revealed room
     const lift = 3 + rnd() * 4; // its ends taper back to points on the tear
 
     const iStart = Math.max(0, Math.round(x0 / step));
@@ -176,15 +183,20 @@ export function SectionEdge({
               its own shadow where it curls under. Mixed from the paper colour so
               one gradient serves a porcelain tear and a violet one. */}
           <linearGradient id={`${id}-roll`} x1="0" y1="0" x2="0" y2="1">
-            {/* Tucked under the sheet, so it starts in shadow. */}
-            <stop offset="0%" stopColor={`color-mix(in srgb, ${paper} 58%, black)`} />
-            <stop offset="6%" stopColor={`color-mix(in srgb, ${paper} 74%, black)`} />
-            {/* The lit ridge along the top of the roll. */}
-            <stop offset="17%" stopColor={`color-mix(in srgb, ${paper} 46%, white)`} />
-            <stop offset="34%" stopColor={paper} />
-            <stop offset="66%" stopColor={`color-mix(in srgb, ${paper} 74%, black)`} />
-            <stop offset="90%" stopColor={`color-mix(in srgb, ${paper} 46%, black)`} />
-            <stop offset="100%" stopColor={`color-mix(in srgb, ${paper} 34%, black)`} />
+            {/* Tucked under the sheet, so it starts in shadow. The band is deep
+                enough to read at this scale: at 6% it was a hairline nobody saw,
+                which left the roll looking lit from the top down like a bowl. */}
+            <stop offset="0%" stopColor={`color-mix(in srgb, ${paper} 44%, black)`} />
+            <stop offset="14%" stopColor={`color-mix(in srgb, ${paper} 66%, black)`} />
+            {/* The lit ridge along the top of the roll: the paper's outer face
+                turning over, and the one thing that says "curl" rather than
+                "hole". Kept tight, because a wide highlight reads as a sphere. */}
+            <stop offset="26%" stopColor={`color-mix(in srgb, ${paper} 40%, white)`} />
+            <stop offset="33%" stopColor={`color-mix(in srgb, ${paper} 72%, white)`} />
+            <stop offset="46%" stopColor={paper} />
+            <stop offset="72%" stopColor={`color-mix(in srgb, ${paper} 70%, black)`} />
+            <stop offset="92%" stopColor={`color-mix(in srgb, ${paper} 42%, black)`} />
+            <stop offset="100%" stopColor={`color-mix(in srgb, ${paper} 30%, black)`} />
           </linearGradient>
           <filter id={`${id}-blur`} x="-10%" y="-30%" width="120%" height="180%">
             <feGaussianBlur stdDeviation="5" />

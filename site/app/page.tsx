@@ -1,361 +1,359 @@
 import Link from "next/link";
 import { Preloader } from "@/components/site/Preloader";
-import { Threshold } from "@/components/site/Threshold";
-import { RoomIndex } from "@/components/site/RoomIndex";
-import { PatternSeam } from "@/components/site/PatternSeam";
-import { CountFigure } from "@/components/site/CountFigure";
-import { DistortHeading } from "@/components/site/DistortHeading";
-import { Parallax } from "@/components/site/Parallax";
-import { WipeIn } from "@/components/site/WipeIn";
+import { SectionEdge } from "@/components/site/SectionEdge";
+import { GoldFrame } from "@/components/site/GoldFrame";
+import { RippleHeading } from "@/components/site/RippleHeading";
+import { WordmarkClose } from "@/components/site/WordmarkClose";
 import { Reveal } from "@/components/site/Reveal";
-import { RentalCard } from "@/components/site/RentalCard";
+import { WipeIn } from "@/components/site/WipeIn";
+import { Parallax } from "@/components/site/Parallax";
 import { SHOP } from "@/lib/site";
-import { formatINR } from "@/lib/format";
-import { getFeaturedRentals } from "@/lib/rentals";
-import { RETAIL_CATEGORIES } from "@/lib/categories";
 
 /**
- * Home — grammar: "Threshold and rooms" (specs/DESIGN_SPEC_V3.md §2).
+ * The landing page — the front door.
  *
- * The threshold is the only full-bleed, only scrubbed, only continuous surface.
- * Everything past it is a room, and every room boundary changes all three of
- * {ground, material, device}. Boundaries are hard cuts: the ground swaps
- * instantly and only the incoming room's own content is animated (§3.2).
+ * Built 9 Sep 2026 from the Kombai canvas (variant B, "typographic hero on
+ * porcelain") against `specs/KOMBAI_MAIN_PAGE_PROMPT.md`. The copy is the
+ * canvas's, kept as written because it holds to §A: no founding year, no
+ * heritage, two partners, rentals and retail from the same day, and the two
+ * facts the owner has not given yet still visibly `TODO(owner)`.
  *
- *   Room          Ground          Material              Device
- *   Threshold     violet-950      film                  scrub  (the only one)
- *   I  The week   porcelain-50    silk, photographed    flow + in
- *   II arithmetic porcelain-100   figures, type         count
- *   III The craft stage           thread, macro         signature move + parallax
- *   IV The vault  violet-950      gold, metal           parallax
- *   V  The rail   porcelain-100   cotton, daylight      reveal per object
- *   Return        violet-950      still                 flow
+ * Grammar (DESIGN_SPEC_V3 §8.2 leaves the home grammar open, and binds it only
+ * by two bans, both of which this respects): no second full-bleed scrubbed film,
+ * and no reuse of `/rentals`' room sequence. So the argument here is not the
+ * rooms' rent-versus-buy case. It is the shop itself, and it ends on a
+ * typographic close `/rentals` does not have.
  *
- * INTERIM (9 Sep 2026). The owner has decided this grammar belongs on /rentals,
- * which now carries it, and that the main page is to be rebuilt from scratch
- * with a new hero, the shop's own story, and the three doors (rent, shop,
- * jewellery). That rebuild is blocked on the owner's story in their own words.
- * Until then this page stands as-is so the front door is not broken, and it
- * duplicates /rentals' first three rooms on purpose.
+ *   Section   Ground          Material              Device
+ *   Hero      porcelain-50    type                  letter ripple
+ *   Story     porcelain-100   silk, arch-cropped    flow + parallax
+ *   Doors     stage           three materials       wipe per door
+ *   Proof     porcelain-50    hands, process        reveal per check
+ *   Close     violet-950      still                 oversized mark, drift
  *
- * Nothing from v2 has been deleted: `Hero`, `CategoryShowcase`,
- * `SareesFlagship`, `LehengasFlagship`, `CuratedMoment` and every file under
- * `public/hero/` are kept for the rebuild (owner's instruction, 9 Sep).
+ * Boundaries are torn, never blended: `SectionEdge` sits at each one and the two
+ * grounds still meet along a single hard edge (§3.2, and §E of the work order).
  */
 
-// Reads live rental data (app_public Neon connection); rendered per request.
-export const dynamic = "force-dynamic";
+export const metadata = {
+  title: "Vivaah Dresses and Suits",
+  description:
+    "Two partners, one shop. Bridal and festive wear to rent by the date, suits and kurtis to reserve and collect, and jewellery to match. The stock changes day to day.",
+};
 
-// TODO(owner): confirm the purchase figure. It is a typical market price for a
-// bridal lehenga, not a number of the shop's own, and §2.6 allows real figures
-// only. The rental figure beside it is live from the catalogue.
-const TYPICAL_PURCHASE_PRICE = 80_000;
-
-// Room IV mirrors the three edits on /jewellery so the two pages name the same
-// things. Imagery is the shared category stock until the owner's photography
-// lands (public/categories/SOURCES.md).
-const VAULT = [
-  { t: "The Kundan Edit", d: "Uncut stones set in gold foil.", img: "/categories/bridal-lehengas.jpg", depth: 56 },
-  { t: "Polki and Pearls", d: "Natural diamonds, Basra pearls.", img: "/categories/sarees.jpg", depth: 28 },
-  { t: "Temple Gold", d: "Carved celestial motifs, heavy work.", img: "/categories/rajasthani-poshak.jpg", depth: 44 },
+const DOORS = [
+  {
+    href: "/rentals",
+    eyebrow: "Rentals",
+    heading: "Reserve the dates, collect, return.",
+    body: "Bridal and festive wear, rented by the date. Bridal and side lehengas, sarees, poshak, chaniya cholis, gowns and indo-western pieces, fitted in the shop before your day.",
+    cta: "See what is in for rent",
+    image: "/categories/bridal-lehengas.jpg",
+  },
+  {
+    href: "/retail",
+    eyebrow: "Retail",
+    heading: "Reserve online, collect at the shop.",
+    body: "Suits, kurtis, co-ord sets and kaftans to keep. Reserve a piece online, then come in, try it on and take it home.",
+    cta: "See what is in to buy",
+    image: "/categories/co-ord-sets.jpg",
+  },
+  {
+    href: "/jewellery",
+    eyebrow: "Jewellery",
+    heading: "Rented alongside an outfit, never sold.",
+    body: "Matched to the outfit you are taking, on the same dates, so nothing has to be hunted for separately.",
+    cta: "Match to your outfit",
+    image: "/categories/rajasthani-poshak.jpg",
+  },
 ];
 
-const RAIL = RETAIL_CATEGORIES.slice(0, 4);
+// Five checks, the shop's own process. Real, and small enough to be true.
+const CHECKS = [
+  "Hooks and zips checked after every return.",
+  "Hem pinned at the fitting.",
+  "Dupatta edge pressed.",
+  "Blouse altered in the shop.",
+  "Every piece steamed before it leaves.",
+];
 
-const ROOMS = [
-  { id: "threshold", label: "Threshold" },
-  { id: "week", label: "The week" },
-  { id: "arithmetic", label: "The arithmetic" },
-  { id: "craft", label: "The craft" },
-  { id: "vault", label: "The vault" },
-  { id: "rail", label: "The rail" },
-  { id: "return", label: "Return" },
-] as const;
-
-export default async function Home() {
-  const featured = await getFeaturedRentals();
-  const rentFrom = featured
-    .map((p) => p.pricePerDay)
-    .filter((n): n is number => typeof n === "number" && n > 0)
-    .sort((a, b) => a - b)[0];
-
+export default function HomePage() {
   return (
     <>
-      {/* Home only, which is what "skipped on deep links" means (V3 §4.1). */}
       <Preloader />
-      <RoomIndex rooms={ROOMS} />
-      <Threshold
-        line={
-          <>
-            Vivaah <em className="italic">Dresses and Suits</em>
-          </>
-        }
-      />
 
-      {/* ============ ROOM I: THE WEEK ============
-          porcelain-50 · silk, photographed · flow + in */}
-      <section id="week" data-room="week" className="bg-porcelain-50 py-28 md:py-40">
-        <div className="shell shell-rooms">
-          <Reveal className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
-            <div data-reveal>
-              <p className="eyebrow">The week</p>
-              <h2 className="mt-5 text-h2">Everything is decided at once</h2>
-              <p className="mt-7 max-w-[44ch] leading-relaxed text-ink-600">
-                Sangeet on the Thursday. The wedding on the Saturday. A reception nobody
-                has thought about yet, because there has not been an hour to.
+      {/* ---------- Hero: type on porcelain ---------------------------------
+          Not a film. The threshold film is /rentals' and is the only one on the
+          site (§8.2). What carries this screen is the sentence itself. */}
+      <section className="relative bg-porcelain-50 pt-24 pb-20 md:pt-32 md:pb-28">
+        <div className="shell">
+          <p className="eyebrow">Rentals, retail and jewellery, one shop</p>
+
+          <RippleHeading
+            as="h1"
+            className="mt-6 max-w-[13ch] text-h1 text-ink-900"
+          >
+            New pieces on the rail, most days.
+          </RippleHeading>
+
+          <div className="mt-12 grid gap-10 md:grid-cols-[1.1fr_1fr] md:items-start">
+            <div>
+              <p className="max-w-[46ch] text-ink-600">
+                Bridal and festive wear rented by the date, suits and kurtis reserved
+                online and collected in person, with jewellery to match the outfit.
               </p>
-              <p className="mt-4 max-w-[44ch] leading-relaxed text-ink-600">
-                Somewhere in that week you are expected to look like the photographs will
-                be looked at for thirty years.
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/rentals"
+                  className="rounded-control bg-violet-800 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:bg-violet-700"
+                >
+                  See what is in for rent
+                </Link>
+                <Link
+                  href="/visit"
+                  className="rounded-control border border-ink-900/20 px-6 py-3 font-medium text-ink-900 transition-colors duration-[180ms] hover:border-ink-900/40"
+                >
+                  Plan a visit
+                </Link>
+              </div>
+
+              <p className="mt-6 text-caption text-ink-400">
+                Fittings happen in the shop. Nothing is posted.
               </p>
             </div>
-            {/* The room's material: silk, photographed. */}
-            <figure data-reveal>
+
+            {/* The one photograph on this screen, and the only frame on the page
+                besides the story's. Parallax gives it a little independence from
+                the type without moving anything but a transform. */}
+            <Parallax distance={28}>
+              <GoldFrame tone="light">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/hero/hero-still.webp"
+                  alt="A bridal lehenga on the rail in the shop"
+                  className="aspect-[4/5] w-full object-cover"
+                />
+              </GoldFrame>
+            </Parallax>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- Story: who runs the shop -------------------------------- */}
+      <section className="relative bg-porcelain-100 py-24 md:py-36">
+        <SectionEdge
+          seed={11}
+          paper="var(--color-porcelain-50)"
+          reveal="var(--color-porcelain-100)"
+        />
+
+        <div className="shell">
+          <div className="grid gap-14 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+            <Parallax distance={34}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/categories/side-lehengas.jpg"
-                alt="A side lehenga in silk, photographed on the wearer"
-                className="aspect-[4/5] w-full bg-stage object-cover"
+                alt="A piece being fitted in the shop"
+                className="arch aspect-[4/5] w-full object-cover shadow-card"
               />
-              <figcaption className="mt-4 text-caption text-ink-400">
-                Reserved by the date, returned after the day it was needed.
-              </figcaption>
-            </figure>
-          </Reveal>
-
-          <Reveal className="mt-16 grid grid-cols-1 gap-x-10 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((p) => (
-              <div key={p.slug} data-reveal>
-                <RentalCard p={p} />
-              </div>
-            ))}
-          </Reveal>
-
-          <Reveal className="mt-14">
-            <Link
-              data-reveal
-              href="/rentals"
-              className="text-[0.9375rem] font-medium text-gold-600 underline-offset-8 decoration-gold-500/40 hover:underline"
-            >
-              Every piece for rent
-            </Link>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ============ ROOM II: THE ARITHMETIC ============
-          porcelain-100 · figures, type · count */}
-      <section id="arithmetic" data-room="arithmetic" className="bg-porcelain-100 py-28 md:py-40">
-        <div className="shell shell-rooms">
-          <Reveal>
-            <p data-reveal className="eyebrow">The arithmetic</p>
-            <h2 data-reveal className="mt-5 max-w-[18ch] text-h2">
-              What it costs to own it
-            </h2>
-            <p data-reveal className="mt-7 max-w-[46ch] leading-relaxed text-ink-600">
-              A bridal lehenga is bought once, worn once, and folded into a steel almirah
-              for the rest of its life.
-            </p>
-          </Reveal>
-
-          <div className="mt-14 flex flex-wrap gap-x-20 gap-y-10">
-            <div>
-              <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-400">To buy</p>
-              <CountFigure
-                value={TYPICAL_PURCHASE_PRICE}
-                prefix="₹"
-                className="mt-2 font-display text-h1 leading-none"
-              />
-            </div>
-            <div>
-              <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-400">Times worn</p>
-              <CountFigure value={1} className="mt-2 font-display text-h1 leading-none" />
-            </div>
-            {rentFrom ? (
-              <div>
-                <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-400">
-                  To rent, from
-                </p>
-                <CountFigure
-                  value={rentFrom}
-                  prefix="₹"
-                  className="mt-2 font-display text-h1 leading-none text-gold-600"
-                />
-              </div>
-            ) : null}
-          </div>
-
-          <p className="mt-12 max-w-[54ch] text-caption text-ink-400">
-            The purchase figure is a typical market price for a bridal lehenga. The rental
-            figure is ours, and current
-            {rentFrom ? <> at ₹{formatINR(rentFrom)} a day</> : null}.
-          </p>
-        </div>
-      </section>
-
-      {/* ============ ROOM III: THE CRAFT ============
-          stage · thread, macro · signature move + parallax · THE PEAK
-          Largest scroll span on the page (§2.6). */}
-      <section id="craft" data-room="craft" className="bg-stage py-36 md:py-56">
-        <div className="shell shell-rooms">
-          <div className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
-            <Parallax distance={44}>
-              <Reveal>
-                <p data-reveal className="eyebrow">The craft</p>
-                {/* One of the three headings licensed for distortion (§3.5). */}
-                <div data-reveal>
-                  <DistortHeading className="mt-5 max-w-[16ch] text-h2">
-                    We know how it was made
-                  </DistortHeading>
-                </div>
-                <p data-reveal className="mt-7 max-w-[42ch] leading-relaxed text-ink-600">
-                  Drag the seam. The photograph resolves into the garment&rsquo;s own draft:
-                  the panel seams, the hem, the placement of every motif.
-                </p>
-                <p data-reveal className="mt-4 max-w-[42ch] text-caption text-ink-400">
-                  Drawn from the piece itself, not an illustration of it. Arrow keys move
-                  the seam if you would rather not drag.
-                </p>
-              </Reveal>
             </Parallax>
 
-            <PatternSeam
-              photo="/categories/bridal-lehengas.jpg"
-              draft="/flagship/draft-lehenga.png"
-              alt="Bridal lehenga in red and gold, worn with a matching dupatta"
-            />
+            <Reveal>
+              <p data-reveal className="eyebrow">
+                Who we are
+              </p>
+
+              <RippleHeading className="mt-5 max-w-[18ch] text-h2 text-ink-900">
+                We are two partners. We handle every rental ourselves.
+              </RippleHeading>
+
+              <div className="mt-8 space-y-5 text-ink-600">
+                <p data-reveal className="max-w-[54ch]">
+                  Rentals and retail began on the same day. One shop, two ways to take
+                  a garment home: reserve the dates and collect it, or reserve it and
+                  buy it.
+                </p>
+                <p data-reveal className="max-w-[54ch]">
+                  The stock changes day to day. What is on the rail this week was not
+                  there last month, and new pieces keep arriving.
+                </p>
+                <p data-reveal className="max-w-[54ch]">
+                  Every rental is handled personally, to the best of our abilities, by
+                  the same two people each time.
+                </p>
+              </div>
+
+              {/* The two facts the owner has not given yet. Left visible on
+                  purpose (work order §A): a placeholder is honest, an invented
+                  sentence is not. */}
+              <dl
+                data-reveal
+                className="mt-10 grid gap-x-8 gap-y-3 border-t border-ink-900/10 pt-6 text-caption sm:grid-cols-2"
+              >
+                <div>
+                  <dt className="text-ink-400">Why people come back</dt>
+                  <dd className="mt-1 text-ink-600">TODO(owner)</dd>
+                </div>
+                <div>
+                  <dt className="text-ink-400">The town</dt>
+                  <dd className="mt-1 text-ink-600">TODO(owner)</dd>
+                </div>
+              </dl>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ============ ROOM IV: THE VAULT ============
-          violet-950 · gold, metal · parallax
-          The hardest cut on the page: stage to violet-950, cloth to metal (§2.6).
-          Zero transition frames. */}
-      <section
-        id="vault"
-        data-room="vault"
-        data-dark=""
-        className="on-dark grain bg-violet-950 py-28 text-porcelain-50 md:py-40"
-      >
-        <div className="shell shell-rooms">
-          <Reveal>
-            <p data-reveal className="eyebrow on-dark">The vault</p>
-            <h2 data-reveal className="mt-5 max-w-[18ch] text-h2 text-porcelain-50">
-              Gold, rented by the day
-            </h2>
-            <p data-reveal className="mt-7 max-w-[44ch] leading-relaxed text-violet-300">
-              Jewellery is rented alongside the outfit and chosen in the same sitting,
-              never picked in isolation.
-            </p>
-          </Reveal>
+      {/* ---------- The three doors ----------------------------------------
+          Given equal weight and told apart by their own photograph and their own
+          sentence, not by three identical cards. */}
+      <section className="relative bg-stage py-24 md:py-36">
+        <SectionEdge
+          seed={12}
+          paper="var(--color-porcelain-100)"
+          reveal="var(--color-stage)"
+        />
 
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
-            {VAULT.map((v) => (
-              <Parallax key={v.t} distance={v.depth}>
-                <figure>
+        <div className="shell">
+          <p className="eyebrow">Three doors</p>
+          <RippleHeading className="mt-5 max-w-[20ch] text-h2 text-ink-900">
+            Three ways to take a garment home.
+          </RippleHeading>
+          <p className="mt-6 max-w-[58ch] text-ink-600">
+            Nothing is posted. Rentals are reserved by the date, retail is reserved and
+            collected, jewellery goes out with an outfit.
+          </p>
+
+          <WipeIn className="mt-14 grid gap-10 md:grid-cols-3">
+            {DOORS.map((d) => (
+              <Link key={d.href} href={d.href} data-wipe className="group block">
+                <div className="arch relative overflow-hidden bg-porcelain-200 shadow-card transition-shadow duration-[180ms] group-hover:shadow-lift">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={v.img}
-                    alt={v.t}
-                    className="aspect-[4/5] w-full object-cover"
+                    src={d.image}
+                    alt=""
+                    className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
-                  <figcaption className="mt-4">
-                    <span className="block text-h3 font-display text-porcelain-50">{v.t}</span>
-                    <span className="mt-1 block text-caption text-violet-300">{v.d}</span>
-                  </figcaption>
-                </figure>
-              </Parallax>
-            ))}
-          </div>
-
-          <Reveal className="mt-14">
-            <Link
-              data-reveal
-              href="/jewellery"
-              className="text-[0.9375rem] font-medium text-gold-500 underline-offset-8 decoration-gold-500/40 hover:underline"
-            >
-              The jewellery vault
-            </Link>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ============ ROOM V: THE RAIL ============
-          porcelain-100 · cotton, daylight · reveal per object */}
-      <section id="rail" data-room="rail" className="bg-porcelain-100 py-28 md:py-40">
-        <div className="shell shell-rooms">
-          <Reveal>
-            <p data-reveal className="eyebrow">The rail</p>
-            <h2 data-reveal className="mt-5 max-w-[20ch] text-h2">
-              Bought outright, collected at the shop
-            </h2>
-          </Reveal>
-
-          <WipeIn className="mt-16 grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
-            {RAIL.map((c) => (
-              <Link key={c.slug} href={`/retail?category=${c.slug}`} data-wipe className="group block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={c.image}
-                  alt={c.name}
-                  className="aspect-[3/4] w-full bg-stage object-cover"
-                />
-                <p className="mt-4 text-[0.9375rem] font-medium text-ink-900 group-hover:text-gold-600">
-                  {c.name}
-                </p>
-                <p className="mt-1 text-caption text-ink-600">Reserved online, held at the shop.</p>
+                </div>
+                <p className="eyebrow mt-6">{d.eyebrow}</p>
+                <h3 className="mt-3 text-h3 text-ink-900">{d.heading}</h3>
+                <p className="mt-3 text-ink-600">{d.body}</p>
+                <span className="mt-4 inline-block text-caption text-gold-600 transition-transform duration-[180ms] group-hover:translate-x-1">
+                  {d.cta}
+                </span>
               </Link>
             ))}
           </WipeIn>
-
-          <p className="mt-12 max-w-[56ch] text-caption text-ink-400">
-            Every piece on the rail is reserved the same way: pick it here, and it is put
-            aside for you to collect and try on at the shop. Nothing is posted.
-          </p>
         </div>
       </section>
 
-      {/* ============ RETURN ============
-          violet-950 · still · flow. The threshold's ground, no longer moving. */}
-      <section
-        id="return"
-        data-room="return"
-        data-dark=""
-        className="on-dark grain bg-violet-950 py-32 text-porcelain-50 md:py-44"
-      >
-        <div className="shell shell-rooms">
-          <Reveal>
-            {/* Second of the three distortion headings (§3.5). */}
-            <div data-reveal>
-              <DistortHeading className="max-w-[16ch] text-h2 text-porcelain-50">
-                Come and see it on
-              </DistortHeading>
+      {/* ---------- Proof: the shop knows garments -------------------------- */}
+      <section className="relative bg-porcelain-50 py-24 md:py-36">
+        <SectionEdge
+          seed={13}
+          paper="var(--color-stage)"
+          reveal="var(--color-porcelain-50)"
+        />
+
+        <div className="shell">
+          <div className="grid gap-12 md:grid-cols-[1fr_1.1fr] md:items-start">
+            <div>
+              <p className="eyebrow">Proof</p>
+              <RippleHeading className="mt-5 max-w-[14ch] text-h2 text-ink-900">
+                Before anything goes back on the rail.
+              </RippleHeading>
+              <p className="mt-6 max-w-[44ch] text-ink-600">
+                Five checks, made by hand, on every piece, every time it comes back.
+              </p>
             </div>
-            <p data-reveal className="mt-8 max-w-[44ch] leading-relaxed text-violet-300">
-              Bring the date you are dressing for. We will put the pieces on you, and hold
-              whichever one you choose for that week.
-            </p>
-            <p data-reveal className="mt-10 text-[0.9375rem] text-violet-300">
-              {SHOP.address} · <span className="tabular">{SHOP.hours}</span>
-            </p>
-            <p data-reveal className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
-              <Link
-                href="/visit"
-                className="text-gold-500 underline underline-offset-[5px] decoration-gold-500/50"
-              >
-                How to find us
-              </Link>
-              <a
-                href={SHOP.mapsUrl}
-                className="text-gold-500 underline underline-offset-[5px] decoration-gold-500/50"
-              >
-                Open in maps
-              </a>
-            </p>
-          </Reveal>
+
+            <Reveal as="ul" className="space-y-0">
+              {CHECKS.map((c, i) => (
+                <li
+                  key={c}
+                  data-reveal
+                  className="flex gap-6 border-b border-ink-900/10 py-5 first:border-t"
+                >
+                  <span className="tabular text-caption text-gold-600">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="text-ink-900">{c}</span>
+                </li>
+              ))}
+            </Reveal>
+          </div>
         </div>
       </section>
+
+      {/* ---------- Close: the invitation, then the mark -------------------- */}
+      <div className="relative">
+        <SectionEdge
+          seed={14}
+          paper="var(--color-porcelain-50)"
+          reveal="var(--color-violet-950)"
+        />
+      </div>
+
+      <WordmarkClose>
+        <div className="ornament max-w-[7rem]" aria-hidden="true" />
+
+        <RippleHeading className="mt-8 max-w-[14ch] text-h2 text-porcelain-50">
+          Come in and try it on.
+        </RippleHeading>
+
+        <div className="mt-10 grid gap-12 md:grid-cols-[1.1fr_1fr]">
+          <div>
+            <p className="max-w-[46ch] text-violet-300">
+              Fitting happens in person. Bring the date and we will bring the rail.
+            </p>
+            <p className="mt-4 max-w-[46ch] text-violet-300">
+              Come in during shop hours, or plan a visit so a piece you have seen is
+              waiting.
+            </p>
+            <Link
+              href="/visit"
+              className="mt-8 inline-block rounded-control border border-porcelain-50/30 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:border-porcelain-50/60"
+            >
+              Plan a visit
+            </Link>
+          </div>
+
+          {/* Practical detail, from lib/site so it follows the admin settings
+              when those land. Never hardcoded here. */}
+          <dl className="space-y-6 text-caption">
+            <div>
+              <dt className="eyebrow on-dark">Hours</dt>
+              <dd className="mt-2 text-porcelain-50">{SHOP.hours}</dd>
+            </div>
+            <div>
+              <dt className="eyebrow on-dark">Address</dt>
+              <dd className="mt-2 text-porcelain-50">{SHOP.address}</dd>
+              <dd className="mt-1">
+                <a
+                  href={SHOP.mapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-gold-500 underline-offset-4 hover:underline"
+                >
+                  Open in Maps
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt className="eyebrow on-dark">Phone</dt>
+              <dd className="mt-2">
+                <a
+                  href={`tel:${SHOP.phone.replace(/\s/g, "")}`}
+                  className="text-porcelain-50 underline-offset-4 hover:underline"
+                >
+                  {SHOP.phone}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </WordmarkClose>
     </>
   );
 }
