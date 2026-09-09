@@ -1,255 +1,443 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-
-gsap.registerPlugin(ScrollTrigger);
+import { SectionEdge } from "@/components/site/SectionEdge";
+import { GoldFrame } from "@/components/site/GoldFrame";
+import { RippleHeading } from "@/components/site/RippleHeading";
+import { Reveal } from "@/components/site/Reveal";
+import { WipeIn } from "@/components/site/WipeIn";
+import { Parallax } from "@/components/site/Parallax";
+import { SHOP } from "@/lib/site";
 
 /**
- * Jewellery Teaser — "Dark Immersive" vault content (var_0486628442ff).
- * Extracted from the page wrapper to support Next.js App Router metadata.
+ * The jewellery page — the third door, and the only dark listing page on the
+ * site.
+ *
+ * Built 9 Sep 2026 from the Kombai canvas (variant A, "the vault, mosaic of
+ * pieces") against `specs/KOMBAI_JEWELLERY_PROMPT.md`. The three kinds are the
+ * ones the previous build already named (Kundan, Polki & Pearls, Temple Gold),
+ * kept because they are the shop's own vocabulary; its copy is not, because it
+ * ran on the heritage register §A bans outright.
+ *
+ * Why dark: every other page is porcelain daylight, and gold is capped at ~2% of
+ * the surface everywhere because it is an accent. Here the subject genuinely is
+ * metal, so the ground drops to violet-950 and the gold does the work it is
+ * being saved for. `.grain` sits on each dark ground, `.on-dark` flips the
+ * nested eyebrows to gold-500, and the one `GoldFrame` is tone="dark".
+ *
+ *   Section   Ground        Composition                         Device
+ *   Head      violet-950    text left, framed plate right       ripple + parallax
+ *   Pieces    violet-900    six-column mosaic, tiles unequal    wipe per tile
+ *   Matched   violet-950    narrow rail, plate off the edge     parallax + inset
+ *   Works     violet-900    full-width rule, three columns      reveal
+ *   Close     violet-950    invitation against the hours        reveal
+ *
+ * The composition is deliberately not `/`'s (which is a stack of shell-width
+ * text-and-image splits on porcelain) and not `/rentals`' (threshold film, room
+ * index, pattern seam, none of which appear here). Boundaries are torn, never
+ * blended: `SectionEdge` at each seam, two grounds meeting along one hard edge.
+ *
+ * Contrast on this page: porcelain-50 and violet-300 for text on violet-950/900
+ * (17:1 and 7.4:1), gold-500 for every accent (6.9:1), never gold-600.
+ *
+ * Nothing here is sold and nothing is reserved on its own: every call to action
+ * leads to an outfit, at `/rentals` or in the shop.
  */
+
+// The three kinds, and the outfits each is kept against. Names carried over from
+// the previous build; the outfit pairings are the rental categories the site
+// already lists.
+const PIECES = [
+  {
+    name: "Kundan",
+    note: "Sets for the bridal and side lehengas.",
+    image: "/categories/sarees.jpg",
+    alt: "A woman in a saree wearing a kundan necklace and earrings",
+    // 3x3: the mosaic's anchor, and the page's arch.
+    span: "lg:col-span-3 lg:row-span-3",
+    ratio: "aspect-[4/5]",
+    arch: true,
+  },
+  {
+    name: "Polki & Pearls",
+    note: "Goes with gowns and indo-western pieces.",
+    image: "/categories/indo-western.jpg",
+    alt: "A woman in an indo-western outfit with a polki and pearl necklace",
+    span: "lg:col-span-3",
+    ratio: "aspect-[16/10]",
+    arch: false,
+  },
+  {
+    name: "Temple Gold",
+    note: "For sarees and poshak.",
+    image: "/categories/ready-to-wear-sarees.jpg",
+    alt: "A woman in a ready-to-wear saree with a temple gold necklace",
+    span: "lg:col-span-2 lg:row-span-2",
+    ratio: "aspect-[4/5]",
+    arch: false,
+  },
+];
+
+const STEPS = [
+  {
+    n: "01",
+    title: "Same dates as the outfit",
+    body: "The set is held for the dates the outfit is held. There is no second reservation.",
+  },
+  {
+    n: "02",
+    title: "Collected together",
+    body: "Tried against the outfit at the fitting, then packed with it when you collect.",
+  },
+  {
+    n: "03",
+    title: "Returned together",
+    body: "Comes back with the outfit, checked piece by piece before it goes back on the shelf.",
+  },
+];
+
 export function JewelleryContent() {
-  const containerRef = useRef<HTMLElement>(null);
-  const spotlightRef = useRef<HTMLDivElement>(null);
-  const heroVideoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const finePointer = window.matchMedia("(pointer: fine)").matches;
-
-    // Spotlight only where a cursor exists; on touch the vignette would sit
-    // frozen at 50%/50% and permanently darken the page edges.
-    const moveSpotlight = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth) * 100;
-      const y = (e.clientY / window.innerHeight) * 100;
-      document.documentElement.style.setProperty("--x", `${x}%`);
-      document.documentElement.style.setProperty("--y", `${y}%`);
-    };
-
-    if (finePointer && !reduce) {
-      window.addEventListener("mousemove", moveSpotlight);
-    } else if (spotlightRef.current) {
-      spotlightRef.current.style.display = "none";
-    }
-
-    if (reduce) {
-      gsap.set(el.querySelectorAll("[data-reveal]"), { opacity: 1, y: 0 });
-      return;
-    }
-
-    // Ambient hero film plays only when motion is welcome; under reduced-motion
-    // the <video> keeps its poster and never animates (early-returned above).
-    heroVideoRef.current?.play().catch(() => {});
-
-    // Scoped orchestrated entrance animations
-    const ctx = gsap.context(() => {
-      const targets = el.querySelectorAll("[data-reveal]");
-      targets.forEach((target) => {
-        gsap.to(target, {
-          scrollTrigger: {
-            trigger: target,
-            start: "top 88%",
-            once: true,
-          },
-          opacity: 1,
-          y: 0,
-          duration: 1.2,
-          ease: "power3.out",
-          delay: Number((target as HTMLElement).dataset.delay) || 0,
-        });
-      });
-    }, el);
-
-    return () => {
-      ctx.revert();
-      window.removeEventListener("mousemove", moveSpotlight);
-    };
-  }, []);
-
   return (
-    <main 
-      ref={containerRef}
-      className="relative min-h-screen grain bg-violet-950 text-porcelain-50 font-sans selection:bg-gold-500 selection:text-violet-950 overflow-x-hidden"
-    >
-      {/* Interactive Spotlight Overlay (Vault Atmosphere) */}
-      {/* z-40: the sticky Nav is z-50 and must stay readable above the vignette */}
-      <div
-        className="spotlight-overlay pointer-events-none fixed inset-0 z-40 mix-blend-multiply"
-        style={{
-          background: "radial-gradient(circle at var(--x, 50%) var(--y, 50%), transparent 10%, rgba(50, 23, 77, 0.95) 42%)"
-        }}
-        aria-hidden="true"
-        ref={spotlightRef}
-      />
+    <>
+      {/* ---------- Head: the model, stated first --------------------------
+          The tear here is the site's own porcelain giving way to the vault, so
+          the ground change happens on the first screen rather than being eased
+          into. */}
+      <section className="on-dark grain relative bg-violet-950 pt-32 pb-20 md:pt-40 md:pb-28">
+        <SectionEdge
+          seed={21}
+          paper="var(--color-porcelain-50)"
+          reveal="var(--color-violet-950)"
+        />
 
-      {/* Reveal state overrides */}
-      <style>{`
-        [data-reveal] {
-          opacity: 0;
-          transform: translateY(24px);
-        }
-      `}</style>
-
-      {/* Hero: The Adornment Room */}
-      <section className="relative h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden isolate">
-        {/* Ambient vault film — muted loop under deep violet scrims; poster stands in under reduced-motion (play() is gated in the effect) */}
-        <div className="absolute inset-0 -z-20 overflow-hidden" aria-hidden="true">
-          <video
-            ref={heroVideoRef}
-            loop
-            muted
-            playsInline
-            poster="/hero/hero-poster.webp"
-            className="h-full w-full object-cover opacity-40"
-          >
-            <source src="/hero/hero-loop.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-violet-950/70" />
-          <div className="absolute inset-0 bg-gradient-to-b from-violet-950/60 via-violet-950/40 to-violet-950" />
-        </div>
-        <div className="absolute inset-0 opacity-20 -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(110,86,166,0.5)_0%,transparent_70%)]" />
-        
-        <div className="max-w-5xl relative z-10">
-          <p data-reveal className="text-[0.7rem] tracking-[0.35em] uppercase text-gold-500 font-medium mb-10">
-            The Private Collection
-          </p>
-          <h1 data-reveal data-delay="0.2" className="font-display text-h1 text-porcelain-50 mb-14 leading-[1.05] font-[340]">
-            The <em className="italic text-gold-500 font-[400]">Adornment</em> Room.
-          </h1>
-          
-          <div data-reveal data-delay="0.4" className="flex justify-center items-center mb-14 opacity-50">
-            <div className="w-20 h-px bg-gold-500" />
-            <span className="mx-6 text-gold-500 text-xs">✦</span>
-            <div className="w-20 h-px bg-gold-500" />
-          </div>
-          
-          <p data-reveal data-delay="0.6" className="text-lg md:text-xl text-violet-100 max-w-2xl mx-auto leading-relaxed opacity-70">
-            An intimate sanctuary for the curated bride. Where heritage craft meets the modern silhouette in a dance of light and gold.
-          </p>
-        </div>
-
-        {/* Enter the Vault Indicator */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-gold-500/30 flex flex-col items-center gap-5">
-          <span className="text-[0.625rem] uppercase tracking-[0.25em]">Enter the vault</span>
-          <div className="w-px h-20 bg-gradient-to-b from-gold-500/50 to-transparent" />
-        </div>
-      </section>
-
-      {/* Experience: Hand-picked Vows */}
-      <section className="py-48 md:py-64 relative isolate">
-        <div className="shell">
-          <div className="grid md:grid-cols-2 gap-24 items-center">
-            <div data-reveal>
-              <p className="text-[0.7rem] tracking-[0.3em] uppercase text-gold-500 font-medium mb-8">
-                A Private Viewing
+        <div className="shell-wide relative z-[1]">
+          <div className="grid items-center gap-12 md:grid-cols-[1.15fr_0.85fr] lg:gap-20">
+            <Reveal>
+              <p data-reveal className="eyebrow">
+                Jewellery
               </p>
-              <h2 className="text-h2 font-display text-porcelain-50 mb-10 leading-[1.1] font-[340]">
-                Final vows, <br />
-                <em className="italic text-gold-500 font-[400]">hand-picked</em> for her.
-              </h2>
-              <div className="space-y-10 text-violet-100 text-lg leading-relaxed max-w-md opacity-80">
-                <p>
-                  Jewellery is not an accessory; it is the final vow of an outfit. It is the detail that anchors a silhouette and turns a celebration into a memory.
-                </p>
-                <p>
-                  At Vivaah, we believe the choosing should be as cherished as the wearing. Our boutique viewing room offers a space for reflection, styling, and the quiet joy of discovery.
-                </p>
+
+              <RippleHeading
+                as="h1"
+                className="mt-6 max-w-[16ch] text-h1 text-porcelain-50"
+              >
+                Rented alongside an outfit, never sold.
+              </RippleHeading>
+
+              <p data-reveal className="mt-8 max-w-[50ch] text-violet-300">
+                The set goes out with the lehenga, on the same dates, and comes back
+                with it. Nothing has to be hunted for separately.
+              </p>
+
+              <div data-reveal className="mt-10 flex flex-wrap gap-3">
+                <Link
+                  href="/rentals"
+                  className="rounded-control bg-porcelain-50 px-6 py-3 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
+                >
+                  Match to your outfit
+                </Link>
+                <Link
+                  href="/visit"
+                  className="rounded-control border border-porcelain-50/30 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:border-porcelain-50/60"
+                >
+                  Come in and try
+                </Link>
               </div>
-            </div>
-            
-            <div data-reveal data-delay="0.3" className="relative group">
-              <div className="relative aspect-[4/5] border border-gold-500/15 overflow-hidden">
-                {/* Editorial still (the vault's favourite bridal angle) sits under a deep violet scrim so the quote stays legible */}
+
+              <p data-reveal className="mt-8 text-caption text-violet-300">
+                No piece is sold, and nothing is posted. Every set leaves the shop
+                with an outfit.
+              </p>
+            </Reveal>
+
+            {/* The page's only gold frame. It marks the plate the page is asking
+                you to look at, and it stops meaning that if everything wears one. */}
+            <Parallax distance={30}>
+              <GoldFrame tone="dark">
+                {/* Height-capped rather than left to the aspect ratio: at 1920 a
+                    4:5 crop in a 40% column is 760px tall and strands the text
+                    block beside it in the middle of a much taller row. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/rentals/lahenga1/360/020.webp"
-                  alt="A hand-embroidered bridal lehenga from the Vivaah rental vault"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  src="/categories/bridal-lehengas.jpg"
+                  alt="A bride in a red lehenga wearing the matched necklace and maang tikka"
+                  className="aspect-[4/5] max-h-[34rem] w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-violet-950/75" />
-                <div className="absolute inset-0 bg-gradient-to-t from-violet-950 via-violet-950/45 to-violet-950/55" />
-                <div className="relative z-10 flex h-full items-center justify-center p-14 text-center">
-                  <div className="max-w-xs">
-                    <span className="text-gold-500 text-3xl block mb-10 opacity-60">✦</span>
-                    <p className="font-display text-[1.625rem] italic leading-relaxed text-porcelain-50">
-                      "We do not just dress the bride; we help her find her unique sparkle."
-                    </p>
-                  </div>
+              </GoldFrame>
+            </Parallax>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- The pieces: the vault ----------------------------------
+          Bright metal on a black ground, and the tiles are deliberately unequal:
+          one large arch anchoring the left, a wide band, a tall column and two
+          small squares. Eight identical squares would be a catalogue, and this
+          page is not one. */}
+      <section className="on-dark grain relative bg-violet-900 pt-28 pb-24 md:pt-36 md:pb-32">
+        <SectionEdge
+          seed={22}
+          paper="var(--color-violet-950)"
+          reveal="var(--color-violet-900)"
+        />
+
+        <div className="shell-wide relative z-[1]">
+          <div className="grid items-end gap-8 md:grid-cols-[1.4fr_1fr]">
+            <div>
+              <p className="eyebrow">The pieces</p>
+              <RippleHeading className="mt-5 text-h2 text-porcelain-50">
+                Three kinds, matched to what you take.
+              </RippleHeading>
+            </div>
+            <p className="max-w-[44ch] text-violet-300 md:justify-self-end md:pb-2">
+              Kundan, polki with pearls, and temple gold. Each set is kept against
+              the outfits it goes with, so the{" "}
+              <em className="font-display italic text-porcelain-50">choosing</em> is
+              short.
+            </p>
+          </div>
+
+          <WipeIn className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:grid-rows-[300px_210px_210px]">
+            {PIECES.map((p) => (
+              <Link
+                key={p.name}
+                href="/rentals"
+                data-wipe
+                className={`group relative overflow-hidden bg-violet-950 ${p.ratio} lg:aspect-auto ${p.span} ${
+                  p.arch ? "arch" : "rounded-card"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.image}
+                  alt={p.alt}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+                {/* A scrim over a photograph, not a boundary between two grounds
+                    (§G.4 bans the latter): the caption has to clear AA over
+                    whatever the owner's photography turns out to be. */}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-violet-950 via-violet-950/90 to-transparent p-5 pt-16 lg:p-6 lg:pt-20">
+                  <div className="h-px w-10 bg-gold-500" />
+                  <h3 className="mt-3 text-h3 text-porcelain-50">{p.name}</h3>
+                  <p className="mt-1 text-caption text-violet-300">{p.note}</p>
                 </div>
+              </Link>
+            ))}
+
+            {/* The shop's one honest caveat about a shelf that turns over. */}
+            <div className="flex flex-col justify-between rounded-card border border-gold-500/35 bg-violet-950 p-4 lg:col-span-1 lg:p-5">
+              <span aria-hidden="true" className="text-caption text-gold-500">
+                ✦
+              </span>
+              <p className="mt-6 text-caption text-violet-300">
+                What is on the shelf changes with the rail. Ask what matches the
+                piece you are taking.
+              </p>
+            </div>
+
+            <Link
+              href="/rentals"
+              data-wipe
+              className="group relative aspect-[16/10] overflow-hidden rounded-card bg-violet-950 lg:col-span-1 lg:aspect-auto"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/categories/side-lehengas.jpg"
+                alt="A woman in a side lehenga wearing stacked bangles"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              />
+              <p className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-violet-950 via-violet-950/90 to-transparent px-4 pb-3 pt-10 text-eyebrow uppercase tracking-[0.12em] text-porcelain-50">
+                Bangles
+              </p>
+            </Link>
+          </WipeIn>
+        </div>
+      </section>
+
+      {/* ---------- Matched to the outfit ----------------------------------
+          The reason the page exists, and its strongest composition: the text
+          drops to a narrow rail on the shell's left inset while the outfit runs
+          out past the right edge of the viewport, with the set that goes with it
+          overlapping the bottom-left corner and a drawn gold bracket tying the
+          two together. Nothing here is shell-width. */}
+      <section className="on-dark grain relative overflow-hidden bg-violet-950 pt-28 pb-24 md:pt-36 md:pb-32">
+        <SectionEdge
+          seed={23}
+          paper="var(--color-violet-900)"
+          reveal="var(--color-violet-950)"
+        />
+
+        {/* The shell's left gutter lives on the grid itself, not on the rail
+            column: put it on the column and it is subtracted from the 25rem the
+            rail was given, which at 1920 leaves 200px of measure and breaks the
+            heading into six lines. The right gutter is given up entirely, so the
+            plate has somewhere to run. */}
+        <div className="relative z-[1] grid items-center gap-12 pl-5 md:grid-cols-[minmax(0,25rem)_1fr] md:pl-8 lg:gap-16 lg:pl-[max(2.5rem,calc((100vw-1600px)/2+2.5rem))]">
+          <div className="pr-5 md:pr-0">
+            <Reveal>
+              <p data-reveal className="eyebrow">
+                Matched to the outfit
+              </p>
+
+              <RippleHeading className="mt-5 max-w-[16ch] text-h2 text-porcelain-50">
+                One reservation, two things on the same dates.
+              </RippleHeading>
+
+              <p data-reveal className="mt-8 max-w-[46ch] text-violet-300">
+                Take the lehenga for the wedding week and the set that goes with it
+                leaves with it. We match it against the outfit in the shop, and the
+                dates are the outfit&rsquo;s dates.
+              </p>
+
+              <Link
+                data-reveal
+                href="/rentals"
+                className="mt-8 inline-flex items-center gap-2 font-medium text-gold-500 transition-transform duration-[180ms] hover:translate-x-1"
+              >
+                See what is in for rent
+                <span aria-hidden="true">→</span>
+              </Link>
+            </Reveal>
+          </div>
+
+          <div className="relative pb-16 md:pb-20">
+            <Parallax distance={30} className="ml-[24%] md:ml-[16%]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/categories/rajasthani-poshak.jpg"
+                alt="A woman in a Rajasthani poshak wearing the full set that goes with it"
+                className="aspect-[3/4] max-h-[42rem] w-full object-cover"
+              />
+            </Parallax>
+
+            <div className="absolute bottom-0 left-0 w-[44%] max-w-[19rem] md:w-[38%]">
+              <div className="arch aspect-square overflow-hidden shadow-lift">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/categories/chaniya-cholis.jpg"
+                  alt="The set matched to the outfit, worn with a chaniya choli"
+                  className="h-full w-full object-cover"
+                />
               </div>
-              <div className="absolute -inset-5 border border-gold-600/5 pointer-events-none" />
+              {/* The canvas ties the two plates together with a drawn gold
+                  bracket. It is dropped here: at every width it lands on top of
+                  the outfit photograph, where a gold hairline over gold
+                  embroidery reads as a scratch rather than a connection. The
+                  overlap and this caption already say the two belong together. */}
+              <p className="mt-3 text-caption text-violet-300">
+                The set that goes with it.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Heritage Craft Spotlight */}
-      <section className="py-48 bg-black/5 relative isolate">
-        <div className="shell">
-          <div className="text-center mb-36">
-            <h2 data-reveal className="text-h2 font-display text-porcelain-50 mb-8 font-[340]">
-              Heritage <em className="italic text-gold-500 font-[400]">Craft</em>
-            </h2>
-            <div data-reveal data-delay="0.2" className="h-px bg-gradient-to-r from-transparent via-gold-600/40 to-transparent w-full max-w-md mx-auto" />
+      {/* ---------- How it works: three lines, laid across ------------------ */}
+      <section className="on-dark grain relative bg-violet-900 pt-28 pb-20 md:pt-32 md:pb-24">
+        <SectionEdge
+          seed={24}
+          paper="var(--color-violet-950)"
+          reveal="var(--color-violet-900)"
+        />
+
+        <div className="shell-wide relative z-[1]">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <p className="eyebrow">How it works</p>
+            <p className="text-caption text-violet-300">
+              Three lines,{" "}
+              <em className="font-display italic text-porcelain-50">nothing</em>{" "}
+              more.
+            </p>
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-20">
-            {[
-              { t: "The Kundan Edit", d: "Uncut stones set in 24k gold foil. A legacy of the Mughal courts, reimagined for the contemporary reception.", img: "/categories/bridal-lehengas.jpg" },
-              { t: "Polki & Pearls", d: "Natural diamonds in their rawest form, paired with Basra pearls for a timeless, ethereal bridal glow.", img: "/categories/sarees.jpg" },
-              { t: "Temple Gold", d: "Intricately carved gold depicting celestial motifs. Heavy in tradition, light in the soul.", img: "/categories/rajasthani-poshak.jpg" }
-            ].map((item, i) => (
-              <div key={item.t} data-reveal data-delay={0.15 * (i + 1)}>
-                {/* Category still as evocative texture — held under a violet scrim, never full-brightness */}
-                <div className="relative aspect-[3/4] mb-8 overflow-hidden border border-gold-500/10">
-                  <img
-                    src={item.img}
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 h-full w-full object-cover opacity-70"
-                  />
-                  <div className="absolute inset-0 bg-violet-950/55" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-violet-950 via-transparent to-transparent" />
+
+          <div className="mt-6 h-px w-full bg-gold-500/50" />
+
+          <Reveal className="mt-10 grid gap-10 md:grid-cols-3">
+            {STEPS.map((s) => (
+              <div key={s.n} data-reveal className="flex gap-5">
+                <span className="tabular pt-1 text-caption text-gold-500">{s.n}</span>
+                <div>
+                  <h3 className="text-h3 text-porcelain-50">{s.title}</h3>
+                  <p className="mt-2 max-w-[34ch] text-violet-300">{s.body}</p>
                 </div>
-                <h3 className="font-display text-2xl text-gold-500 mb-6 font-[380]">{item.t}</h3>
-                <p className="text-violet-100/60 leading-relaxed text-[1.0625rem]">{item.d}</p>
               </div>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Call to Action: The Invitation */}
-      <section className="py-48 md:py-64 text-center relative isolate">
-        <div className="shell max-w-4xl mx-auto">
-          <div data-reveal>
-            <p className="text-[0.7rem] tracking-[0.3em] uppercase text-gold-500 font-medium mb-12">
-              The Boutique Invite
-            </p>
-            <h2 className="text-h1 font-display text-porcelain-50 mb-14 leading-[1.05] font-[340]">
-              Experience <br />
-              <em className="italic text-gold-500 font-[400]">Vivaah</em>.
-            </h2>
-            <p className="text-xl text-violet-100/70 mb-20 max-w-2xl mx-auto leading-relaxed">
-              The collection is currently being photographed for our digital vault. Until then, we invite you to book a private trial at our boutique.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-10">
-              <Button href="/visit" variant="primary-dark">
-                Book a private trial
-              </Button>
-              <Link href="/rentals" className="text-gold-500/50 hover:text-gold-500 text-sm uppercase tracking-[0.2em] font-medium transition-colors no-underline">
-                Browse Rentals →
+      {/* ---------- Close: come in and try it against the outfit ------------
+          No wordmark close here: that ending belongs to the landing page. The
+          practical detail comes from SHOP, so it follows the admin settings when
+          those land, and is never typed into the page. */}
+      <section className="on-dark grain relative bg-violet-950 pt-28 pb-24 md:pt-36 md:pb-32">
+        <SectionEdge
+          seed={25}
+          paper="var(--color-violet-900)"
+          reveal="var(--color-violet-950)"
+        />
+
+        <div className="shell-wide relative z-[1]">
+          <div className="grid items-start gap-12 md:grid-cols-[1.1fr_1fr] lg:gap-20">
+            <Reveal>
+              <div className="ornament max-w-[7rem]" aria-hidden="true">
+                <span className="text-caption">✦</span>
+              </div>
+
+              <RippleHeading className="mt-8 max-w-[16ch] text-h2 text-porcelain-50">
+                Bring the outfit. Try the pieces against it.
+              </RippleHeading>
+
+              <p data-reveal className="mt-6 max-w-[46ch] text-violet-300">
+                If the outfit is already reserved, say so when you come in and the
+                sets that go with it will be out on the counter.
+              </p>
+
+              <Link
+                data-reveal
+                href="/visit"
+                className="mt-10 inline-block rounded-control bg-porcelain-50 px-6 py-3 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
+              >
+                Plan a visit
               </Link>
-            </div>
+            </Reveal>
+
+            <dl className="grid gap-x-10 gap-y-8 text-caption sm:grid-cols-2 md:pt-4">
+              <div className="sm:col-span-2">
+                <dt className="eyebrow">Hours</dt>
+                <dd className="tabular mt-3 font-display text-[2rem] leading-none text-porcelain-50">
+                  {SHOP.hours}
+                </dd>
+              </div>
+              <div>
+                <dt className="eyebrow">Address</dt>
+                <dd className="mt-2 text-porcelain-50">{SHOP.address}</dd>
+                <dd className="mt-1">
+                  <a
+                    href={SHOP.mapsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gold-500 underline-offset-4 hover:underline"
+                  >
+                    Open in Maps
+                  </a>
+                </dd>
+              </div>
+              <div>
+                <dt className="eyebrow">Phone</dt>
+                <dd className="mt-2">
+                  <a
+                    href={`tel:${SHOP.phone.replace(/\s/g, "")}`}
+                    className="text-porcelain-50 underline-offset-4 hover:underline"
+                  >
+                    {SHOP.phone}
+                  </a>
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }
