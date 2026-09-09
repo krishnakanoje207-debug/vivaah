@@ -19,3 +19,6 @@ node_modules/
 # Stock hero film intermediates (~190M; final outputs live in site/public/hero/)
 /videos/heroFilm_stock/raw/
 /videos/heroFilm_stock/seg/
+
+# Verification screenshots from scrollcraft runs (regenerate via the .mjs scripts)
+scrollcraft/builds/*/lab/

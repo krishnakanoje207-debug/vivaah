@@ -52,3 +52,25 @@ across every lehenga so the clips feel like one consistent set.
 **Tip:** don't ask for a full 360° in one short clip — WAN never saw the garment's
 back and will invent/morph it. A slow ~180–270° arc looks cleanest; the real slider
 covers the true back.
+
+## `pattern_draft.py` — photo → pattern-draft line drawing
+
+Turns a garment photo into a static "pattern draft" PNG: dark ink lines on a
+porcelain background, same pixel size as the input. Precomputed on purpose —
+a live SVG edge-detect filter works in-browser but is too slow on mid-range
+Android phones, so this bakes the drawing offline instead.
+
+```bash
+py tools/pattern_draft.py site/public/categories/bridal-lehengas.jpg out.png
+py tools/pattern_draft.py in.jpg out.png --thickness 2 --transparent
+py tools/pattern_draft.py --batch site/public/categories out_dir
+```
+
+Pipeline: greyscale → blur → contrast boost → Sobel edges → threshold →
+despeckle (drops small isolated edge blobs, which is what keeps busy photo
+backgrounds quiet — long connected garment seams survive, scattered
+background texture doesn't). Tuned defaults (`--threshold 45`,
+`--thickness 1`) hold up on blurred/plain/gradient backgrounds. **Sharp
+high-contrast clutter — foliage, brick, fencing — is not suppressed by
+thresholding alone**; for those, hand-paint a white(garment)/black(rest)
+PNG and pass `--mask maskfile.png` to hard-clip the drawing.

@@ -1,0 +1,13 @@
+import { chromium } from "playwright-core";
+const OUT="C:/Users/HP/AppData/Local/Temp/claude/D--vivaah-website-preview/25d38e88-31d9-440a-b1e0-47f7aa75c17a/scratchpad/pre";
+const b = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe" });
+const w = await b.newContext(); const wp = await w.newPage();
+await wp.goto("http://localhost:3000/", { waitUntil: "networkidle" }); await w.close();
+const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
+const p = await ctx.newPage();
+await p.goto("http://localhost:3000/", { waitUntil: "commit" });
+await p.waitForFunction(() => !!document.querySelector(".vv-preloader") && getComputedStyle(document.querySelector(".vv-preloader")).position === "fixed");
+await p.waitForTimeout(180); await p.screenshot({ path: `${OUT}/draw-180.png` });
+await p.waitForTimeout(280); await p.screenshot({ path: `${OUT}/draw-460.png` });
+await p.waitForTimeout(400); await p.screenshot({ path: `${OUT}/draw-860.png` });
+await b.close(); console.log("ok");
