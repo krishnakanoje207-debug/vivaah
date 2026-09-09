@@ -154,6 +154,24 @@
     }
   }
 
+  /* The wide column. `.shell` is a reading measure and is right for text; on a
+     1920px screen it is 63% of the viewport with 360px of dead gutter each side,
+     which is what makes a page read as a phone layout stretched wide (owner,
+     9 Sep 2026). Image-led and grid-led sections use this instead, so the page
+     uses its horizontal axis. Text inside it still sits in its own max-w-[NNch]
+     measure: this widens the composition, never the line length. */
+  .shell-wide {
+    width: 100%;
+    max-width: 1600px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .shell-wide {
+      padding-inline: 2.5rem;
+    }
+  }
+
   .eyebrow {
     font-size: var(--text-eyebrow);
     letter-spacing: 0.12em;

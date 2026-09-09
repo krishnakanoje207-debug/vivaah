@@ -86,17 +86,17 @@ export default function HomePage() {
           Not a film. The threshold film is /rentals' and is the only one on the
           site (§8.2). What carries this screen is the sentence itself. */}
       <section className="relative bg-porcelain-50 pt-24 pb-20 md:pt-32 md:pb-28">
-        <div className="shell">
+        <div className="shell-wide">
           <p className="eyebrow">Rentals, retail and jewellery, one shop</p>
 
           <RippleHeading
             as="h1"
-            className="mt-6 max-w-[13ch] text-h1 text-ink-900"
+            className="mt-6 max-w-[20ch] text-h1 text-ink-900"
           >
             New pieces on the rail, most days.
           </RippleHeading>
 
-          <div className="mt-12 grid gap-10 md:grid-cols-[1.1fr_1fr] md:items-start">
+          <div className="mt-14 grid gap-12 md:grid-cols-[1fr_1.25fr] md:items-start lg:gap-20">
             <div>
               <p className="max-w-[46ch] text-ink-600">
                 Bridal and festive wear rented by the date, suits and kurtis reserved
@@ -148,14 +148,18 @@ export default function HomePage() {
           reveal="var(--color-porcelain-100)"
         />
 
-        <div className="shell">
-          <div className="grid gap-14 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+        {/* Composition: the photograph sits left and runs taller than the text
+            beside it, so this section is not shaped like the hero above it. The
+            image is height-capped rather than aspect-driven, because at 1920 a
+            4:5 crop in a 45% column is 1100px tall and swallows the screen. */}
+        <div className="shell-wide">
+          <div className="grid gap-14 md:grid-cols-[0.8fr_1fr] md:items-center lg:gap-24">
             <Parallax distance={34}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/categories/side-lehengas.jpg"
                 alt="A piece being fitted in the shop"
-                className="arch aspect-[4/5] w-full object-cover shadow-card"
+                className="arch max-h-[68vh] w-full object-cover shadow-card"
               />
             </Parallax>
 
@@ -215,7 +219,7 @@ export default function HomePage() {
           reveal="var(--color-stage)"
         />
 
-        <div className="shell">
+        <div className="shell-wide">
           <p className="eyebrow">Three doors</p>
           <RippleHeading className="mt-5 max-w-[20ch] text-h2 text-ink-900">
             Three ways to take a garment home.
@@ -225,7 +229,7 @@ export default function HomePage() {
             collected, jewellery goes out with an outfit.
           </p>
 
-          <WipeIn className="mt-14 grid gap-10 md:grid-cols-3">
+          <WipeIn className="mt-16 grid gap-10 md:grid-cols-3 lg:gap-14">
             {DOORS.map((d) => (
               <Link key={d.href} href={d.href} data-wipe className="group block">
                 <div className="arch relative overflow-hidden bg-porcelain-200 shadow-card transition-shadow duration-[180ms] group-hover:shadow-lift">
@@ -256,11 +260,11 @@ export default function HomePage() {
           reveal="var(--color-porcelain-50)"
         />
 
-        <div className="shell">
-          <div className="grid gap-12 md:grid-cols-[1fr_1.1fr] md:items-start">
+        <div className="shell-wide">
+          <div className="grid gap-12 md:grid-cols-[0.85fr_1.3fr] md:items-start lg:gap-24">
             <div>
               <p className="eyebrow">Proof</p>
-              <RippleHeading className="mt-5 max-w-[14ch] text-h2 text-ink-900">
+              <RippleHeading className="mt-5 max-w-[16ch] text-h2 text-ink-900">
                 Before anything goes back on the rail.
               </RippleHeading>
               <p className="mt-6 max-w-[44ch] text-ink-600">
