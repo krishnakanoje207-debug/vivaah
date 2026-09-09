@@ -38,20 +38,35 @@
 
   /* ---- Fonts (loaded via next/font in layout.tsx) ---- */
   --font-sans: var(--font-instrument), "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
+  --font-display: var(--font-bodoni), ui-serif, Georgia, "Times New Roman", serif;
   --font-sans-hi: var(--font-mukta), var(--font-instrument), sans-serif;
-  --font-display-hi: var(--font-noto-deva), var(--font-fraunces), serif;
+  --font-display-hi: var(--font-noto-deva), var(--font-bodoni), serif;
 
-  /* ---- Fluid type scale (§2) ---- */
+  /* ---- Fluid type scale (§2; display weight/tracking per V3 §1.3) ----
+     Sizes and line-heights are v2's, unchanged. Weight and letter-spacing ride
+     the size token (not the tag) so a heading gets the tracking of the size it
+     is actually set at. Bodoni Moda is a Didone: tighten as size grows, open
+     slightly at h3 where the hairlines start to crowd. Weight floor is 400. */
   --text-eyebrow: 0.6875rem;
   --text-caption: 0.8125rem;
   --text-body: clamp(1rem, 0.97rem + 0.15vw, 1.0625rem);
   --text-h3: clamp(1.375rem, 1.18rem + 0.85vw, 1.75rem);
   --text-h3--line-height: 1.25;
+  --text-h3--letter-spacing: 0.002em;
+  --text-h3--font-weight: 500;
   --text-h2: clamp(1.875rem, 1.45rem + 1.85vw, 2.625rem);
   --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.004em;
+  --text-h2--font-weight: 500;
   --text-h1: clamp(2.5rem, 1.7rem + 3.4vw, 4rem);
   --text-h1--line-height: 1.06;
+  --text-h1--letter-spacing: -0.01em;
+  --text-h1--font-weight: 500;
+  /* Threshold: the home hero's single line over film. Nowhere else (V3 §1.3). */
+  --text-threshold: clamp(2.75rem, 1.9rem + 4.2vw, 5.5rem);
+  --text-threshold--line-height: 1;
+  --text-threshold--letter-spacing: -0.016em;
+  --text-threshold--font-weight: 500;
 
   /* ---- Radius / elevation ---- */
   --radius-card: 14px;
@@ -88,7 +103,7 @@
 
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    font-weight: 400; /* Fraunces stays light — never bold (§2) */
+    font-weight: 500; /* Bodoni Moda: floor 400, ceiling 600 (V3 §1.3) */
     font-optical-sizing: auto;
     color: var(--color-ink-900);
   }
@@ -190,6 +205,34 @@
   .arch {
     border-radius: 50% 50% 14px 14px / 18% 18% 14px 14px;
   }
+
+  /* The threshold line pins Bodoni Moda's optical size to the top of its axis
+     instead of letting font-optical-sizing: auto pick it (V3 §1.3). */
+  .text-threshold {
+    font-variation-settings: "opsz" 96;
+  }
+
+  /* Home rooms leave a lane for the fixed room index (V3 §2.3), but only where
+     the shell's own margin does not already provide one: the offset shrinks to
+     nothing once the viewport is wide enough for the rail to stand clear.
+     Paired with .shell, and only at the widths where the rail is mounted.
+     The lane is on the END edge because the rail is (owner's call, 9 Sep). */
+  @media (min-width: 1024px) {
+    .shell-rooms {
+      padding-inline-end: clamp(
+        2rem,
+        224px - (100vw - var(--spacing-shell)) / 2,
+        224px
+      );
+    }
+  }
+}
+
+/* The preloader is server-rendered so it paints with the first frame; its own
+   blocking inline script stamps this attribute when the visitor has already seen
+   it this session or asks for reduced motion, and it never appears (V3 §4.1). */
+[data-preloader="skip"] .vv-preloader {
+  display: none !important;
 }
 
 /* Hero overlay starts hidden (JS/GSAP reveals it as the scene settles).

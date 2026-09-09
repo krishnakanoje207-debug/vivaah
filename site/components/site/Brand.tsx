@@ -20,10 +20,13 @@ export function Brand({
     <Link href="/" aria-label={`${SHOP.name} home`} className={`inline-block leading-none ${className}`}>
       {SHOP.logo ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={SHOP.logo} alt={SHOP.name} className="h-7 w-auto" />
+        <img data-brand-slot src={SHOP.logo} alt={SHOP.name} className="h-7 w-auto" />
       ) : (
         <span className="flex flex-col">
-          <span className={`font-display text-[1.4rem] tracking-tight ${text}`}>{SHOP.short}</span>
+          {/* data-brand-slot: the preloader resolves into this exact box (V3 §4.1). */}
+          <span data-brand-slot className={`font-display text-[1.4rem] tracking-tight ${text}`}>
+            {SHOP.short}
+          </span>
           <span
             className={`text-[0.5rem] font-medium uppercase tracking-[0.22em] ${sub}`}
           >

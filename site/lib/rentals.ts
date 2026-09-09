@@ -33,8 +33,9 @@ export function galleryFrames(spin: SpinConfig, n = 5): string[] {
   return idx.map((i) => `${spin.basePath}/${String(i).padStart(spin.pad, "0")}.${spin.ext}`);
 }
 
-export const formatINR = (n: number) =>
-  new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
+// Lives in lib/format so client components can use it without pulling this
+// file (and with it the app_public connection) into the browser bundle.
+export { formatINR } from "@/lib/format";
 
 // The DB `spin` jsonb is the admin/canonical shape (specs/schema.sql:65); the
 // SpinViewer wants the fuller SpinConfig. The extra render fields (ext/pad/

@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
-import { Fraunces, Instrument_Sans, Noto_Serif_Devanagari, Mukta } from "next/font/google";
+import { Bodoni_Moda, Instrument_Sans, Noto_Serif_Devanagari, Mukta } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { SiteChrome } from "@/components/site/SiteChrome";
 import { SHOP } from "@/lib/site";
 
-// Display serif — variable, optical sizing on. Weights kept light (340–420) in CSS.
-const fraunces = Fraunces({
+// Display Didone — Bodoni Moda (DESIGN_SPEC_V3 §1). Variable instance: no pinned
+// weight (wght 400–900 stays live, floor 400) and the full opsz 6–96 axis, which
+// is what makes font-optical-sizing: auto real work. Italic ships for the
+// one-editorial-accent-per-section convention (§1.3).
+const bodoni = Bodoni_Moda({
   subsets: ["latin"],
+  style: ["normal", "italic"],
   axes: ["opsz"],
-  variable: "--font-fraunces",
+  variable: "--font-bodoni",
   display: "swap",
 });
 
@@ -49,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${instrument.variable} ${notoDeva.variable} ${mukta.variable} h-full antialiased`}
+      className={`${bodoni.variable} ${instrument.variable} ${notoDeva.variable} ${mukta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-porcelain-50 text-ink-900">
         {/* SiteChrome hides Nav/Footer on /admin (admin has its own chrome). */}
