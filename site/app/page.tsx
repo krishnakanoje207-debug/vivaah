@@ -91,24 +91,37 @@ export default function HomePage() {
           raw would fail AA in half the frame. A violet-950 wash plus a stronger
           left-hand gradient gives the words a ground wherever they actually sit,
           which is the same rule the /rentals threshold follows (§2.2). */}
-      <section className="on-dark relative isolate flex min-h-[86vh] items-end overflow-hidden">
+      <section className="on-dark relative isolate">
+        {/* The photograph sets the section's height rather than being cropped
+            into it. `h-auto` from md up means the frame is shown whole: the
+            owner asked for the full picture (9 Sep), and an object-cover hero
+            was cutting the skirt off and clipping the last line of type.
+            Below md the frame is too short to carry a headline, so there it
+            keeps a minimum height and crops instead. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/hero/hero-garden.png"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 -z-10 h-full w-full object-cover"
+          className="block min-h-[82vh] w-full object-cover object-center md:min-h-0 md:h-auto"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-violet-950/45"
+          className="absolute inset-0 bg-violet-950/45"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-gradient-to-r from-violet-950/85 via-violet-950/45 to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-violet-950/85 via-violet-950/45 to-transparent"
+        />
+        {/* A foot of shade so the type at the bottom keeps a ground of its own
+            wherever the path behind it happens to be light. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-violet-950/85 to-transparent"
         />
 
-        <div className="shell pt-40 pb-20 md:pb-28">
+        <div className="absolute inset-x-0 bottom-0">
+        <div className="shell pb-14 md:pb-20">
           <p className="eyebrow on-dark">Rentals, retail and jewellery, one shop</p>
 
           <RippleHeading
@@ -141,6 +154,7 @@ export default function HomePage() {
           <p className="mt-6 text-caption text-porcelain-50">
             Fittings happen in the shop. Nothing is posted.
           </p>
+        </div>
         </div>
       </section>
 
