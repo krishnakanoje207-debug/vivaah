@@ -186,7 +186,7 @@ export default function HomePage() {
         />
 
         <div className="shell">
-          <div className="grid items-center gap-14 md:grid-cols-[minmax(0,400px)_1fr] lg:gap-20">
+          <div className="grid items-center gap-14 md:grid-cols-[minmax(0,140px)_1fr] lg:gap-20">
             <Parallax distance={34}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -291,7 +291,7 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[12ch] text-h3 text-porcelain-50">
                 Bridal and festive wear
               </h3>
-              <div className="arch mt-7 overflow-hidden">
+              <div className="arch mt-7 w-full max-w-[170px] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={DOORS[0].image}
@@ -320,7 +320,7 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Suits, kurtis, co-ord sets, kaftans
               </h3>
-              <div className="mt-7 overflow-hidden">
+              <div className="mt-7 w-full max-w-[170px] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={DOORS[1].image}
@@ -339,31 +339,37 @@ export default function HomePage() {
               </span>
             </Link>
 
-            {/* 3 — jewellery, the photograph with its line at the foot */}
+            {/* 3 — jewellery, the photograph with its line beneath it.
+                The line used to sit over the foot of the picture; at the size
+                the pictures are now there is nothing to lay it over. */}
             <Link
               href={DOORS[2].href}
               data-wipe
-              className="group relative block overflow-hidden shadow-card transition-shadow duration-[180ms] hover:shadow-lift md:mt-20"
+              className="group relative block bg-porcelain-100 p-6 transition-colors duration-[180ms] hover:bg-porcelain-200 md:mt-20"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={DOORS[2].image}
-                alt=""
-                className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-              />
-              <p className="eyebrow on-dark absolute left-5 top-5">
-                {DOORS[2].eyebrow}, to match
-              </p>
-              <span className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-4 bg-porcelain-50 px-5 py-4 text-caption text-ink-900">
+              <p className="eyebrow">{DOORS[2].eyebrow}, to match</p>
+              <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Rented alongside an outfit, never sold.
+              </h3>
+              <div className="mt-7 w-full max-w-[170px] overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={DOORS[2].image}
+                  alt=""
+                  className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+              </div>
+              <span className="mt-6 flex items-center justify-between gap-4 text-caption text-gold-700">
+                Match to your outfit
                 <span
                   aria-hidden="true"
-                  className="text-gold-700 transition-transform duration-[180ms] group-hover:translate-x-1"
+                  className="transition-transform duration-[180ms] group-hover:translate-x-1"
                 >
                   &#8594;
                 </span>
               </span>
             </Link>
+
           </WipeIn>
         </div>
       </section>
@@ -447,7 +453,7 @@ export default function HomePage() {
                 <img
                   src={CHECKS[0].image}
                   alt={CHECKS[0].text}
-                  className="aspect-[3/4] w-full object-cover ring-1 ring-ink-900/15"
+                  className="aspect-[3/4] w-full max-w-[280px] object-cover ring-1 ring-ink-900/15"
                 />
               </Parallax>
               <figcaption className="mt-4 flex gap-4 text-caption">
@@ -463,7 +469,7 @@ export default function HomePage() {
                   <img
                     src={c.image}
                     alt={c.text}
-                    className="aspect-[4/5] w-full object-cover ring-1 ring-ink-900/15"
+                    className="aspect-[4/5] w-full max-w-[130px] object-cover ring-1 ring-ink-900/15"
                   />
                   <figcaption className="mt-4 flex gap-3 text-caption">
                     <span className="tabular text-gold-700">
