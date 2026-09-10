@@ -194,7 +194,7 @@ export default function HomePage() {
                 w={480}
                 h={600}
                 tone="dark"
-                className="w-[clamp(110px,11vw,240px)]"
+                className="w-[clamp(72px,6vw,132px)]"
               />
             </Parallax>
 
@@ -293,7 +293,7 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[12ch] text-h3 text-porcelain-50">
                 Bridal and festive wear
               </h3>
-              <div className="arch mt-7 w-[clamp(130px,12vw,260px)] overflow-hidden">
+              <div className="arch mt-7 w-[clamp(84px,6.5vw,144px)] overflow-hidden">
                 <ImageSlot
                   label="Bridal and festive wear"
                   w={520}
@@ -323,7 +323,7 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Suits, kurtis, co-ord sets, kaftans
               </h3>
-              <div className="mt-7 w-[clamp(130px,12vw,260px)] overflow-hidden">
+              <div className="mt-7 w-[clamp(84px,6.5vw,144px)] overflow-hidden">
                 <ImageSlot
                   label="Suits, kurtis, co-ord sets"
                   w={520}
@@ -354,7 +354,7 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Rented alongside an outfit, never sold.
               </h3>
-              <div className="mt-7 w-[clamp(130px,12vw,260px)] overflow-hidden">
+              <div className="mt-7 w-[clamp(84px,6.5vw,144px)] overflow-hidden">
                 <ImageSlot
                   label="Jewellery on an outfit"
                   w={520}
@@ -458,7 +458,7 @@ export default function HomePage() {
                   label={CHECKS[0].text}
                   w={800}
                   h={1070}
-                  className="w-[clamp(190px,19vw,400px)]"
+                  className="w-[clamp(120px,10vw,220px)]"
                 />
               </Parallax>
               <figcaption className="mt-4 flex gap-4 text-caption">
@@ -474,7 +474,7 @@ export default function HomePage() {
                     label={c.text}
                     w={420}
                     h={530}
-                    className="w-[clamp(105px,10vw,210px)]"
+                    className="w-[clamp(68px,5.5vw,120px)]"
                   />
                   <figcaption className="mt-4 flex gap-3 text-caption">
                     <span className="tabular text-gold-700">
