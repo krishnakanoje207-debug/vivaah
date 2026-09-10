@@ -79,6 +79,11 @@ const rec = (ok, tag, label, detail) => { results.push({ ok, tag, label, detail 
 for (const vp of VIEWPORTS) {
   const page = await browser.newPage(vp);
   await page.goto(URL, { waitUntil: "networkidle" });
+  /* The dev server's own indicator is a floating badge with a white glyph in
+     it, and it lands over the hero copy on a phone. It is not part of the page
+     and does not ship, so measuring the background through it reports a
+     failure the deployed site cannot have. */
+  await page.addStyleTag({ content: "nextjs-portal{display:none!important}" });
   await page.waitForTimeout(2400);
   await page.evaluate(() => scrollTo(0, 0));
 
@@ -88,7 +93,7 @@ for (const vp of VIEWPORTS) {
   /* One box per visual line, from the range's own client rects, so a wrapped
      headline is measured line by line rather than as one loose rectangle. */
   const lines = await page.evaluate((sel) => {
-    const shell = document.querySelector(sel).querySelector(".shell");
+    const shell = document.querySelector(sel).querySelector(".hero-copy");
     const out = [];
     const push = (id, r) => { if (r.width > 3 && r.height > 3) out.push({ id, x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height }); };
     const parts = [["eyebrow", shell.querySelector("p.eyebrow")], ["h1", shell.querySelector("h1")], ["body", shell.querySelector("h1 ~ p")]];
@@ -116,13 +121,16 @@ for (const vp of VIEWPORTS) {
     for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) cells.push({ id: `${r.id}|${i},${j}`, x: r.x - pad + i * cw, y: r.y - pad + j * ch, width: cw, height: ch });
   }
 
-  const hide = (v) => page.evaluate(({ sel, v }) => { document.querySelector(sel).querySelector(".shell").style.visibility = v; }, { sel: HERO, v });
+  const hide = (v) => page.evaluate(({ sel, v }) => { document.querySelector(sel).querySelector(".hero-copy").style.visibility = v; }, { sel: HERO, v });
   const scrims = (display) => page.evaluate(({ sel, display }) => {
-    document.querySelector(sel).querySelectorAll(':scope > div[aria-hidden="true"]').forEach((el) => { el.style.display = display; });
+    document.querySelector(sel).querySelectorAll('.hero-frame > div[aria-hidden="true"]').forEach((el) => { el.style.display = display; });
   }, { sel: HERO, display });
 
-  const faceBox = { id: "face", x: FACE.fx0 * clip.width, y: FACE.fy0 * clip.height, width: (FACE.fx1 - FACE.fx0) * clip.width, height: (FACE.fy1 - FACE.fy0) * clip.height };
-  const whole = { id: "whole", x: 0, y: 0, width: clip.width, height: clip.height };
+  /* The face box is a fraction of the photograph, not of the section: below md
+     the section also carries the type's plinth, and the frame is only its top. */
+  const frame = await page.evaluate((s) => { const r = document.querySelector(s).querySelector("img").getBoundingClientRect(); return { x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height }; }, HERO);
+  const faceBox = { id: "face", x: frame.x - clip.x + FACE.fx0 * frame.width, y: frame.y - clip.y + FACE.fy0 * frame.height, width: (FACE.fx1 - FACE.fx0) * frame.width, height: (FACE.fy1 - FACE.fy0) * frame.height };
+  const whole = { id: "whole", x: frame.x - clip.x, y: frame.y - clip.y, width: frame.width, height: frame.height };
 
   await hide("hidden");
   await page.waitForTimeout(220);

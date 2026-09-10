@@ -52,6 +52,8 @@ type Props = {
   className?: string;
   /** Skip the pointer ripple and keep only the scroll wave. */
   staticAfterReveal?: boolean;
+  /** One word in the heading to set in italic, matched without punctuation. */
+  italic?: string;
 };
 
 export function RippleHeading({
@@ -59,6 +61,7 @@ export function RippleHeading({
   as: Tag = "h2",
   className = "",
   staticAfterReveal = false,
+  italic,
 }: Props) {
   const ref = useRef<HTMLHeadingElement>(null);
 
@@ -148,7 +151,15 @@ export function RippleHeading({
         ) : (
           // inline-block per word keeps the wrap on word boundaries; the letters
           // inside need their own inline-block to accept a transform at all.
-          <span key={wi} aria-hidden="true" className="inline-block whitespace-nowrap">
+          <span
+            key={wi}
+            aria-hidden="true"
+            className={`inline-block whitespace-nowrap${
+              italic && chunk.replace(/[^\p{L}]/gu, "").toLowerCase() === italic.toLowerCase()
+                ? " italic"
+                : ""
+            }`}
+          >
             {Array.from(chunk).map((ch, ci) => (
               <span key={ci} data-letter className="inline-block will-change-transform">
                 {ch}

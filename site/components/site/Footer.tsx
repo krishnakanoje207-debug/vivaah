@@ -4,7 +4,7 @@ import { Brand } from "@/components/site/Brand";
 
 export function Footer() {
   return (
-    <footer className="on-dark grain bg-violet-900 text-violet-300">
+    <footer className="on-dark grain bg-violet-950 text-violet-300">
       <div className="shell py-16 md:py-20">
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1.2fr]">
           {/* Brand */}
@@ -54,14 +54,14 @@ export function Footer() {
             <p className="mt-4 text-[0.9375rem]">{SHOP.hours}</p>
             <a
               href={`tel:${SHOP.phone.replace(/\s/g, "")}`}
-              className="mt-1 block hover:text-porcelain-50"
+              className="mt-1 block text-gold-500 hover:text-gold-100"
             >
               {SHOP.phone}
             </a>
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-2 border-t border-violet-700 pt-6 text-[0.8125rem] text-violet-300 md:flex-row md:items-center md:justify-between">
+        <div className="mt-14 flex flex-col gap-2 border-t border-porcelain-50/12 pt-6 text-[0.8125rem] text-violet-300 md:flex-row md:items-center md:justify-between">
           <p>© {SHOP.name}. Reserve online, collect at our shop.</p>
           <p>Made for weddings, in India.</p>
         </div>

@@ -11,6 +11,10 @@ export const SHOP = {
   hours: "Mon–Sat, 11am – 8pm",
   phone: "+91 00000 00000",
   mapsUrl: "https://maps.google.com/?q=Vivaah+Dresses+and+Suits",
+  // The same place, as an embeddable frame. No API key: the q= form is the
+  // public embed, so this costs nothing and needs no billing account.
+  mapsEmbedUrl:
+    "https://maps.google.com/maps?q=Vivaah+Dresses+and+Suits&output=embed",
   instagram: "https://instagram.com/",
   // Logo asset lands here (owner sending); until then Nav/Footer show the wordmark.
   logo: null as string | null, // e.g. "/brand/logo.svg"
