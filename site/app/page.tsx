@@ -4,6 +4,7 @@ import { SectionEdge } from "@/components/site/SectionEdge";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
+import { Parallax } from "@/components/site/Parallax";
 import { ImageSlot } from "@/components/site/ImageSlot";
 import { SHOP } from "@/lib/site";
 
@@ -186,15 +187,17 @@ export default function HomePage() {
         />
 
         <div className="shell">
-          <div className="grid items-start gap-10 sm:grid-cols-[max-content_1fr]">
-            <ImageSlot
-              compact
-              label="A piece being fitted in the shop"
-              w={480}
-              h={600}
-              tone="dark"
-              className="!aspect-auto h-[60px] w-[40px]"
-            />
+          <div className="grid items-center gap-14 sm:grid-cols-[max-content_1fr] lg:gap-20">
+            <Parallax distance={34}>
+              <ImageSlot
+                compact
+                label="A piece being fitted in the shop"
+                w={480}
+                h={600}
+                tone="dark"
+                className="!aspect-auto h-[60px] w-[40px]"
+              />
+            </Parallax>
 
             <Reveal>
               <p data-reveal className="eyebrow on-dark">
@@ -291,6 +294,16 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[12ch] text-h3 text-porcelain-50">
                 Bridal and festive wear
               </h3>
+              <div className="arch mt-7 w-[40px] overflow-hidden">
+                <ImageSlot
+                  compact
+                  label="Bridal and festive wear"
+                  w={520}
+                  h={650}
+                  tone="dark"
+                  className="!aspect-auto h-[60px] w-[40px]"
+                />
+              </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-porcelain-50">
                 Reserve the dates, collect, return.
                 <span
@@ -312,6 +325,15 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Suits, kurtis, co-ord sets, kaftans
               </h3>
+              <div className="mt-7 w-[40px] overflow-hidden">
+                <ImageSlot
+                  compact
+                  label="Suits, kurtis, co-ord sets"
+                  w={520}
+                  h={650}
+                  className="!aspect-auto h-[60px] w-[40px]"
+                />
+              </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-gold-700">
                 Reserve online, collect at the shop
                 <span
@@ -335,6 +357,15 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Rented alongside an outfit, never sold.
               </h3>
+              <div className="mt-7 w-[40px] overflow-hidden">
+                <ImageSlot
+                  compact
+                  label="Jewellery on an outfit"
+                  w={520}
+                  h={650}
+                  className="!aspect-auto h-[60px] w-[40px]"
+                />
+              </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-gold-700">
                 Match to your outfit
                 <span
@@ -369,6 +400,14 @@ export default function HomePage() {
               data-reveal
               className="group flex items-center gap-4 text-caption text-porcelain-50"
             >
+              <ImageSlot
+                compact
+                label="Jewellery thumbnail"
+                w={120}
+                h={120}
+                tone="dark"
+                className="h-11 w-11 shrink-0 rounded-full !gap-0 !p-0 text-[0.5rem]"
+              />
               <span className="flex items-center gap-2">
                 Match to your outfit
                 <span
@@ -416,21 +455,42 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          {/* With no photographs the five checks are the list they
-              always were: numbered, ruled, and read straight down. */}
-          <Reveal as="ul" className="mt-14 max-w-[70ch]">
-            {CHECKS.map((c, i) => (
-              <li
-                key={c.text}
-                data-reveal
-                className="flex gap-6 border-b border-ink-900/10 py-5 first:border-t"
-              >
-                <span className="tabular text-caption text-gold-700">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="text-ink-900">{c.text}</span>
-              </li>
-            ))}
+          <Reveal className="mt-16 grid gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] lg:gap-12">
+            <figure data-reveal className="m-0">
+              <Parallax distance={26}>
+                <ImageSlot
+                  compact
+                  label={CHECKS[0].text}
+                  w={800}
+                  h={1070}
+                  className="!aspect-auto h-[60px] w-[40px]"
+                />
+              </Parallax>
+              <figcaption className="mt-4 flex gap-4 text-caption">
+                <span className="tabular text-gold-700">01</span>
+                <span className="text-ink-600">{CHECKS[0].text}</span>
+              </figcaption>
+            </figure>
+
+            <div className="grid grid-cols-2 gap-8 lg:gap-10">
+              {CHECKS.slice(1).map((c, i) => (
+                <figure key={c.text} data-reveal className="m-0">
+                  <ImageSlot
+                    compact
+                    label={c.text}
+                    w={420}
+                    h={530}
+                    className="!aspect-auto h-[60px] w-[40px]"
+                  />
+                  <figcaption className="mt-4 flex gap-3 text-caption">
+                    <span className="tabular text-gold-700">
+                      {String(i + 2).padStart(2, "0")}
+                    </span>
+                    <span className="text-ink-600">{c.text}</span>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
           </Reveal>
         </div>
       </section>
