@@ -76,6 +76,15 @@ const CHECKS = [
   "Every piece steamed before it leaves.",
 ];
 
+// The hero scrim, measured against the bare plate rather than guessed at
+// (lab/hero-centre7). violet-950 is #191129. The bloom sits under the type
+// block and the riser climbs from the bottom edge, so the shade is spent where
+// the words are instead of across the whole picture.
+const HERO_BLOOM =
+  "radial-gradient(92% 78% at 50% 76%, rgba(25,17,41,0.72) 0%, rgba(25,17,41,0.4) 50%, rgba(25,17,41,0) 78%)";
+const HERO_RISER =
+  "linear-gradient(to top, rgba(25,17,41,0.88) 0%, rgba(25,17,41,0.7) 17.28%, rgba(25,17,41,0.48) 40.32%, rgba(25,17,41,0.23) 63.36%, rgba(25,17,41,0.07) 81.6%, rgba(25,17,41,0) 96%)";
+
 export default function HomePage() {
   return (
     <>
@@ -88,36 +97,42 @@ export default function HomePage() {
 
           The scrim is the load-bearing part. The photograph is bright on the
           right and mid-toned across the middle, so porcelain type laid on it
-          raw would fail AA in half the frame. A violet-950 wash plus a stronger
-          left-hand gradient gives the words a ground wherever they actually sit,
-          which is the same rule the /rentals threshold follows (§2.2). */}
+          raw would fail AA in half the frame. A flat wash buys that legibility
+          with the whole frame though: measured against the bare plate, the old
+          recipe left her face at 0.23 of its own light. So the scrim is a
+          plinth now, not a wash. A thin overall tint, a bloom centred under the
+          type block, and a riser off the bottom edge. Same rule as the
+          /rentals threshold (§2.2), but the shade is spent where the words sit.
+          Her face keeps 0.39, and every line still clears AA. */}
       <section className="on-dark relative isolate">
         {/* The photograph sets the section's height rather than being cropped
             into it. `h-auto` from md up means the frame is shown whole: the
             owner asked for the full picture (9 Sep), and an object-cover hero
             was cutting the skirt off and clipping the last line of type.
             Below md the frame is too short to carry a headline, so there it
-            keeps a minimum height and crops instead. */}
+            keeps a minimum height and crops instead. That minimum is the small
+            viewport height: at the old 82vh the crop pushed the headline onto
+            the brightest part of the path and two of its lines could not be
+            made to clear AA without blacking the photograph out. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/hero/hero-garden.png"
           alt=""
           aria-hidden="true"
-          className="block min-h-[82vh] w-full object-cover object-center md:min-h-0 md:h-auto"
+          className="block min-h-[100svh] w-full object-cover object-center md:min-h-0 md:h-auto"
         />
+        <div aria-hidden="true" className="absolute inset-0 bg-violet-950/14" />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-violet-950/45"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-r from-violet-950/85 via-violet-950/45 to-transparent"
+          className="absolute inset-0"
+          style={{ background: HERO_BLOOM }}
         />
         {/* A foot of shade so the type at the bottom keeps a ground of its own
             wherever the path behind it happens to be light. */}
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-violet-950/85 to-transparent"
+          className="absolute inset-0"
+          style={{ background: HERO_RISER }}
         />
 
         <div className="absolute inset-x-0 bottom-0">
