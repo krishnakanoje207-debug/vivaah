@@ -136,7 +136,7 @@ export default function VisitPage() {
           again: labels sit in the margin, values are set in display type across
           a wide column, and each row carries its own note on the right. Ruled
           top and bottom, the way a printed colophon is. */}
-      <section className="relative bg-stage py-24 md:py-32">
+      <section className="relative bg-stage py-12 md:py-16">
         <SectionEdge
           seed={21}
           paper="var(--color-porcelain-50)"
@@ -220,7 +220,7 @@ export default function VisitPage() {
           Composed sideways: four steps run across the full width instead of
           stacking, so the section is a different shape from the ruled rows
           above it. */}
-      <section className="relative bg-porcelain-50 py-24 md:py-32">
+      <section className="relative bg-porcelain-50 py-12 md:py-16">
         <SectionEdge
           seed={22}
           paper="var(--color-stage)"
@@ -262,7 +262,7 @@ export default function VisitPage() {
           shell, image column capped, row aligned to the top: a wide container
           plus a capped image leaves a dead band between the columns, and
           `items-center` strands the shorter block in a taller row. */}
-      <section className="relative bg-porcelain-100 py-24 md:py-32">
+      <section className="relative bg-porcelain-100 py-12 md:py-16">
         <SectionEdge
           seed={23}
           paper="var(--color-porcelain-50)"
@@ -270,7 +270,7 @@ export default function VisitPage() {
         />
 
         <div className="shell">
-          <div className="grid items-start gap-12 md:grid-cols-[1fr_minmax(0,420px)] lg:gap-20">
+          <div className="grid items-start gap-10 md:grid-cols-[1fr_minmax(0,420px)] lg:gap-20">
             {/* The photograph leads on the phone, as it did, and moves to the
                 capped right column from md up: a 340px plate on the left of a
                 1616px shell left the text with 1100px it could not fill, and
@@ -291,7 +291,7 @@ export default function VisitPage() {
                   <div
                     key={b.t}
                     data-reveal
-                    className="border-b border-ink-900/15 py-6 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_minmax(0,52ch)] 2xl:items-baseline 2xl:gap-10"
+                    className="border-b border-ink-900/15 py-4 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_minmax(0,52ch)] 2xl:items-baseline 2xl:gap-10"
                   >
                     <dt className="font-display text-h3 text-ink-900">{b.t}</dt>
                     <dd className="mt-2 max-w-[52ch] text-ink-600 2xl:mt-0">{b.d}</dd>
@@ -305,7 +305,7 @@ export default function VisitPage() {
               <img
                 src="/categories/sarees.jpg"
                 alt="A saree being tried on in the shop"
-                className="arch aspect-[4/5] w-full object-cover shadow-card"
+                className="arch aspect-[4/5] max-h-[23rem] w-full object-cover shadow-card"
               />
             </Parallax>
           </div>

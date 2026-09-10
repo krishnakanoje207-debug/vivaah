@@ -141,7 +141,7 @@ export default function PoliciesPage() {
           Index in the left margin, clauses in the wide column. The index is a
           grid column that sticks inside its own track, which is why it can never
           run over the text: `top-24` clears the 64px sticky nav. */}
-      <section className="relative bg-porcelain-100 py-24 md:py-32">
+      <section className="relative bg-porcelain-100 py-14 md:py-20">
         <SectionEdge
           seed={31}
           paper="var(--color-porcelain-50)"

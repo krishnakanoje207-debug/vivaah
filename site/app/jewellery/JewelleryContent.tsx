@@ -161,7 +161,7 @@ export function JewelleryContent() {
                 <img
                   src="/categories/bridal-lehengas.jpg"
                   alt="A bride in a red lehenga wearing the matched necklace and maang tikka"
-                  className="aspect-[4/5] max-h-[34rem] w-full object-cover"
+                  className="aspect-[4/5] max-h-[24rem] w-full object-cover"
                 />
               </GoldFrame>
             </Parallax>
@@ -197,7 +197,7 @@ export function JewelleryContent() {
             </p>
           </div>
 
-          <WipeIn className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:grid-rows-[300px_210px_210px]">
+          <WipeIn className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:grid-rows-[208px_140px_140px]">
             {PIECES.map((p) => (
               <Link
                 key={p.name}
@@ -306,7 +306,7 @@ export function JewelleryContent() {
               <img
                 src="/categories/rajasthani-poshak.jpg"
                 alt="A woman in a Rajasthani poshak wearing the full set that goes with it"
-                className="aspect-[3/4] max-h-[42rem] w-full object-cover"
+                className="aspect-[3/4] max-h-[26rem] w-full object-cover"
               />
             </Parallax>
 

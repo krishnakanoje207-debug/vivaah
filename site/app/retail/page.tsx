@@ -321,7 +321,7 @@ export default function RetailPage() {
           Variant B's version: one row, read left to right, eyebrow to sentence
           to link to a single small plate. The page's only dark beat, and it is
           deliberately one line tall so it reads as a door and not as a pitch. */}
-      <section className="grain on-dark relative bg-violet-950 py-20 md:py-24">
+      <section className="grain on-dark relative bg-violet-950 py-12 md:py-16">
         <SectionEdge
           seed={23}
           paper="var(--color-stage)"

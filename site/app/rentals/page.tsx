@@ -196,7 +196,7 @@ export default async function RentalsPage({
 
       {/* ============ ROOM I: THE WEEK ============
           porcelain-50 · silk, photographed · flow + in */}
-      <section id="week" data-room="week" className="relative bg-porcelain-50 py-28 md:py-40">
+      <section id="week" data-room="week" className="relative bg-porcelain-50 py-16 md:py-24">
         <SectionEdge seed={1} paper="var(--color-violet-950)" reveal="var(--color-porcelain-50)" />
         <div className="shell shell-rooms">
           <Reveal className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
@@ -234,7 +234,7 @@ export default async function RentalsPage({
 
       {/* ============ ROOM II: THE ARITHMETIC ============
           porcelain-100 · figures, type · count */}
-      <section id="arithmetic" data-room="arithmetic" className="relative bg-porcelain-100 py-28 md:py-40">
+      <section id="arithmetic" data-room="arithmetic" className="relative bg-porcelain-100 py-16 md:py-24">
         <SectionEdge seed={2} paper="var(--color-porcelain-50)" reveal="var(--color-porcelain-100)" />
         <div className="shell shell-rooms">
           <Reveal>
@@ -284,7 +284,7 @@ export default async function RentalsPage({
 
       {/* ============ ROOM III: THE CRAFT ============
           stage · thread, macro · signature move + parallax · THE PEAK */}
-      <section id="craft" data-room="craft" className="relative bg-stage py-36 md:py-56">
+      <section id="craft" data-room="craft" className="relative bg-stage py-20 md:py-32">
         <SectionEdge seed={3} paper="var(--color-porcelain-100)" reveal="var(--color-stage)" />
         <div className="shell shell-rooms">
           <div className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
@@ -318,7 +318,7 @@ export default async function RentalsPage({
 
       {/* ============ THE COLLECTION ============
           porcelain-50 · the catalogue · reveal per object */}
-      <section id="collection" data-room="collection" className="relative bg-porcelain-50 py-28 md:py-40">
+      <section id="collection" data-room="collection" className="relative bg-porcelain-50 py-16 md:py-24">
         <SectionEdge seed={4} paper="var(--color-stage)" reveal="var(--color-porcelain-50)" />
         <div className="shell shell-rooms">
           <Reveal>

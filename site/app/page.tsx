@@ -178,7 +178,7 @@ export default function HomePage() {
           photograph sits left, the heading takes the top of the right column
           and the prose runs beneath it in two measures rather than one long
           one, so the section is not shaped like the hero above it. */}
-      <section className="on-dark relative bg-violet-950 py-24 md:py-36">
+      <section className="on-dark relative bg-violet-950 py-12 md:py-16">
         <SectionEdge
           seed={11}
           paper="var(--color-porcelain-50)"
@@ -186,7 +186,7 @@ export default function HomePage() {
         />
 
         <div className="shell">
-          <div className="grid items-center gap-14 sm:grid-cols-[minmax(0,400px)_1fr] lg:gap-20">
+          <div className="grid items-center gap-14 sm:grid-cols-[minmax(0,290px)_1fr] lg:gap-16">
             <Parallax distance={34}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -252,7 +252,7 @@ export default function HomePage() {
           foot of it. The columns are unequal and each one starts lower than the
           last, so the row reads as three separate things rather than a set of
           triplets. Every card wipes in on its own beat. */}
-      <section className="relative bg-porcelain-50 py-24 md:py-36">
+      <section className="relative bg-porcelain-50 py-12 md:py-16">
         <SectionEdge
           seed={12}
           paper="var(--color-violet-950)"
@@ -280,7 +280,7 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          <WipeIn className="mt-16 grid items-start gap-10 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,0.98fr)_minmax(0,1.2fr)] lg:gap-14">
+          <WipeIn className="mt-12 grid items-start gap-8 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,0.98fr)_minmax(0,1.2fr)] lg:gap-14">
             {/* 1 — rentals, on the dark plate */}
             <Link
               href={DOORS[0].href}
@@ -291,7 +291,7 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[12ch] text-h3 text-porcelain-50">
                 Bridal and festive wear
               </h3>
-              <div className="arch mt-7 overflow-hidden">
+              <div className="arch mt-6 max-w-[300px] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={DOORS[0].image}
@@ -320,7 +320,7 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Suits, kurtis, co-ord sets, kaftans
               </h3>
-              <div className="mt-7 overflow-hidden">
+              <div className="mt-6 max-w-[300px] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={DOORS[1].image}
@@ -349,7 +349,7 @@ export default function HomePage() {
               <img
                 src={DOORS[2].image}
                 alt=""
-                className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                className="aspect-[3/4] w-full max-h-[27rem] max-w-[340px] object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               />
               <p className="eyebrow on-dark absolute left-5 top-5">
                 {DOORS[2].eyebrow}, to match
@@ -412,7 +412,7 @@ export default function HomePage() {
           first and a two-up grid carries the rest, each picture keylined and
           captioned with its own number, so the section reads as evidence
           instead of a table. Torn edges above and below it. */}
-      <section className="relative bg-porcelain-50 py-24 md:py-36">
+      <section className="relative bg-porcelain-50 py-12 md:py-16">
         <SectionEdge
           seed={13}
           paper="var(--color-violet-950)"
@@ -440,14 +440,14 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          <Reveal className="mt-16 grid gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] lg:gap-12">
+          <Reveal className="mt-12 grid gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] lg:gap-12">
             <figure data-reveal className="m-0">
               <Parallax distance={26}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={CHECKS[0].image}
                   alt={CHECKS[0].text}
-                  className="aspect-[3/4] w-full object-cover ring-1 ring-ink-900/15"
+                  className="aspect-[3/4] w-full max-h-[23rem] max-w-[300px] object-cover ring-1 ring-ink-900/15"
                 />
               </Parallax>
               <figcaption className="mt-4 flex gap-4 text-caption">
@@ -463,7 +463,7 @@ export default function HomePage() {
                   <img
                     src={c.image}
                     alt={c.text}
-                    className="aspect-[4/5] w-full object-cover ring-1 ring-ink-900/15"
+                    className="aspect-[4/5] w-full max-h-[15rem] max-w-[200px] object-cover ring-1 ring-ink-900/15"
                   />
                   <figcaption className="mt-4 flex gap-3 text-caption">
                     <span className="tabular text-gold-700">
@@ -483,7 +483,7 @@ export default function HomePage() {
           centred over it. Everything a visitor needs to actually arrive sits
           to the left, and the map holds the right, because "where is it" is
           the last question this page has to answer. */}
-      <section className="relative bg-porcelain-100 py-24 md:py-32">
+      <section className="relative bg-porcelain-100 py-12 md:py-16">
         <SectionEdge
           seed={14}
           paper="var(--color-porcelain-50)"
@@ -505,7 +505,7 @@ export default function HomePage() {
             </RippleHeading>
           </Reveal>
 
-          <div className="mt-14 grid gap-12 sm:grid-cols-2 sm:items-start lg:gap-20">
+          <div className="mt-10 grid gap-10 sm:grid-cols-2 sm:items-start lg:gap-20">
             <Reveal>
               <p data-reveal className="max-w-[46ch] text-ink-600">
                 Fitting happens in person. Bring the date and we will bring the
