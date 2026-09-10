@@ -5,6 +5,7 @@ import { RippleHeading } from "@/components/site/RippleHeading";
 import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
 import { Parallax } from "@/components/site/Parallax";
+import { ImageSlot } from "@/components/site/ImageSlot";
 import { SHOP } from "@/lib/site";
 
 /**
@@ -102,16 +103,16 @@ export default function HomePage() {
           measured in lab/hero-centre7: a thin tint, a bloom under the type and
           a riser off the bottom edge. */}
       <section className="on-dark relative isolate bg-violet-950">
-        <div className="relative grid min-h-[100svh] md:min-h-[88vh] md:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
+        <div className="relative grid min-h-[100svh] md:min-h-[clamp(520px,62vh,760px)] md:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
           {/* The photograph. Absolute below md so the type lies over it; a real
               grid column from md up so it owns the right of the frame. */}
           <div className="hero-frame absolute inset-0 md:relative md:col-start-2 md:row-start-1">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/hero/hero-garden.png"
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+            <ImageSlot
+              label="Hero: the garden photograph"
+              w={2400}
+              h={1600}
+              tone="dark"
+              className="absolute inset-0 !aspect-auto h-full w-full"
             />
             <div aria-hidden="true" className="absolute inset-0 bg-violet-950/14" />
             <div
@@ -136,7 +137,7 @@ export default function HomePage() {
           {/* The panel. Its left padding is the shell's own margin, so the
               headline starts on the same line as every section below it. */}
           <div className="relative z-10 flex items-center md:col-start-1 md:row-start-1">
-            <Reveal className="hero-copy w-full px-[4vw] py-24 pl-[max(4vw,calc((100vw-1680px)/2))] md:py-20 md:pr-10">
+            <Reveal className="hero-copy w-full px-[4vw] py-20 pl-[max(4vw,calc((100vw-1680px)/2))] md:py-12 md:pr-10">
               <p className="eyebrow on-dark" data-reveal>
                 Bridal and occasion wear, to rent or to buy
               </p>
@@ -144,17 +145,17 @@ export default function HomePage() {
               <RippleHeading
                 as="h1"
                 italic="changes"
-                className="mt-6 max-w-[14ch] text-h1 text-porcelain-50"
+                className="mt-5 max-w-[17ch] text-h1 text-porcelain-50"
               >
                 The rail changes every day. Come and see what arrived this week.
               </RippleHeading>
 
-              <p className="mt-8 max-w-[42ch] text-porcelain-50" data-reveal>
+              <p className="mt-6 max-w-[46ch] text-porcelain-50" data-reveal>
                 Two partners, one shop. Rentals and retail opened together, on
                 the same rail, and the stock is updated day to day.
               </p>
 
-              <div className="mt-10 flex flex-wrap gap-3" data-reveal>
+              <div className="mt-8 flex flex-wrap gap-3" data-reveal>
                 <Link
                   href="/rentals"
                   className="rounded-control bg-porcelain-50 px-6 py-3 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
@@ -186,13 +187,14 @@ export default function HomePage() {
         />
 
         <div className="shell">
-          <div className="grid items-center gap-14 md:grid-cols-[minmax(0,140px)_1fr] lg:gap-20">
+          <div className="grid items-center gap-14 md:grid-cols-[minmax(0,clamp(120px,11vw,240px))_1fr] lg:gap-20">
             <Parallax distance={34}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/categories/side-lehengas.jpg"
-                alt="A piece being fitted in the shop"
-                className="aspect-[4/5] w-full object-cover shadow-card"
+              <ImageSlot
+                label="A piece being fitted in the shop"
+                w={480}
+                h={600}
+                tone="dark"
+                className="w-full"
               />
             </Parallax>
 
@@ -291,12 +293,13 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[12ch] text-h3 text-porcelain-50">
                 Bridal and festive wear
               </h3>
-              <div className="arch mt-7 w-full max-w-[170px] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={DOORS[0].image}
-                  alt=""
-                  className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              <div className="arch mt-7 w-[clamp(130px,12vw,260px)] overflow-hidden">
+                <ImageSlot
+                  label="Bridal and festive wear"
+                  w={520}
+                  h={650}
+                  tone="dark"
+                  className="w-full"
                 />
               </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-porcelain-50">
@@ -320,12 +323,12 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Suits, kurtis, co-ord sets, kaftans
               </h3>
-              <div className="mt-7 w-full max-w-[170px] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={DOORS[1].image}
-                  alt=""
-                  className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              <div className="mt-7 w-[clamp(130px,12vw,260px)] overflow-hidden">
+                <ImageSlot
+                  label="Suits, kurtis, co-ord sets"
+                  w={520}
+                  h={650}
+                  className="w-full"
                 />
               </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-gold-700">
@@ -351,12 +354,12 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Rented alongside an outfit, never sold.
               </h3>
-              <div className="mt-7 w-full max-w-[170px] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={DOORS[2].image}
-                  alt=""
-                  className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              <div className="mt-7 w-[clamp(130px,12vw,260px)] overflow-hidden">
+                <ImageSlot
+                  label="Jewellery on an outfit"
+                  w={520}
+                  h={650}
+                  className="w-full"
                 />
               </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-gold-700">
@@ -393,11 +396,13 @@ export default function HomePage() {
               data-reveal
               className="group flex items-center gap-4 text-caption text-porcelain-50"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/categories/rajasthani-poshak.jpg"
-                alt=""
-                className="h-11 w-11 rounded-full object-cover"
+              <ImageSlot
+                label="Jewellery thumbnail"
+                compact
+                w={120}
+                h={120}
+                tone="dark"
+                className="h-11 w-11 shrink-0 rounded-full !gap-0 !p-0 text-[0.5rem]"
               />
               <span className="flex items-center gap-2">
                 Match to your outfit
@@ -449,11 +454,11 @@ export default function HomePage() {
           <Reveal className="mt-16 grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] lg:gap-12">
             <figure data-reveal className="m-0">
               <Parallax distance={26}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={CHECKS[0].image}
-                  alt={CHECKS[0].text}
-                  className="aspect-[3/4] w-full max-w-[280px] object-cover ring-1 ring-ink-900/15"
+                <ImageSlot
+                  label={CHECKS[0].text}
+                  w={800}
+                  h={1070}
+                  className="w-[clamp(190px,19vw,400px)]"
                 />
               </Parallax>
               <figcaption className="mt-4 flex gap-4 text-caption">
@@ -465,11 +470,11 @@ export default function HomePage() {
             <div className="grid grid-cols-2 gap-8 lg:gap-10">
               {CHECKS.slice(1).map((c, i) => (
                 <figure key={c.text} data-reveal className="m-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={c.image}
-                    alt={c.text}
-                    className="aspect-[4/5] w-full max-w-[130px] object-cover ring-1 ring-ink-900/15"
+                  <ImageSlot
+                    label={c.text}
+                    w={420}
+                    h={530}
+                    className="w-[clamp(105px,10vw,210px)]"
                   />
                   <figcaption className="mt-4 flex gap-3 text-caption">
                     <span className="tabular text-gold-700">
