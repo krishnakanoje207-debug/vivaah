@@ -190,11 +190,12 @@ export default function HomePage() {
           <div className="grid items-center gap-14 sm:grid-cols-[max-content_1fr] lg:gap-20">
             <Parallax distance={34}>
               <ImageSlot
+                compact
                 label="A piece being fitted in the shop"
                 w={480}
                 h={600}
                 tone="dark"
-                className="w-[clamp(72px,6vw,132px)]"
+                className="!aspect-auto h-[60px] w-[40px]"
               />
             </Parallax>
 
@@ -293,13 +294,14 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[12ch] text-h3 text-porcelain-50">
                 Bridal and festive wear
               </h3>
-              <div className="arch mt-7 w-[clamp(84px,6.5vw,144px)] overflow-hidden">
+              <div className="arch mt-7 w-[40px] overflow-hidden">
                 <ImageSlot
+                  compact
                   label="Bridal and festive wear"
                   w={520}
                   h={650}
                   tone="dark"
-                  className="w-full"
+                  className="!aspect-auto h-[60px] w-[40px]"
                 />
               </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-porcelain-50">
@@ -323,12 +325,13 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Suits, kurtis, co-ord sets, kaftans
               </h3>
-              <div className="mt-7 w-[clamp(84px,6.5vw,144px)] overflow-hidden">
+              <div className="mt-7 w-[40px] overflow-hidden">
                 <ImageSlot
+                  compact
                   label="Suits, kurtis, co-ord sets"
                   w={520}
                   h={650}
-                  className="w-full"
+                  className="!aspect-auto h-[60px] w-[40px]"
                 />
               </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-gold-700">
@@ -354,12 +357,13 @@ export default function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Rented alongside an outfit, never sold.
               </h3>
-              <div className="mt-7 w-[clamp(84px,6.5vw,144px)] overflow-hidden">
+              <div className="mt-7 w-[40px] overflow-hidden">
                 <ImageSlot
+                  compact
                   label="Jewellery on an outfit"
                   w={520}
                   h={650}
-                  className="w-full"
+                  className="!aspect-auto h-[60px] w-[40px]"
                 />
               </div>
               <span className="mt-6 flex items-center justify-between gap-4 text-caption text-gold-700">
@@ -397,8 +401,8 @@ export default function HomePage() {
               className="group flex items-center gap-4 text-caption text-porcelain-50"
             >
               <ImageSlot
-                label="Jewellery thumbnail"
                 compact
+                label="Jewellery thumbnail"
                 w={120}
                 h={120}
                 tone="dark"
@@ -455,10 +459,11 @@ export default function HomePage() {
             <figure data-reveal className="m-0">
               <Parallax distance={26}>
                 <ImageSlot
+                  compact
                   label={CHECKS[0].text}
                   w={800}
                   h={1070}
-                  className="w-[clamp(120px,10vw,220px)]"
+                  className="!aspect-auto h-[60px] w-[40px]"
                 />
               </Parallax>
               <figcaption className="mt-4 flex gap-4 text-caption">
@@ -471,10 +476,11 @@ export default function HomePage() {
               {CHECKS.slice(1).map((c, i) => (
                 <figure key={c.text} data-reveal className="m-0">
                   <ImageSlot
+                    compact
                     label={c.text}
                     w={420}
                     h={530}
-                    className="w-[clamp(68px,5.5vw,120px)]"
+                    className="!aspect-auto h-[60px] w-[40px]"
                   />
                   <figcaption className="mt-4 flex gap-3 text-caption">
                     <span className="tabular text-gold-700">
