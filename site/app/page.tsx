@@ -187,14 +187,14 @@ export default function HomePage() {
         />
 
         <div className="shell">
-          <div className="grid items-center gap-14 md:grid-cols-[minmax(0,clamp(120px,11vw,240px))_1fr] lg:gap-20">
+          <div className="grid items-center gap-14 sm:grid-cols-[max-content_1fr] lg:gap-20">
             <Parallax distance={34}>
               <ImageSlot
                 label="A piece being fitted in the shop"
                 w={480}
                 h={600}
                 tone="dark"
-                className="w-full"
+                className="w-[clamp(110px,11vw,240px)]"
               />
             </Parallax>
 
@@ -262,7 +262,7 @@ export default function HomePage() {
         />
 
         <div className="shell-wide">
-          <div className="grid gap-8 md:grid-cols-[1fr_minmax(0,38ch)] md:items-end md:gap-16">
+          <div className="grid gap-8 sm:grid-cols-[1fr_minmax(0,38ch)] sm:items-end sm:gap-16">
             <Reveal>
               <p data-reveal className="eyebrow">
                 Three doors
@@ -282,12 +282,12 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          <WipeIn className="mt-16 grid items-start gap-10 md:grid-cols-[minmax(0,0.92fr)_minmax(0,0.98fr)_minmax(0,1.2fr)] lg:gap-14">
+          <WipeIn className="mt-16 grid items-start gap-10 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,0.98fr)_minmax(0,1.2fr)] lg:gap-14">
             {/* 1 — rentals, on the dark plate */}
             <Link
               href={DOORS[0].href}
               data-wipe
-              className="group block bg-violet-950 p-6 shadow-card transition-shadow duration-[180ms] hover:shadow-lift md:mt-0"
+              className="group block bg-violet-950 p-6 shadow-card transition-shadow duration-[180ms] hover:shadow-lift sm:mt-0"
             >
               <p className="eyebrow on-dark">{DOORS[0].eyebrow}, by the date</p>
               <h3 className="mt-4 max-w-[12ch] text-h3 text-porcelain-50">
@@ -317,7 +317,7 @@ export default function HomePage() {
             <Link
               href={DOORS[1].href}
               data-wipe
-              className="group block border border-ink-900/12 bg-porcelain-50 p-6 transition-colors duration-[180ms] hover:border-ink-900/25 md:mt-10"
+              className="group block border border-ink-900/12 bg-porcelain-50 p-6 transition-colors duration-[180ms] hover:border-ink-900/25 sm:mt-10"
             >
               <p className="eyebrow">{DOORS[1].eyebrow}, to keep</p>
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
@@ -348,7 +348,7 @@ export default function HomePage() {
             <Link
               href={DOORS[2].href}
               data-wipe
-              className="group relative block bg-porcelain-100 p-6 transition-colors duration-[180ms] hover:bg-porcelain-200 md:mt-20"
+              className="group relative block bg-porcelain-100 p-6 transition-colors duration-[180ms] hover:bg-porcelain-200 sm:mt-20"
             >
               <p className="eyebrow">{DOORS[2].eyebrow}, to match</p>
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
@@ -431,7 +431,7 @@ export default function HomePage() {
         />
 
         <div className="shell-wide">
-          <div className="grid gap-8 md:grid-cols-[1fr_minmax(0,40ch)] md:items-end md:gap-16">
+          <div className="grid gap-8 sm:grid-cols-[1fr_minmax(0,40ch)] sm:items-end sm:gap-16">
             <Reveal>
               <p data-reveal className="eyebrow">
                 Proof
@@ -451,7 +451,7 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          <Reveal className="mt-16 grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] lg:gap-12">
+          <Reveal className="mt-16 grid gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] lg:gap-12">
             <figure data-reveal className="m-0">
               <Parallax distance={26}>
                 <ImageSlot
@@ -516,7 +516,7 @@ export default function HomePage() {
             </RippleHeading>
           </Reveal>
 
-          <div className="mt-14 grid gap-12 md:grid-cols-2 md:items-start lg:gap-20">
+          <div className="mt-14 grid gap-12 sm:grid-cols-2 sm:items-start lg:gap-20">
             <Reveal>
               <p data-reveal className="max-w-[46ch] text-ink-600">
                 Fitting happens in person. Bring the date and we will bring the
