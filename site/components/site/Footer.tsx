@@ -16,16 +16,25 @@ export function Footer() {
           {/* Explore */}
           <nav aria-label="Footer">
             <p className="eyebrow on-dark mb-4">Explore</p>
-            <ul className="flex flex-col gap-3 text-[0.9375rem]">
+            {/* On the phone the 15px rows sat on a 37px pitch, which is under
+               a reliable tap. Padding takes each row to ~41px and the gap comes
+               in to match, so the block is the same height it was. */}
+            <ul className="flex flex-col gap-1 text-[0.9375rem] md:gap-3">
               {NAV_LINKS.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="hover:text-porcelain-50 transition-colors">
+                  <Link
+                    href={l.href}
+                    className="block py-2 transition-colors hover:text-porcelain-50 md:py-0"
+                  >
                     {l.label}
                   </Link>
                 </li>
               ))}
               <li>
-                <Link href="/policies" className="hover:text-porcelain-50 transition-colors">
+                <Link
+                  href="/policies"
+                  className="block py-2 transition-colors hover:text-porcelain-50 md:py-0"
+                >
                   Rental terms
                 </Link>
               </li>
@@ -54,7 +63,7 @@ export function Footer() {
             <p className="mt-4 text-[0.9375rem]">{SHOP.hours}</p>
             <a
               href={`tel:${SHOP.phone.replace(/\s/g, "")}`}
-              className="mt-1 block text-gold-500 hover:text-gold-100"
+              className="mt-1 block py-2 text-gold-500 hover:text-gold-100 md:py-0"
             >
               {SHOP.phone}
             </a>

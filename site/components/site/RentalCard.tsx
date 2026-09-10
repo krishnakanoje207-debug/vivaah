@@ -31,9 +31,13 @@ export function RentalCard({ p }: { p: Rental }) {
           </span>
         )}
       </div>
-      <div className="flex items-baseline justify-between px-1 pt-4">
+      <div className="flex items-baseline justify-between gap-4 px-1 pt-4">
         <div>
-          <h3 className="text-[1.35rem] leading-tight">{p.name}</h3>
+          {/* The listing's hover treatment, the same one the retail mosaic
+              uses: the name takes the violet on hover, at the site's 180ms. */}
+          <h3 className="text-[1.35rem] leading-tight transition-colors duration-[180ms] group-hover:text-violet-700">
+            {p.name}
+          </h3>
           <p className="mt-0.5 text-caption text-ink-600">{p.note}</p>
         </div>
         <p className="tabular text-[0.9375rem] font-semibold text-ink-900">

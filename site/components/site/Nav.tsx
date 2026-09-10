@@ -73,8 +73,11 @@ export function Nav() {
           </Button>
         </div>
 
+        {/* 44x44, not the 40x28 the padding gave it: the bars are 24x12 and a
+           tap target has to be reachable, not just visible. The negative margin
+           keeps the bars flush with the shell's own edge as before. */}
         <button
-          className="md:hidden inline-flex flex-col gap-[5px] p-2 -mr-2"
+          className="md:hidden -mr-2.5 inline-flex h-11 w-11 flex-col items-center justify-center gap-[5px]"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
@@ -117,10 +120,18 @@ function LangToggle({ overDark }: { overDark: boolean }) {
       role="group"
       aria-label="Language"
     >
-      <button className="px-2.5 py-1 bg-ink-900 text-porcelain-50" aria-pressed="true">
+      {/* In the phone menu the two halves grow to a real tap target; the
+         desktop bar keeps the small pill it was drawn with. */}
+      <button
+        className="inline-flex min-h-11 items-center justify-center px-4 py-1 bg-ink-900 text-porcelain-50 md:min-h-0 md:px-2.5"
+        aria-pressed="true"
+      >
         EN
       </button>
-      <button className={`px-2.5 py-1 ${inactive}`} aria-pressed="false">
+      <button
+        className={`inline-flex min-h-11 items-center justify-center px-4 py-1 md:min-h-0 md:px-2.5 ${inactive}`}
+        aria-pressed="false"
+      >
         हिं
       </button>
     </div>

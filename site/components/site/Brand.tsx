@@ -17,8 +17,17 @@ export function Brand({
   // 8px on light: needs the small-text gold (see --color-gold-700 in globals).
   const sub = tone === "light-on-dark" ? "text-violet-300" : "text-gold-700";
 
+  // The lockup draws about 90x30, which is under the 44px a tap needs. The
+  // padding reaches for the extra height and the negative margin hands the
+  // space straight back, so the mark sits exactly where it did — centred in
+  // the nav's 64px bar, flush with the top of the footer column. Same trick as
+  // the nav's hamburger.
   return (
-    <Link href="/" aria-label={`${SHOP.name} home`} className={`inline-block leading-none ${className}`}>
+    <Link
+      href="/"
+      aria-label={`${SHOP.name} home`}
+      className={`inline-block -my-2 py-2 leading-none ${className}`}
+    >
       {SHOP.logo ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img data-brand-slot src={SHOP.logo} alt={SHOP.name} className="h-7 w-auto" />

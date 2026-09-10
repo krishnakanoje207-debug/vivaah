@@ -8,7 +8,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  * The home page's only full-bleed moving surface and the only `scrub` on the
  * page. Scroll drives the film's playhead through a lerp (factor 0.12), never a
  * direct binding: the direct one reads mechanical, the lerp reads like a surface
- * being pushed by hand. The film is never played; it is only seeked.
+ * being pushed by hand. The film is never played; it is only seeked, and the
+ * loop that seeks it runs only while the film is on screen, the tab is in
+ * front, and the playhead still has somewhere to go.
  *
  * Exactly one line of type sits over it, and the scrim sits behind that type
  * only, never across the whole frame.
@@ -53,11 +55,54 @@ export function Threshold({ line }: { line: ReactNode }) {
 
     let target = 0;
     let current = 0;
-    let raf = 0;
+    let raf = 0; // 0 means no frame is scheduled; rAF ids are always positive
+    let onScreen = true; // until the observer says otherwise
     let ready = video.readyState >= 1; // metadata may already be in
+
+    const seek = () => {
+      if (ready && video.duration) {
+        // Stop just shy of the end: seeking to exactly duration fires `ended`
+        // on some browsers and parks the element on a blank frame.
+        video.currentTime = current * (video.duration - 0.05);
+      }
+    };
 
     const onMeta = () => {
       ready = true;
+      // The loop may already have settled while the metadata was still coming
+      // in, in which case nothing will wake it — apply the position it settled
+      // on now rather than waiting for the next scroll.
+      seek();
+    };
+
+    const stop = () => {
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+
+    const tick = () => {
+      raf = 0;
+      const delta = target - current;
+      // Under half a thousandth of the film is well inside a single frame of
+      // it, so there is nothing left to show: land exactly and stop scheduling.
+      // A page that has stopped scrolling then runs no loop at all.
+      if (Math.abs(delta) < 0.0005) {
+        current = target;
+        seek();
+        return;
+      }
+      current += delta * LERP;
+      seek();
+      raf = requestAnimationFrame(tick);
+    };
+
+    // Only ever one frame in flight, and none at all while the film cannot be
+    // seen: off-screen or in a background tab, this section costs nothing.
+    const wake = () => {
+      if (raf || !onScreen || document.hidden) return;
+      raf = requestAnimationFrame(tick);
     };
 
     const measure = () => {
@@ -65,27 +110,35 @@ export function Threshold({ line }: { line: ReactNode }) {
       if (travel <= 0) return;
       const scrolled = -section.getBoundingClientRect().top;
       target = Math.min(1, Math.max(0, scrolled / travel));
+      wake();
     };
 
-    const tick = () => {
-      current += (target - current) * LERP;
-      if (ready && video.duration) {
-        // Stop just shy of the end: seeking to exactly duration fires `ended`
-        // on some browsers and parks the element on a blank frame.
-        video.currentTime = current * (video.duration - 0.05);
-      }
-      raf = requestAnimationFrame(tick);
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else wake();
     };
+
+    // The section is the scroll track and the film is sticky inside it, so the
+    // track intersecting the viewport is exactly the film being on screen.
+    const io = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      if (onScreen) measure();
+      else stop();
+    });
+    io.observe(section);
 
     video.addEventListener("loadedmetadata", onMeta);
+    document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
     measure();
-    raf = requestAnimationFrame(tick);
+    wake();
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
+      io.disconnect();
       video.removeEventListener("loadedmetadata", onMeta);
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
     };
@@ -105,9 +158,14 @@ export function Threshold({ line }: { line: ReactNode }) {
       /* -mt-16 pulls the film under the sticky nav, which is in normal flow and
          would otherwise hold a 64px porcelain band above it. Same pattern the
          v2 hero used. */
-      className={`relative -mt-16 bg-violet-950 ${reduced ? "h-screen" : "h-[280vh]"}`}
+      /* Two different questions, so two different units. The scroll track is a
+         budget — 2.8 screens of travel — and `vh` is the one that does not
+         resize when a phone's URL bar retracts, so the scrub keeps a steady
+         length instead of jumping mid-gesture. The frame is a composition, and
+         is measured in `svh` below so it fits the visible viewport. */
+      className={`relative -mt-16 bg-violet-950 ${reduced ? "h-[100svh]" : "h-[280vh]"}`}
     >
-      <div className="sticky top-0 h-screen overflow-hidden bg-violet-950">
+      <div className="sticky top-0 h-[100svh] overflow-hidden bg-violet-950">
         {decided && !reduced && src && (
           <video
             ref={videoRef}
@@ -159,7 +217,9 @@ export function Threshold({ line }: { line: ReactNode }) {
 
         {/* Exactly one line of type (§2.2), written by the page. Everything else
             the page has to say waits for Room I. */}
-        <div className="absolute inset-x-0 bottom-[9vh]">
+        {/* Offset in the same unit as the frame it sits in, or the line drops
+            behind a phone's URL bar at the very moment it should be read. */}
+        <div className="absolute inset-x-0 bottom-[9svh]">
           <div className="shell">
             <h1 className="text-threshold font-display text-porcelain-50">{line}</h1>
             <div className="mt-7 h-px w-[120px] bg-gold-500/75" aria-hidden="true" />

@@ -41,7 +41,7 @@ import { getRentals, getRentalCategories } from "@/lib/rentals";
 export const metadata: Metadata = {
   title: "The Bridal Rental Edit | Vivaah Dresses and Suits",
   description:
-    "Heirloom-quality bridal lehengas, silk sarees and festive gowns, rented for the days they are needed. Reserve your dates and collect at the shop.",
+    "Bridal lehengas, silk sarees and festive gowns to rent for the days they are needed. Reserve your dates and collect at the shop.",
 };
 
 // Reads live rental data (app_public Neon connection); rendered per request.
@@ -78,11 +78,13 @@ export default async function RentalsPage({
 
   const catalogue = (
     <>
-      {/* Categories double as the filter nav. */}
+      {/* The categorical index. Categories double as the filter nav, so its head
+          is a ruled band and not a heading: reveal, then the tiles on their own
+          beat underneath it. */}
       <Reveal>
         <div
           data-reveal
-          className="mb-16 flex items-end justify-between gap-6 border-b border-porcelain-200 pb-8"
+          className="mb-10 flex items-end justify-between gap-6 border-b border-porcelain-200 pb-8 md:mb-16"
         >
           <div>
             <p className="eyebrow mb-2">Categorical index</p>
@@ -95,15 +97,16 @@ export default async function RentalsPage({
           </span>
         </div>
       </Reveal>
-      <Reveal>
-        <div data-reveal>
-          <CategoryTiles base="/rentals" categories={categories} />
-        </div>
-      </Reveal>
+      {/* One tile at a time: `CategoryTiles` carries its own reveal per object,
+          so there is no wrapper Reveal here to fade the whole grid up as one. */}
+      <CategoryTiles base="/rentals" categories={categories} />
 
-      <div className="mt-40 border-t border-porcelain-200 pt-28">
+      {/* The seam into the full collection is the site's own ornament rather
+          than a plain rule: the same ✦ hairline that closes every other band. */}
+      <div className="mt-20 md:mt-40">
+        <Ornament className="mx-auto max-w-sm opacity-25" />
         <Reveal>
-          <div data-reveal className="mb-20">
+          <div data-reveal className="mb-12 mt-16 md:mb-20 md:mt-28">
             <p className="eyebrow">{category ? "The collection" : "The full collection"}</p>
             <h2 className="mt-4 text-h2">
               {category ? (
@@ -140,8 +143,10 @@ export default async function RentalsPage({
             </div>
           </Reveal>
         ) : (
-          /* The collection's device: a wipe per object (§2.6). */
-          <WipeIn className="grid grid-cols-1 items-start gap-x-12 gap-y-24 sm:grid-cols-2 lg:grid-cols-3">
+          /* The collection's device: a wipe per object (§2.6). Each card comes
+             off the rail on its own beat, and the lg offsets keep the three
+             columns from arriving as a row. */
+          <WipeIn className="grid grid-cols-1 items-start gap-x-12 gap-y-14 sm:grid-cols-2 sm:gap-y-24 lg:grid-cols-3">
             {items.map((p, i) => (
               <div
                 key={p.slug}
@@ -176,8 +181,23 @@ export default async function RentalsPage({
     return (
       <>
         <CuratedMoment category={category} />
-        <section className="bg-porcelain-50 pb-32 pt-24">
-          <div className="shell">{catalogue}</div>
+        {/* The filtered rack. It carries the site's boundary too: the hero's
+            violet is torn away rather than meeting the paper along a straight
+            line, which is the one seam this branch was missing. `#collection`
+            is the anchor CuratedMoment's "View the collection" points at. */}
+        <section
+          id="collection"
+          className="relative scroll-mt-16 bg-porcelain-50 pb-20 pt-24 md:pb-32 md:pt-28"
+        >
+          <SectionEdge
+            seed={6}
+            paper="var(--color-violet-950)"
+            reveal="var(--color-porcelain-50)"
+          />
+          {/* Positioned, so the tear's curls pass behind the first line of type
+              rather than over it: the band hangs ~64px into the room on a phone
+              and ~93px from md up. */}
+          <div className="shell relative">{catalogue}</div>
         </section>
       </>
     );
@@ -198,7 +218,9 @@ export default async function RentalsPage({
           porcelain-50 · silk, photographed · flow + in */}
       <section id="week" data-room="week" className="relative bg-porcelain-50 py-16 md:py-24">
         <SectionEdge seed={1} paper="var(--color-violet-950)" reveal="var(--color-porcelain-50)" />
-        <div className="shell shell-rooms">
+        {/* Positioned, so the tear's curls pass behind the room's first line of
+            type instead of over it (the band hangs ~64px in on a phone). */}
+        <div className="shell shell-rooms relative">
           <Reveal className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
             <div data-reveal>
               <p className="eyebrow">The week</p>
@@ -236,7 +258,7 @@ export default async function RentalsPage({
           porcelain-100 · figures, type · count */}
       <section id="arithmetic" data-room="arithmetic" className="relative bg-porcelain-100 py-16 md:py-24">
         <SectionEdge seed={2} paper="var(--color-porcelain-50)" reveal="var(--color-porcelain-100)" />
-        <div className="shell shell-rooms">
+        <div className="shell shell-rooms relative">
           <Reveal>
             <p data-reveal className="eyebrow">The arithmetic</p>
             <h2 data-reveal className="mt-5 max-w-[18ch] text-h2">
@@ -248,7 +270,7 @@ export default async function RentalsPage({
             </p>
           </Reveal>
 
-          <div className="mt-14 flex flex-wrap gap-x-20 gap-y-10">
+          <div className="mt-14 flex flex-wrap gap-x-10 gap-y-8 sm:gap-x-20 sm:gap-y-10">
             <div>
               <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-600">To buy</p>
               <CountFigure
@@ -286,7 +308,7 @@ export default async function RentalsPage({
           stage · thread, macro · signature move + parallax · THE PEAK */}
       <section id="craft" data-room="craft" className="relative bg-stage py-20 md:py-32">
         <SectionEdge seed={3} paper="var(--color-porcelain-100)" reveal="var(--color-stage)" />
-        <div className="shell shell-rooms">
+        <div className="shell shell-rooms relative">
           <div className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
             <Parallax distance={44}>
               <Reveal>
@@ -320,7 +342,7 @@ export default async function RentalsPage({
           porcelain-50 · the catalogue · reveal per object */}
       <section id="collection" data-room="collection" className="relative bg-porcelain-50 py-16 md:py-24">
         <SectionEdge seed={4} paper="var(--color-stage)" reveal="var(--color-porcelain-50)" />
-        <div className="shell shell-rooms">
+        <div className="shell shell-rooms relative">
           <Reveal>
             <div data-reveal className="mx-auto max-w-3xl text-center">
               <p className="eyebrow">The rental edit</p>
@@ -333,8 +355,8 @@ export default async function RentalsPage({
               </p>
             </div>
           </Reveal>
-          <Ornament className="mx-auto mt-16 max-w-sm opacity-25" />
-          <div className="mt-24">{catalogue}</div>
+          <Ornament className="mx-auto mt-10 max-w-sm opacity-25 md:mt-16" />
+          <div className="mt-14 md:mt-24">{catalogue}</div>
         </div>
       </section>
 
@@ -344,10 +366,10 @@ export default async function RentalsPage({
         id="visit"
         data-room="visit"
         data-dark=""
-        className="on-dark grain relative bg-violet-950 py-32 text-porcelain-50 md:py-44"
+        className="on-dark grain relative bg-violet-950 py-20 text-porcelain-50 md:py-44"
       >
         <SectionEdge seed={5} paper="var(--color-porcelain-50)" reveal="var(--color-violet-950)" />
-        <div className="shell shell-rooms">
+        <div className="shell shell-rooms relative">
           <Reveal>
             <div data-reveal>
               <DistortHeading className="max-w-[16ch] text-h2 text-porcelain-50">

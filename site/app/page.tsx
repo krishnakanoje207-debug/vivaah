@@ -102,7 +102,9 @@ export default function HomePage() {
           measured in lab/hero-centre7: a thin tint, a bloom under the type and
           a riser off the bottom edge. */}
       <section className="on-dark relative isolate bg-violet-950">
-        <div className="relative grid min-h-[100svh] sm:min-h-[clamp(520px,62vh,760px)] sm:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
+        {/* The sticky nav is in normal flow, so a full 100svh hero puts its own
+            last 64px below the fold on a phone. The nav's height comes off. */}
+        <div className="relative grid min-h-[calc(100svh_-_4rem)] sm:min-h-[clamp(520px,62vh,760px)] sm:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
           {/* The photograph. Absolute below md so the type lies over it; a real
               grid column from md up so it owns the right of the frame. */}
           <div className="hero-frame absolute inset-0 sm:relative sm:col-start-2 sm:row-start-1">
@@ -136,7 +138,7 @@ export default function HomePage() {
           {/* The panel. Its left padding is the shell's own margin, so the
               headline starts on the same line as every section below it. */}
           <div className="relative z-10 flex items-center sm:col-start-1 sm:row-start-1">
-            <Reveal className="hero-copy w-full px-[4vw] py-20 pl-[max(4vw,calc((100vw-1680px)/2))] sm:py-12 sm:pr-10">
+            <Reveal className="hero-copy w-full px-5 py-20 sm:px-[4vw] sm:py-12 sm:pl-[max(4vw,calc((100vw-1680px)/2))] sm:pr-10">
               <p className="eyebrow on-dark" data-reveal>
                 Bridal and occasion wear, to rent or to buy
               </p>
@@ -185,8 +187,8 @@ export default function HomePage() {
           reveal="var(--color-violet-950)"
         />
 
-        <div className="shell">
-          <div className="grid items-center gap-14 sm:grid-cols-[minmax(0,290px)_1fr] lg:gap-16">
+        <div className="shell relative">
+          <div className="grid items-center gap-10 md:grid-cols-[minmax(0,290px)_1fr] md:gap-14 lg:gap-16">
             <Parallax distance={34}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -259,7 +261,7 @@ export default function HomePage() {
           reveal="var(--color-porcelain-50)"
         />
 
-        <div className="shell-wide">
+        <div className="shell-wide relative">
           <div className="grid gap-8 sm:grid-cols-[1fr_minmax(0,38ch)] sm:items-end sm:gap-16">
             <Reveal>
               <p data-reveal className="eyebrow">
@@ -280,7 +282,7 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          <WipeIn className="mt-12 grid items-start gap-8 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,0.98fr)_minmax(0,1.2fr)] lg:gap-14">
+          <WipeIn className="mt-12 grid items-start gap-8 md:grid-cols-[minmax(0,0.92fr)_minmax(0,0.98fr)_minmax(0,1.2fr)] lg:gap-14">
             {/* 1 — rentals, on the dark plate */}
             <Link
               href={DOORS[0].href}
@@ -419,7 +421,7 @@ export default function HomePage() {
           reveal="var(--color-porcelain-50)"
         />
 
-        <div className="shell-wide">
+        <div className="shell-wide relative">
           <div className="grid gap-8 sm:grid-cols-[1fr_minmax(0,40ch)] sm:items-end sm:gap-16">
             <Reveal>
               <p data-reveal className="eyebrow">
@@ -456,7 +458,7 @@ export default function HomePage() {
               </figcaption>
             </figure>
 
-            <div className="grid grid-cols-2 gap-8 lg:gap-10">
+            <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
               {CHECKS.slice(1).map((c, i) => (
                 <figure key={c.text} data-reveal className="m-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -490,7 +492,7 @@ export default function HomePage() {
           reveal="var(--color-porcelain-100)"
         />
 
-        <div className="shell">
+        <div className="shell relative">
           <Reveal className="text-center">
             <div
               className="ornament mx-auto max-w-[7rem]"

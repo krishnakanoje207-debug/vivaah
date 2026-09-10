@@ -405,7 +405,11 @@ export function JewelleryContent() {
             <dl className="grid gap-x-10 gap-y-8 text-caption sm:grid-cols-2 md:pt-4">
               <div className="sm:col-span-2">
                 <dt className="eyebrow">Hours</dt>
-                <dd className="tabular mt-3 font-display text-[2rem] leading-none text-porcelain-50">
+                {/* `leading-none` is only safe while the hours are one line. At
+                    390 the string is wider than the column, so it wraps, and a
+                    zero leading collides the two lines: the phone gets a step
+                    down in size and a real line height. */}
+                <dd className="tabular mt-3 font-display text-[1.625rem] leading-tight text-porcelain-50 sm:text-[2rem] sm:leading-none">
                   {SHOP.hours}
                 </dd>
               </div>

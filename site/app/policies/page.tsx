@@ -148,7 +148,9 @@ export default function PoliciesPage() {
           reveal="var(--color-porcelain-100)"
         />
 
-        <div className="shell-wide">
+        {/* Positioned, so the tear above passes behind the index and the
+            first clause rather than over them. */}
+        <div className="shell-wide relative">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,15rem)_1fr] lg:gap-24">
             <nav aria-label="The terms" className="lg:sticky lg:top-24 lg:self-start">
               <p className="eyebrow">Contents</p>
@@ -216,7 +218,7 @@ export default function PoliciesPage() {
           reveal="var(--color-violet-950)"
         />
 
-        <div className="shell-wide">
+        <div className="shell-wide relative">
           <Ornament className="max-w-[7rem]" />
 
           {/* Same three-part spread as the masthead, and for the same reason:

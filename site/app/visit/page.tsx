@@ -147,7 +147,10 @@ export default function VisitPage() {
             spanning the whole 1600px band: full width, a four-word value and a
             note pinned to the right edge leave a hole in the middle of every
             row. Narrowing the track is what closes it. */}
-        <div className="shell-wide">
+        {/* Positioned, so the tear above hangs behind the first line of type
+            rather than over it: the band reaches ~64px into the section on a
+            phone and ~93px from md up, against 48/64px of padding. */}
+        <div className="shell-wide relative">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,17rem)_1fr] lg:gap-20">
             <div>
               <p className="eyebrow">Where, and when</p>
@@ -227,7 +230,7 @@ export default function VisitPage() {
           reveal="var(--color-porcelain-50)"
         />
 
-        <div className="shell-wide">
+        <div className="shell-wide relative">
           {/* Past 2xl the header row takes the step band's own four columns:
               the heading over steps 1 and 2, the note over step 4. Pinning the
               two to the outer edges instead (space-between) put a 1150px gap
@@ -269,7 +272,7 @@ export default function VisitPage() {
           reveal="var(--color-porcelain-100)"
         />
 
-        <div className="shell">
+        <div className="shell relative">
           <div className="grid items-start gap-10 md:grid-cols-[1fr_minmax(0,420px)] lg:gap-20">
             {/* The photograph leads on the phone, as it did, and moves to the
                 capped right column from md up: a 340px plate on the left of a
@@ -325,7 +328,7 @@ export default function VisitPage() {
         {/* The heading is a column of the same row as the two doors rather than
             a banner above them, so the close uses the width instead of stranding
             a short heading at the top left of a 1600px band. */}
-        <div className="shell-wide">
+        <div className="shell-wide relative">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,20rem)_1fr_1fr] lg:gap-20">
             <div>
               <Ornament className="max-w-[7rem]" />
