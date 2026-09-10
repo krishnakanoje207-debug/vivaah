@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export type ContentState = {
   ok?: boolean;
@@ -11,6 +12,7 @@ export type ContentState = {
 
 // Upsert a content block: key + {en, hi}. Editing an existing key overwrites it.
 export async function saveBlock(_prev: ContentState, form: FormData): Promise<ContentState> {
+  await requireAdmin();
   const key = String(form.get("key") ?? "").trim();
   const en = String(form.get("en") ?? "");
   const hi = String(form.get("hi") ?? "");
@@ -35,6 +37,7 @@ export async function saveBlock(_prev: ContentState, form: FormData): Promise<Co
 }
 
 export async function deleteBlock(form: FormData): Promise<void> {
+  await requireAdmin();
   const key = String(form.get("key") ?? "").trim();
   if (key) {
     await sql`delete from site_content where key = ${key}`;

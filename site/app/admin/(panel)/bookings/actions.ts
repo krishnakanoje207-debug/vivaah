@@ -8,6 +8,7 @@
 // booking_items, so we never touch that table here.
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export type ActionState = { ok?: boolean; error?: string };
 
@@ -27,6 +28,7 @@ function refresh(id: string) {
 
 // pending → confirmed: record verification, drop the hold deadline.
 export async function verifyPayment(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
   const id = String(formData.get("id"));
   const rows = await sql`
     update bookings set status = 'confirmed', verified_at = now(), expires_at = null
@@ -39,6 +41,7 @@ export async function verifyPayment(_prev: ActionState, formData: FormData): Pro
 
 // pending → cancelled (admin reject before verification).
 export async function cancelBooking(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
   const id = String(formData.get("id"));
   const rows = await sql`
     update bookings set status = 'cancelled', expires_at = null
@@ -51,6 +54,7 @@ export async function cancelBooking(_prev: ActionState, formData: FormData): Pro
 
 // confirmed → cancelled (admin, per policy). Dates release automatically.
 export async function cancelConfirmed(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
   const id = String(formData.get("id"));
   const rows = await sql`
     update bookings set status = 'cancelled'
@@ -66,6 +70,7 @@ export async function cancelConfirmed(_prev: ActionState, formData: FormData): P
 // this booking sat cancelled, Postgres raises 23P01, which we surface distinctly
 // from staleness. Revive IS the confirmed transition, so backfill verified_at.
 export async function reviveBooking(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
   const id = String(formData.get("id"));
   let rows;
   try {
@@ -88,6 +93,7 @@ export async function reviveBooking(_prev: ActionState, formData: FormData): Pro
 
 // confirmed → picked_up.
 export async function markPickedUp(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
   const id = String(formData.get("id"));
   const rows = await sql`
     update bookings set status = 'picked_up'
@@ -100,6 +106,7 @@ export async function markPickedUp(_prev: ActionState, formData: FormData): Prom
 
 // picked_up → returned (dates release automatically via the item sync trigger).
 export async function markReturned(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
   const id = String(formData.get("id"));
   const rows = await sql`
     update bookings set status = 'returned'

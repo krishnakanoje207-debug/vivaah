@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export type SettingsState = {
   ok?: boolean;
@@ -38,6 +39,7 @@ export async function saveBookingRules(
   _prev: SettingsState,
   form: FormData,
 ): Promise<SettingsState> {
+  await requireAdmin();
   const errors: Record<string, string> = {};
   const buffer = readInt(form, "buffer_days", "Buffer days", errors);
   const expiry = readInt(form, "booking_expiry_minutes", "Hold expiry (minutes)", errors);
@@ -59,6 +61,7 @@ export async function saveBookingRules(
 
 // --- Shop info: merge so lat/lng (untouched here) survive --------------------
 export async function saveShop(_prev: SettingsState, form: FormData): Promise<SettingsState> {
+  await requireAdmin();
   const patch = {
     name: String(form.get("name") ?? "").trim(),
     address: String(form.get("address") ?? "").trim(),
@@ -81,6 +84,7 @@ export async function saveShop(_prev: SettingsState, form: FormData): Promise<Se
 
 // --- Payments (UPI) ----------------------------------------------------------
 export async function savePayments(_prev: SettingsState, form: FormData): Promise<SettingsState> {
+  await requireAdmin();
   const patch = {
     id: String(form.get("id") ?? "").trim(),
     number: String(form.get("number") ?? "").trim(),
@@ -96,6 +100,7 @@ export async function savePayments(_prev: SettingsState, form: FormData): Promis
 
 // --- Charges copy (EN + HI) --------------------------------------------------
 export async function saveCharges(_prev: SettingsState, form: FormData): Promise<SettingsState> {
+  await requireAdmin();
   const patch = {
     en: String(form.get("en") ?? ""),
     hi: String(form.get("hi") ?? ""),

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
+import { requireAdmin } from "@/lib/requireAdmin";
 import { slugify } from "./helpers";
 import {
   DEFAULT_VARIANT_HEX,
@@ -255,10 +256,12 @@ async function save(formData: FormData, id: string | null): Promise<FormState> {
 }
 
 export async function createProduct(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
   return save(formData, null);
 }
 
 export async function updateProduct(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
   const id = String(formData.get("id") ?? "").trim();
   if (!id) return { ok: false, message: "Missing product id." };
   return save(formData, id);
