@@ -8,25 +8,27 @@ import type { Category } from "@/lib/categories";
 
 // Per-category supporting copy (1–2 sentences). Keyed by the load-bearing slug —
 // covers every rental + retail category, so the section reads for any matched filter.
+// The register is the garment and the occasion in front of her, never inherited
+// history: the shop is a year old, so heritage, heirloom and lineage are banned.
 const COPY: Record<string, string> = {
   // Rentals
-  "bridal-lehengas": "The centrepiece of your wedding day — hand-worked lehengas in zardozi, gota, and real zari, reserved for your date and yours alone.",
-  "side-lehengas": "For the sisters, the cousins, the closest friends — festive lehengas that hold their own beside the bride without ever competing.",
+  "bridal-lehengas": "The centrepiece of your wedding day. Hand-worked lehengas in zardozi, gota, and real zari, reserved for your date and yours alone.",
+  "side-lehengas": "For the sisters, the cousins, the closest friends: festive lehengas that hold their own beside the bride without ever competing.",
   "indo-western": "Where the drape meets the silhouette. Fusion pieces for the sangeet, the cocktail, the moment you want to move.",
-  "ready-to-wear-sarees": "The grace of a saree, pre-draped and ready in minutes — pinned to perfection so you arrive composed, never rushed.",
-  "rajasthani-poshak": "Heritage from the desert courts — mirror, bandhani, and gota in the poshak your festivities were made for.",
-  "chaniya-cholis": "Twirl-ready for Navratri and every garba night — layered ghagras that catch the light with each turn.",
-  gowns: "Floor-sweeping drama for receptions and evenings out — sculpted gowns that make an entrance before you say a word.",
-  sarees: "Six yards of ceremony — Banarasi weaves, festive georgettes, and heirloom drapes for the days you will remember longest.",
+  "ready-to-wear-sarees": "The grace of a saree, pre-draped and ready in minutes, pinned to perfection so you arrive composed, never rushed.",
+  "rajasthani-poshak": "Mirror work, bandhani, and gota on a full poshak, cut and layered for the festivities your year is built around.",
+  "chaniya-cholis": "Twirl-ready for Navratri and every garba night, in layered ghagras that catch the light with each turn.",
+  gowns: "Floor-sweeping drama for receptions and evenings out. Sculpted gowns that make an entrance before you say a word.",
+  sarees: "Banarasi weaves and festive georgettes, drapes for the wedding days, the receptions, and the festival evenings between them.",
   // Retail
-  "three-piece-suits": "Suit, dupatta, and bottoms in considered harmony — festive sets you will reach for season after season.",
-  "party-wear-suits": "For the evening that calls for a little shimmer — embellished suits made to be seen, and kept.",
+  "three-piece-suits": "Suit, dupatta, and bottoms in considered harmony: festive sets you will reach for season after season.",
+  "party-wear-suits": "For the evening that calls for a little shimmer. Embellished suits made to be seen, and kept.",
   "one-piece": "Effortless from afternoon to evening. One-piece silhouettes that ask for nothing but you.",
-  "short-kurtis": "Everyday ease with an eye for detail — short kurtis that pair with whatever already lives in your wardrobe.",
+  "short-kurtis": "Everyday ease with an eye for detail: short kurtis that pair with whatever already lives in your wardrobe.",
   "co-ord-sets": "Two pieces, one intention. Coordinated sets that do the styling for you.",
-  "night-suits": "The soft landing at the end of a long day — night sets in breathable cottons and quiet prints.",
-  "kurta-pant-sets": "The dependable two-piece — kurta and pant in easy proportions for work, errands, and everything in between.",
-  kaftans: "Unhurried elegance — flowing kaftans for warm days, slow evenings, and celebrations at home.",
+  "night-suits": "The soft landing at the end of a long day, in night sets of breathable cottons and quiet prints.",
+  "kurta-pant-sets": "The dependable two-piece: kurta and pant in easy proportions for work, errands, and everything in between.",
+  kaftans: "Unhurried elegance in flowing kaftans, for warm days, slow evenings, and celebrations at home.",
 };
 
 export function CuratedMoment({ category }: { category: Category }) {

@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     template: `%s · ${SHOP.name}`,
   },
   description:
-    "Vivaah Dresses and Suits — rent bridal lehengas and festive wear, shop dresses and suits, and rent matching jewellery. Reserve online, collect at our shop.",
+    "Vivaah Dresses and Suits. Rent bridal lehengas and festive wear, shop dresses and suits, and rent matching jewellery. Reserve online, collect at our shop.",
 };
 
 export default function RootLayout({
