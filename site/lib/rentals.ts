@@ -27,9 +27,14 @@ export type Rental = {
   reviews: Review[];
 };
 
-// Even-spaced frame stills for the swipeable gallery (front → back).
+// Even-spaced frame stills for the swipeable gallery (front → back). n = 1 is
+// the single-still stage for products that get no turntable, and the spacing
+// divides by n - 1, so that case has to be taken before the arithmetic.
 export function galleryFrames(spin: SpinConfig, n = 5): string[] {
-  const idx = Array.from({ length: n }, (_, i) => Math.round((i * (spin.count - 1)) / (n - 1)));
+  const idx =
+    n <= 1
+      ? [0]
+      : Array.from({ length: n }, (_, i) => Math.round((i * (spin.count - 1)) / (n - 1)));
   return idx.map((i) => `${spin.basePath}/${String(i).padStart(spin.pad, "0")}.${spin.ext}`);
 }
 
