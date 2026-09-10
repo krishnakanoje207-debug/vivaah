@@ -72,6 +72,11 @@ export async function saveShop(_prev: SettingsState, form: FormData): Promise<Se
   if (patch.name === "") {
     return { fieldErrors: { name: "Shop name is required." } };
   }
+  // The map link lands in an href on /visit, so anything that is not an https
+  // URL is refused rather than stored.
+  if (patch.maps_url !== "" && !patch.maps_url.startsWith("https://")) {
+    return { fieldErrors: { maps_url: "Must be an https:// link." } };
+  }
 
   // `||` merges top-level keys; lat/lng absent from the patch are preserved.
   await sql`
@@ -90,6 +95,11 @@ export async function savePayments(_prev: SettingsState, form: FormData): Promis
     number: String(form.get("number") ?? "").trim(),
     qr_path: String(form.get("qr_path") ?? "").trim(),
   };
+  // The QR path becomes an img src. It is a local asset, so it starts with a
+  // slash; a bare scheme would let a saved value point anywhere.
+  if (patch.qr_path !== "" && !patch.qr_path.startsWith("/")) {
+    return { fieldErrors: { qr_path: "Must start with a slash." } };
+  }
   await sql`
     update settings set value = value || ${JSON.stringify(patch)}::jsonb
     where key = 'upi'
