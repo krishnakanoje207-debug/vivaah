@@ -6,6 +6,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
 import { Parallax } from "@/components/site/Parallax";
 import { RentalRail } from "@/components/site/RentalRail";
+import { NavratriBand } from "@/components/site/NavratriBand";
 import { SHOP } from "@/lib/site";
 import { getRentals, getRentalCategories } from "@/lib/rentals";
 
@@ -187,6 +188,13 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ---------- Navratri -------------------------------------------------
+          Above the rail because it is the reason to look at the rail this
+          month, and on the hero's own violet so the two read as one movement
+          rather than as a banner dropped on top of the page. Retires itself
+          after 20 Oct 2026. */}
+      <NavratriBand />
 
       {/* ---------- The rail ------------------------------------------------
           Real stock, immediately under the headline that promises it. See

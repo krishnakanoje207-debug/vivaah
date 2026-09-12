@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { formatINR, productBadges, type Rental } from "@/lib/rentals";
+import { nightBadge } from "@/lib/navratri";
 
 // Shared rental card (homepage featured + /rentals gallery). Arch-topped image
 // (§3b jharokha motif) on the stage colour; shows the real turntable front frame
 // when available, else a porcelain placeholder.
 export function RentalCard({ p }: { p: Rental }) {
   const badges = productBadges(p);
+  // The festival highlight, and only ever a highlight: the catalogue is never
+  // reordered or filtered by it, because people rent what they like the look
+  // of, not what matches the day (owner, 12 Sep 2026). Null outside the nine
+  // nights, and null for any piece whose colour does not actually match.
+  const night = nightBadge(p);
   return (
     <Link href={`/rentals/${p.slug}`} className="press-card group block">
       <div className="arch relative aspect-[4/5] overflow-hidden bg-stage shadow-card transition-shadow duration-[180ms] ease-out-strong group-hover:shadow-lift">
@@ -36,6 +42,19 @@ export function RentalCard({ p }: { p: Rental }) {
             rather than overlapping. See productBadges for why this list is as
             short as it is. */}
         <div className="absolute left-3 top-4 flex flex-col items-start gap-1.5">
+          {night && (
+            <span className="flex items-center gap-1.5 rounded-full bg-porcelain-50 px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide text-ink-900">
+              {/* The night's real colour, as a dot. The label carries the
+                  meaning on its own, so the dot is decorative and hidden —
+                  colour is never the only way this is communicated. */}
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 shrink-0 rounded-full ring-1 ring-ink-900/20"
+                style={{ background: night.hex }}
+              />
+              {night.label}
+            </span>
+          )}
           {badges.map((b) => (
             <span
               key={b.label}

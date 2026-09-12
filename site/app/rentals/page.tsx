@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { RentalCard } from "@/components/site/RentalCard";
 import { PendingCard } from "@/components/site/PendingCard";
+import { NavratriBand } from "@/components/site/NavratriBand";
 import { CategoryTiles } from "@/components/site/CategoryTiles";
 import { Ornament } from "@/components/site/Ornament";
 import { CuratedMoment } from "@/components/site/CuratedMoment";
@@ -248,6 +249,15 @@ export default async function RentalsPage({
           </>
         }
       />
+
+      {/* Navratri sits between the threshold and the first room, on the
+          threshold's own violet, so someone who came for the festival is not
+          asked to read the rent-versus-buy argument first. It is a rule across
+          the page, not a room, so it takes no `id` and the room index does not
+          count it. Retires itself after 20 Oct 2026. Not shown on a filtered
+          view: if she is already looking at chaniya cholis, pointing her at
+          them says nothing. */}
+      <NavratriBand />
 
       {/* ============ ROOM I: THE WEEK ============
           porcelain-50 · silk, photographed · flow + in */}
