@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { formatINR, type Rental } from "@/lib/rentals";
+import { formatINR, productBadges, type Rental } from "@/lib/rentals";
 
 // Shared rental card (homepage featured + /rentals gallery). Arch-topped image
 // (§3b jharokha motif) on the stage colour; shows the real turntable front frame
 // when available, else a porcelain placeholder.
 export function RentalCard({ p }: { p: Rental }) {
+  const badges = productBadges(p);
   return (
     <Link href={`/rentals/${p.slug}`} className="press-card group block">
       <div className="arch relative aspect-[4/5] overflow-hidden bg-stage shadow-card transition-shadow duration-[180ms] ease-out-strong group-hover:shadow-lift">
@@ -30,11 +31,29 @@ export function RentalCard({ p }: { p: Rental }) {
             <span className="text-caption text-ink-600">Photograph coming</span>
           </div>
         )}
-        {p.spin && (
-          <span className="absolute left-3 top-4 rounded-full bg-violet-100 px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide text-violet-700">
-            Spin view
-          </span>
-        )}
+        {/* Badges stack under one another at the top-left, above the "Spin view"
+            marker, so a piece that is both new and spinnable reads top-down
+            rather than overlapping. See productBadges for why this list is as
+            short as it is. */}
+        <div className="absolute left-3 top-4 flex flex-col items-start gap-1.5">
+          {badges.map((b) => (
+            <span
+              key={b.label}
+              className={
+                b.tone === "new"
+                  ? "rounded-full bg-gold-100 px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide text-gold-700"
+                  : "rounded-full bg-violet-100 px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide text-violet-700"
+              }
+            >
+              {b.label}
+            </span>
+          ))}
+          {p.spin && (
+            <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide text-violet-700">
+              Spin view
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex items-baseline justify-between gap-4 px-1 pt-4">
         <div>

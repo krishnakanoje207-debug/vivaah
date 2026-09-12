@@ -25,7 +25,42 @@ export type Rental = {
   spin: SpinConfig | null; // null until turntable frames exist
   description: string;
   reviews: Review[];
+  /** ISO timestamp the row was created. Drives the "Just in" badge. */
+  createdAt: string;
 };
+
+/**
+ * Badges shown on a product card.
+ *
+ * Every badge here has to be TRUE of the piece it sits on, because these are
+ * factual claims made to a customer on the shop's behalf. That rules out the
+ * usual retail set until the data behind it exists:
+ *
+ *   "Most rented" / "High demand"  — `booking_items` has no rows (Phase 2).
+ *   "Most sold"                    — retail sales are Phase 3.
+ *   "Only one left" / "Limited"    — measured 12 Sep 2026: EVERY rental has
+ *     total stock 1, because a rental garment is one physical piece. A badge
+ *     that is true of the whole catalogue tells a reader nothing, and still
+ *     implies a scarcity relative to other pieces that does not exist.
+ *
+ * The useful scarcity signal for a rental is not "how many exist" but "which
+ * dates are already taken", and that arrives with the booking engine.
+ */
+export type Badge = { label: string; tone: "new" | "owner" };
+
+/** Rows created within this many days carry "Just in". */
+const JUST_IN_DAYS = 7;
+
+export function productBadges(p: Rental, now = Date.now()): Badge[] {
+  const badges: Badge[] = [];
+  const age = (now - new Date(p.createdAt).getTime()) / 86_400_000;
+  // The shop's whole claim is that the rail changes day to day; this is the
+  // only badge that evidences it, and it needs no owner input to stay true.
+  if (Number.isFinite(age) && age >= 0 && age <= JUST_IN_DAYS) {
+    badges.push({ label: "Just in", tone: "new" });
+  }
+  return badges;
+}
 
 // Even-spaced frame stills for the swipeable gallery (front → back). n = 1 is
 // the single-still stage for products that get no turntable, and the spacing
@@ -79,6 +114,9 @@ type ProductRow = {
   category_slug: string | null;
   colour_name: string | null;
   colour_hex: string | null;
+  // The Neon driver hands back a Date for timestamptz, but the shape is not
+  // guaranteed across the serverless/pooled paths, so both are handled.
+  created_at: string | Date;
 };
 
 function toRental(r: ProductRow, reviews: Review[]): Rental {
@@ -96,6 +134,10 @@ function toRental(r: ProductRow, reviews: Review[]): Rental {
     spin: toSpinConfig(r.spin),
     description: r.description?.en ?? "",
     reviews,
+    createdAt:
+      r.created_at instanceof Date
+        ? r.created_at.toISOString()
+        : String(r.created_at),
   };
 }
 
@@ -104,7 +146,7 @@ function toRental(r: ProductRow, reviews: Review[]): Rental {
 export async function getRentals(categorySlug?: string): Promise<Rental[]> {
   const rows = await sqlPublic<ProductRow>`
     select p.id, p.slug, p.name, p.description, p.occasions, p.spin,
-           p.rental_price, p.prebook_charge,
+           p.rental_price, p.prebook_charge, p.created_at,
            c.slug as category_slug,
            v.colour_name, v.colour_hex
       from products p
@@ -129,7 +171,7 @@ export async function getFeaturedRentals(): Promise<Rental[]> {
 export const getRental = cache(async (slug: string): Promise<Rental | null> => {
   const rows = await sqlPublic<ProductRow>`
     select p.id, p.slug, p.name, p.description, p.occasions, p.spin,
-           p.rental_price, p.prebook_charge,
+           p.rental_price, p.prebook_charge, p.created_at,
            c.slug as category_slug,
            v.colour_name, v.colour_hex
       from products p
