@@ -82,35 +82,16 @@ export default async function RentalsPage({
 
   const catalogue = (
     <>
-      {/* The categorical index. Categories double as the filter nav, so its head
-          is a ruled band and not a heading: reveal, then the tiles on their own
-          beat underneath it. */}
-      <Reveal>
-        <div
-          data-reveal
-          className="mb-10 flex items-end justify-between gap-6 border-b border-porcelain-200 pb-8 md:mb-16"
-        >
-          <div>
-            <p className="eyebrow mb-2">Categorical index</p>
-            <h2 className="text-h2">
-              Browse by <em className="italic">silhouette</em>
-            </h2>
-          </div>
-          <span className="hidden text-caption uppercase italic tracking-widest text-ink-600 opacity-60 sm:block">
-            Filtered by her perspective
-          </span>
-        </div>
-      </Reveal>
-      {/* One tile at a time: `CategoryTiles` carries its own reveal per object,
-          so there is no wrapper Reveal here to fade the whole grid up as one. */}
-      <CategoryTiles base="/rentals" categories={categories} />
-
-      {/* The seam into the full collection is the site's own ornament rather
-          than a plain rule: the same ✦ hairline that closes every other band. */}
-      <div className="mt-20 md:mt-40">
-        <Ornament className="mx-auto max-w-sm opacity-25" />
+      {/* Garments first, the index after (owner, 12 Sep 2026).
+          The categorical index used to open this block with the catalogue
+          underneath it, which put a grid of eight tiles between a reader and the
+          first thing she could actually rent — and with three pieces in the
+          catalogue it made a full shop read as an empty one. The tiles are a
+          filter, and a filter belongs beside what it filters, not in front of
+          it. */}
+      <div>
         <Reveal>
-          <div data-reveal className="mb-12 mt-16 md:mb-20 md:mt-28">
+          <div data-reveal className="mb-12 md:mb-20">
             <p className="eyebrow">{category ? "The collection" : "The full collection"}</p>
             <h2 className="mt-4 text-h2">
               {category ? (
@@ -196,6 +177,37 @@ export default async function RentalsPage({
           </WipeIn>
         )}
       </div>
+
+      {/* The categorical index, now below the garments it filters. The ✦
+          hairline is the seam between them, as it is between every other band
+          on this site. Hidden inside a filtered view: the tiles are how you get
+          OUT of a category, and the CuratedMoment head above already carries
+          that, so repeating all eight here would just restate the filter. */}
+      {!category && (
+        <div className="mt-20 md:mt-40">
+          <Ornament className="mx-auto max-w-sm opacity-25" />
+          <Reveal>
+            <div
+              data-reveal
+              className="mb-10 mt-16 flex items-end justify-between gap-6 border-b border-porcelain-200 pb-8 md:mb-16 md:mt-28"
+            >
+              <div>
+                <p className="eyebrow mb-2">Categorical index</p>
+                <h2 className="text-h2">
+                  Browse by <em className="italic">silhouette</em>
+                </h2>
+              </div>
+              <span className="hidden text-caption uppercase italic tracking-widest text-ink-600 opacity-60 sm:block">
+                Filtered by her perspective
+              </span>
+            </div>
+          </Reveal>
+          {/* One tile at a time: `CategoryTiles` carries its own reveal per
+              object, so there is no wrapper Reveal here to fade the whole grid
+              up as one. */}
+          <CategoryTiles base="/rentals" categories={categories} />
+        </div>
+      )}
     </>
   );
 
