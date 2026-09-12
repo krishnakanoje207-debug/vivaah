@@ -49,6 +49,16 @@
   --font-sans-hi: var(--font-mukta), var(--font-instrument), sans-serif;
   --font-display-hi: var(--font-noto-deva), var(--font-bodoni), serif;
 
+  /* ---- Easing (§4) ----
+     The built-in CSS curves are too weak to read as intentional; these are the
+     strong variants. Entering/exiting takes `out`, on-screen movement takes
+     `in-out`, and `ease-in` is never used on UI: it delays the first frame,
+     which is exactly the moment the eye is on the element, so the same duration
+     reads as slower. Tailwind v4 turns each of these into an `ease-*` utility. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
   /* ---- Fluid type scale (§2; display weight/tracking per V3 §1.3) ----
      Sizes and line-heights are v2's, unchanged. Weight and letter-spacing ride
      the size token (not the tag) so a heading gets the tracking of the size it
@@ -282,6 +292,27 @@
   [data-hero] {
     opacity: 1;
   }
+}
+
+/* Press feedback (§4). Nothing on this site confirmed a tap: every CTA, card and
+   tile was inert between pointerdown and the next paint, which on a phone reads
+   as the tap having missed. `scale(0.97)` is the smallest amount that registers
+   without looking like a bounce, and it is the one transform that costs neither
+   layout nor paint. Kept on a class rather than a blanket `a:active` so the
+   press applies to things that are pressable and not to inline prose links. */
+.press {
+  transition: transform 160ms var(--ease-out-strong);
+}
+.press:active {
+  transform: scale(0.97);
+}
+/* Cards are large; the same 3% on a 400px tile reads as the whole page lurching,
+   so the bigger the target the smaller the travel. */
+.press-card {
+  transition: transform 160ms var(--ease-out-strong);
+}
+.press-card:active {
+  transform: scale(0.99);
 }
 
 /* =============================================================================

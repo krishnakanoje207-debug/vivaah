@@ -5,7 +5,9 @@ import { RippleHeading } from "@/components/site/RippleHeading";
 import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
 import { Parallax } from "@/components/site/Parallax";
+import { RentalRail } from "@/components/site/RentalRail";
 import { SHOP } from "@/lib/site";
+import { getRentals, getRentalCategories } from "@/lib/rentals";
 
 /**
  * The landing page — the front door.
@@ -87,7 +89,18 @@ const HERO_RISER =
 const HERO_JOIN =
   "linear-gradient(to right, rgba(25,17,41,1) 0%, rgba(25,17,41,0.92) 18%, rgba(25,17,41,0.55) 48%, rgba(25,17,41,0.18) 78%, rgba(25,17,41,0) 100%)";
 
-export default function HomePage() {
+// The rail is live stock, and the headline above it promises that it changes
+// day to day, so the page is rendered per request the way /rentals is. Same
+// app_public Neon connection, same proven path through the Worker.
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [all, categories] = await Promise.all([getRentals(), getRentalCategories()]);
+  // Categories with nothing photographed yet stand in on the rail, so all eight
+  // silhouettes are reachable from the front door even while the catalogue is
+  // three pieces deep. See PendingCard for why these are not invented products.
+  const pending = categories.filter((c) => c.count === 0);
+
   return (
     <>
       <Preloader />
@@ -174,6 +187,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ---------- The rail ------------------------------------------------
+          Real stock, immediately under the headline that promises it. See
+          RentalRail's own header for why this is a rail and not a grid. */}
+      <RentalRail items={all.slice(0, 8)} total={all.length} pending={pending} />
 
       {/* ---------- Story: who runs the shop --------------------------------
           On the dark ground, the alternate of the two the site runs on. The

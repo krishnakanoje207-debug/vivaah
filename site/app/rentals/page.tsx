@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { RentalCard } from "@/components/site/RentalCard";
+import { PendingCard } from "@/components/site/PendingCard";
 import { CategoryTiles } from "@/components/site/CategoryTiles";
 import { Ornament } from "@/components/site/Ornament";
 import { CuratedMoment } from "@/components/site/CuratedMoment";
@@ -70,6 +71,9 @@ export default async function RentalsPage({
   const categories = await getRentalCategories();
   const category = slug ? categories.find((c) => c.slug === slug) : undefined;
   const items = await getRentals(category?.slug);
+  // Nothing photographed yet in these; they stand in so the collection shows all
+  // eight silhouettes rather than the three that happen to have pictures.
+  const pendingCategories = categories.filter((c) => c.count === 0);
 
   const rentFrom = items
     .map((p) => p.pricePerDay)
@@ -156,6 +160,25 @@ export default async function RentalsPage({
                 <RentalCard p={p} />
               </div>
             ))}
+
+            {/* The categories still waiting on photography, shown only in the
+                unfiltered collection. A filtered view already has its own, more
+                specific empty state ("Our X are being photographed…"), and
+                repeating the whole set inside one category's page would say
+                nothing about that category. */}
+            {!category &&
+              pendingCategories.map((c, i) => {
+                const n = items.length + i;
+                return (
+                  <div
+                    key={c.slug}
+                    data-wipe
+                    className={n % 3 === 1 ? "lg:mt-32" : n % 3 === 2 ? "lg:mt-16" : ""}
+                  >
+                    <PendingCard category={c} />
+                  </div>
+                );
+              })}
 
             <div
               data-wipe
