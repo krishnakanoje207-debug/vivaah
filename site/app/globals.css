@@ -453,3 +453,31 @@ html:not([data-preloader="skip"]):has(.vv-preloader:not([data-released])) header
 html:not([data-preloader="skip"]):has(.vv-preloader:not([data-released])) header [data-brand-slot] + span {
   opacity: 0;
 }
+
+/* =============================================================================
+   /retail head: the arcade (app/retail/RetailArcade.tsx), 14 Sep 2026
+   ============================================================================= */
+/* The hold on each category. The duration is the component's HOLD_MS; the
+   plate advances on this animation's end, so the two cannot drift apart. */
+@keyframes retail-hold {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.retail-hold {
+  transform-origin: left;
+  animation: retail-hold 3400ms linear both;
+}
+/* The name arrives as its photograph does: a short rise out of the hairline. */
+@keyframes retail-name {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.retail-name {
+  animation: retail-name 600ms var(--ease-out-strong) both;
+}

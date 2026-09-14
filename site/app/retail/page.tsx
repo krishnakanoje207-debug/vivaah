@@ -6,7 +6,7 @@ import { GoldFrame } from "@/components/site/GoldFrame";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
-import { Parallax } from "@/components/site/Parallax";
+import { RetailArcade } from "./RetailArcade";
 import { RETAIL_CATEGORIES } from "@/lib/categories";
 import { SHOP } from "@/lib/site";
 
@@ -30,7 +30,7 @@ import { SHOP } from "@/lib/site";
  * It is quicker: five sections, four of them light.
  *
  *   Section     Ground          Composition                    Device
- *   Head        porcelain-50    type left, arch strip right     ripple + parallax
+ *   Head        porcelain-50    type left, three-plane arcade   ripple + parallax, turnover
  *   Categories  porcelain-100   12-column mosaic, mixed spans   wipe per tile
  *   Reserving   stage           35/65 sideways, steps across    reveal
  *   Rentals     violet-950      one row, sentence to image      reveal
@@ -114,91 +114,61 @@ const STEPS = [
 export default function RetailPage() {
   return (
     <>
-      {/* ---------- Head: the model, stated plainly -------------------------
-          Type left, a strip of three arches right. The arches are staggered on
-          desktop so the right column is a composition and not a filmstrip; on a
-          phone the offsets drop and it is a plain three-up. */}
-      <section className="relative bg-porcelain-50 pt-20 pb-16 md:pt-28 md:pb-20">
-        <div className="shell-wide">
-          {/* An even split, not 55/45: the text measure caps at 48ch and the
-              heading at 16ch, so a wider left column only opens a dead band
-              between the sentence and the arches beside it. */}
-          <div className="grid items-start gap-12 md:grid-cols-2 lg:gap-14">
+      {/* ---------- Head: the model, and the rail turning over -------------
+          Type left, the arcade right (see RetailArcade for why it exists and
+          how it moves). The head takes the first screen from md up, with the
+          fact rail as its floor, so the page opens on a composition rather
+          than on a strip of small pictures with paper around them.
+
+          The standfirst and the caption under the buttons are gone: one
+          repeated the heading, the other repeated the standfirst, and the
+          arcade now names the categories the standfirst listed. */}
+      <section className="relative bg-porcelain-50 pt-14 pb-12 md:flex md:min-h-[calc(100svh_-_4rem)] md:flex-col md:pt-12 md:pb-10">
+        <div className="shell-wide md:flex md:flex-1 md:flex-col">
+          {/* The type and the arcade are one composition, centred as a pair
+              the way the jewellery head is: in two stretched columns the
+              heading hugged the left edge and the arcade the right, with
+              ~600px of paper between them at 1920. */}
+          <div className="grid items-center gap-14 md:flex-1 md:grid-cols-[minmax(0,32rem)_auto] md:justify-between md:gap-10 lg:justify-center lg:gap-[clamp(4rem,9vw,11rem)]">
             <div>
               <p className="eyebrow">Retail</p>
 
               <RippleHeading
                 as="h1"
+                italic="shop"
                 className="mt-6 max-w-[16ch] text-h1 text-ink-900"
               >
                 Reserve online. Collect at the shop.
               </RippleHeading>
 
-              <p className="mt-8 max-w-[48ch] text-ink-600">
-                The half of the shop you keep. Suits, kurtis, co-ord sets and
-                kaftans. Reserve a piece online, come in, try it on and take it
-                home.
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-10 flex flex-wrap gap-3">
                 <a
                   href="#categories"
-                  className="rounded-control bg-violet-800 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:bg-violet-700"
+                  className="press rounded-control bg-violet-800 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:bg-violet-700"
                 >
                   See the categories
                 </a>
                 <Link
                   href="/visit"
-                  className="rounded-control border border-ink-900/20 px-6 py-3 font-medium text-ink-900 transition-colors duration-[180ms] hover:border-ink-900/40"
+                  className="press rounded-control border border-ink-900/20 px-6 py-3 font-medium text-ink-900 transition-colors duration-[180ms] hover:border-ink-900/40"
                 >
                   Plan a visit
                 </Link>
               </div>
-
-              <p className="mt-6 max-w-[52ch] text-caption text-ink-600">
-                The reservation holds the piece. The shop is where you take it
-                home.
-              </p>
             </div>
 
-            <Parallax distance={26}>
-              <div className="grid grid-cols-3 gap-4 lg:gap-5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/categories/short-kurtis.webp"
-                  alt=""
-                  aria-hidden="true"
-                  className="keyline arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-14"
-                />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/categories/co-ord-sets.webp"
-                  alt=""
-                  aria-hidden="true"
-                  className="keyline arch aspect-[3/4] w-full bg-porcelain-200 object-cover"
-                />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/categories/kaftans.webp"
-                  alt=""
-                  aria-hidden="true"
-                  className="keyline arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-24"
-                />
-              </div>
-            </Parallax>
+            <RetailArcade />
           </div>
 
           {/* The rail. It runs the full width of the wide shell on purpose: it
               is the one horizontal line in the head and it ties the two columns
               together underneath. */}
-          <Reveal
-            as="ul"
-            className="mt-16 grid grid-cols-1 border-y border-ink-900/10 sm:grid-cols-2 md:mt-20 md:grid-cols-4"
-          >
+          {/* Not a Reveal: from md up the rail is inside the first screen but
+              below the reveal's 80% line, so it sat invisible until a scroll. */}
+          <ul className="mt-14 grid grid-cols-1 border-y border-ink-900/10 sm:grid-cols-2 md:mt-12 md:grid-cols-4">
             {FACTS.map((f, i) => (
               <li
                 key={f}
-                data-reveal
                 className={`flex items-baseline gap-3 py-4 sm:px-6 md:py-5 ${
                   i === 0 ? "sm:pl-0" : "sm:border-l sm:border-ink-900/10"
                 }`}
@@ -209,7 +179,7 @@ export default function RetailPage() {
                 <span className="text-ink-900">{f}</span>
               </li>
             ))}
-          </Reveal>
+          </ul>
         </div>
       </section>
 
