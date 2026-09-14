@@ -317,7 +317,7 @@ export default async function RentalsPage({
                 <img
                   src="/categories/side-lehengas.webp"
                   alt="A side lehenga in silk, photographed on the wearer"
-                  className="aspect-[4/5] w-full bg-stage object-cover"
+                  className="keyline aspect-[4/5] w-full bg-stage object-cover"
                 />
               </GoldFrame>
               <figcaption className="mt-4 text-caption text-ink-600">

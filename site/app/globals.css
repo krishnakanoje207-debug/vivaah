@@ -332,6 +332,20 @@
   }
 }
 
+/* The house border for a photograph (owner, 14 Sep: every section image gets
+   one). An outline, which follows the arch's border-radius and is not clipped by
+   the element's own overflow-hidden (the plates that zoom on hover carry it on
+   their wrapper). Drawn just OUTSIDE the edge, on the ground: pulled inside, it
+   painted over the photograph and vanished wherever the picture ran dark. Ink on
+   paper, porcelain on the dark grounds. */
+.keyline {
+  outline: 1px solid color-mix(in srgb, var(--color-ink-900) 20%, transparent);
+  outline-offset: 0;
+}
+.on-dark .keyline {
+  outline-color: color-mix(in srgb, var(--color-porcelain-50) 24%, transparent);
+}
+
 /* Press feedback (§4). Nothing on this site confirmed a tap: every CTA, card and
    tile was inert between pointerdown and the next paint, which on a phone reads
    as the tap having missed. `scale(0.97)` is the smallest amount that registers

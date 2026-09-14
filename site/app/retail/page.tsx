@@ -163,21 +163,21 @@ export default function RetailPage() {
                   src="/categories/short-kurtis.webp"
                   alt=""
                   aria-hidden="true"
-                  className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-14"
+                  className="keyline arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-14"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/categories/co-ord-sets.webp"
                   alt=""
                   aria-hidden="true"
-                  className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover"
+                  className="keyline arch aspect-[3/4] w-full bg-porcelain-200 object-cover"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/categories/kaftans.webp"
                   alt=""
                   aria-hidden="true"
-                  className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-24"
+                  className="keyline arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-24"
                 />
               </div>
             </Parallax>
@@ -249,7 +249,7 @@ export default function RetailPage() {
                   className={`group block ${t.span} ${t.end ? "md:self-end" : ""}`}
                 >
                   <div
-                    className={`overflow-hidden bg-porcelain-200 ${
+                    className={`keyline overflow-hidden bg-porcelain-200 ${
                       t.arch ? "arch" : "rounded-card"
                     }`}
                   >
@@ -360,7 +360,7 @@ export default function RetailPage() {
               src="/categories/side-lehengas.webp"
               alt=""
               aria-hidden="true"
-              className="arch h-36 w-28 bg-violet-900 object-cover"
+              className="keyline arch h-36 w-28 bg-violet-900 object-cover"
             />
           </div>
         </Reveal>
@@ -428,7 +428,7 @@ export default function RetailPage() {
               <img
                 src="/categories/party-wear-suits.webp"
                 alt="A party wear suit on the rail in the shop"
-                className="aspect-[4/5] w-full bg-porcelain-200 object-cover"
+                className="keyline aspect-[4/5] w-full bg-porcelain-200 object-cover"
               />
             </GoldFrame>
           </div>

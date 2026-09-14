@@ -258,7 +258,7 @@ export default async function HomePage() {
               <img
                 src="/categories/side-lehengas.webp"
                 alt="A piece being fitted in the shop"
-                className="aspect-[4/5] w-full object-cover shadow-card"
+                className="keyline aspect-[4/5] w-full object-cover shadow-card"
               />
             </Parallax>
 
@@ -357,7 +357,7 @@ export default async function HomePage() {
               <h3 className="mt-4 max-w-[12ch] text-h3 text-porcelain-50">
                 Bridal and festive wear
               </h3>
-              <div className="arch mt-6 max-w-[300px] overflow-hidden">
+              <div className="keyline arch mt-6 max-w-[300px] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={DOORS[0].image}
@@ -387,7 +387,7 @@ export default async function HomePage() {
               <h3 className="mt-4 max-w-[14ch] text-h3 text-ink-900">
                 Suits, kurtis, co-ord sets, kaftans
               </h3>
-              <div className="mt-6 max-w-[300px] overflow-hidden">
+              <div className="keyline mt-6 max-w-[300px] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={DOORS[1].image}
@@ -416,7 +416,7 @@ export default async function HomePage() {
                  stops at 340, and the caption below — which is positioned
                  against the ANCHOR, not the image — juts 93px past the picture
                  into bare page. */
-              className="group relative block max-w-[340px] overflow-hidden shadow-card transition-shadow duration-[180ms] hover:shadow-lift sm:mt-20"
+              className="keyline group relative block max-w-[340px] overflow-hidden shadow-card transition-shadow duration-[180ms] hover:shadow-lift sm:mt-20"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

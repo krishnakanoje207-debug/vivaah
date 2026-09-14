@@ -31,7 +31,7 @@ export function PendingCard({ category }: { category: Category }) {
       className="press-card group block"
       aria-label={`${category.name} — being photographed. See this category.`}
     >
-      <div className="arch relative aspect-[4/5] overflow-hidden bg-stage shadow-card transition-shadow duration-[180ms] ease-out-strong group-hover:shadow-lift">
+      <div className="keyline arch relative aspect-[4/5] overflow-hidden bg-stage shadow-card transition-shadow duration-[180ms] ease-out-strong group-hover:shadow-lift">
         {category.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

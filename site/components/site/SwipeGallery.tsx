@@ -28,7 +28,7 @@ export function SwipeGallery({ images, alt }: { images: string[]; alt: string })
           <div
             key={src}
             data-card
-            className="relative aspect-[4/5] w-[78%] flex-none snap-center overflow-hidden rounded-card bg-stage sm:w-[46%]"
+            className="keyline relative aspect-[4/5] w-[78%] flex-none snap-center overflow-hidden rounded-card bg-stage sm:w-[46%]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

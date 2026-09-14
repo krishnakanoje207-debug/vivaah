@@ -159,7 +159,7 @@ export function JewelleryContent() {
                 <img
                   src="/categories/bridal-lehengas.webp"
                   alt="A bride in a red lehenga wearing the matched necklace and maang tikka"
-                  className="aspect-[4/5] w-full object-cover"
+                  className="keyline aspect-[4/5] w-full object-cover"
                 />
               </GoldFrame>
             </Parallax>
@@ -201,7 +201,7 @@ export function JewelleryContent() {
                 key={p.name}
                 href="/rentals"
                 data-wipe
-                className={`group relative overflow-hidden bg-violet-950 ${p.ratio} lg:aspect-auto ${p.span} ${
+                className={`keyline group relative overflow-hidden bg-violet-950 ${p.ratio} lg:aspect-auto ${p.span} ${
                   p.arch ? "arch" : "rounded-card"
                 }`}
               >
@@ -237,7 +237,7 @@ export function JewelleryContent() {
             <Link
               href="/rentals"
               data-wipe
-              className="group relative aspect-[16/10] overflow-hidden rounded-card bg-violet-950 lg:col-span-1 lg:aspect-auto"
+              className="keyline group relative aspect-[16/10] overflow-hidden rounded-card bg-violet-950 lg:col-span-1 lg:aspect-auto"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -305,12 +305,12 @@ export function JewelleryContent() {
               <img
                 src="/categories/rajasthani-poshak.webp"
                 alt="A woman in a Rajasthani poshak wearing the full set that goes with it"
-                className="aspect-[3/4] max-h-[26rem] w-full object-cover"
+                className="keyline aspect-[3/4] max-h-[26rem] w-full object-cover"
               />
             </Parallax>
 
             <div className="absolute bottom-0 left-0 w-[44%] max-w-[19rem] md:w-[38%]">
-              <div className="arch aspect-square overflow-hidden shadow-lift">
+              <div className="keyline arch aspect-square overflow-hidden shadow-lift">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/categories/chaniya-cholis.webp"

@@ -20,7 +20,7 @@ export function RentalCard({ p }: { p: Rental }) {
        `data-piece` marks the box the flight launches from. */
     <div data-piece className="relative">
       <Link href={`/rentals/${p.slug}`} className="press-card group block">
-        <div className="arch relative aspect-[4/5] overflow-hidden bg-stage shadow-card transition-shadow duration-[180ms] ease-out-strong group-hover:shadow-lift">
+        <div className="keyline arch relative aspect-[4/5] overflow-hidden bg-stage shadow-card transition-shadow duration-[180ms] ease-out-strong group-hover:shadow-lift">
           {p.spin ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

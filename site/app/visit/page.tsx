@@ -312,7 +312,7 @@ export default function VisitPage() {
               <img
                 src="/categories/sarees.webp"
                 alt="A saree being tried on in the shop"
-                className="arch aspect-[4/5] max-h-[23rem] w-full object-cover shadow-card"
+                className="keyline arch aspect-[4/5] max-h-[23rem] w-full object-cover shadow-card"
               />
             </Parallax>
           </div>

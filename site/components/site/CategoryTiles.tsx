@@ -33,7 +33,7 @@ export function CategoryTiles({
         return (
           <li key={c.slug} data-reveal className={staggerClass}>
             <Link href={`${base}?category=${c.slug}`} className="press-card group block">
-              <div className="arch relative flex aspect-[3/4] items-end overflow-hidden bg-stage shadow-card transition-[box-shadow,transform] duration-200 ease-out-strong group-hover:shadow-lift group-hover:-translate-y-1.5">
+              <div className="keyline arch relative flex aspect-[3/4] items-end overflow-hidden bg-stage shadow-card transition-[box-shadow,transform] duration-200 ease-out-strong group-hover:shadow-lift group-hover:-translate-y-1.5">
                 {c.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img

@@ -89,13 +89,13 @@ export function PatternSeam({
         <img
           src={photo}
           alt={alt}
-          className="aspect-[3/4] w-full bg-porcelain-50 object-cover"
+          className="keyline aspect-[3/4] w-full bg-porcelain-50 object-cover"
         />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={draft}
           alt={`${alt}, drawn as a pattern draft`}
-          className="aspect-[3/4] w-full bg-porcelain-50 object-cover"
+          className="keyline aspect-[3/4] w-full bg-porcelain-50 object-cover"
         />
       </div>
     );
@@ -108,7 +108,7 @@ export function PatternSeam({
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
-      className={`relative aspect-[3/4] w-full cursor-ew-resize touch-pan-y select-none overflow-hidden bg-porcelain-50 ${className}`}
+      className={`keyline relative aspect-[3/4] w-full cursor-ew-resize touch-pan-y select-none overflow-hidden bg-porcelain-50 ${className}`}
       style={{ ["--seam-x" as string]: `${seam}%` }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
