@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/Button";
+
+export const metadata: Metadata = { title: "Page not found" };
 
 /**
  * 404 — "Typographic poster" grammar (DESIGN_SPEC_V3 §2.7, §4.2).

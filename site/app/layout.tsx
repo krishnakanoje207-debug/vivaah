@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   // below would emit a relative path, which every scraper ignores.
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SHOP.name} — Rent & Buy Bridal & Festive Wear`,
+    default: `${SHOP.name} · Rent & Buy Bridal & Festive Wear`,
     template: `%s · ${SHOP.name}`,
   },
   description: DESCRIPTION,
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     siteName: SHOP.name,
     locale: "en_IN",
     url: SITE_URL,
-    title: `${SHOP.name} — Rent & Buy Bridal & Festive Wear`,
+    title: `${SHOP.name} · Rent & Buy Bridal & Festive Wear`,
     description: DESCRIPTION,
     images: [
       {
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SHOP.name} — Rent & Buy Bridal & Festive Wear`,
+    title: `${SHOP.name} · Rent & Buy Bridal & Festive Wear`,
     description: DESCRIPTION,
     images: ["/og/og-default.jpg"],
   },
