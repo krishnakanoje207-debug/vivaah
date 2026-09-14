@@ -95,7 +95,7 @@ export function flyGarment(from: HTMLElement, image: string | null) {
           ? `<img src="${image}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
           : `<div style="position:absolute;inset:0;background:#2a1f42;"></div>`
       }
-      <div class="gf-cover" style="position:absolute;inset:0;transform:translateY(-101%);background:#faf8f5;border:1px solid rgba(198,160,74,0.55);display:flex;align-items:flex-start;justify-content:center;padding-top:9px;">
+      <div class="gf-cover" style="position:absolute;inset:0;transform:translateY(-101%);background:rgba(250,248,245,0.74);backdrop-filter:blur(2.5px);-webkit-backdrop-filter:blur(2.5px);border:1px solid rgba(198,160,74,0.55);display:flex;align-items:flex-start;justify-content:center;padding-top:9px;">
         <svg width="26" height="20" viewBox="0 0 26 20" fill="none" aria-hidden="true">
           <path d="M13 6.5c0-2 1.4-3 2.8-3 1.5 0 2.7 1.1 2.7 2.6" stroke="#c6a04a" stroke-width="1.4" stroke-linecap="round"/>
           <path d="M13 6.5 3 13.4c-.8.6-.4 1.9.6 1.9h18.8c1 0 1.4-1.3.6-1.9L13 6.5Z" stroke="#c6a04a" stroke-width="1.4" stroke-linejoin="round"/>

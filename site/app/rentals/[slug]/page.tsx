@@ -6,6 +6,7 @@ import { SwipeGallery } from "@/components/site/SwipeGallery";
 import { ReviewStars } from "@/components/site/ReviewStars";
 import { Button } from "@/components/ui/Button";
 import { RequestButton } from "@/components/site/RequestButton";
+import { SelectionButton } from "@/components/site/SelectionButton";
 import { Ornament } from "@/components/site/Ornament";
 import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
@@ -117,6 +118,9 @@ export default async function RentalProductPage({
           `-mt-16` slides the stage under that transparent nav. */}
       <section
         data-dark-hero=""
+        /* The flight launches from here: the stage is the garment, and there is
+           no <img> to aim at because the turntable draws into a canvas. */
+        data-piece
         aria-label={`${p.name} on the stage`}
         className="on-dark relative -mt-16 flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-violet-950"
       >
@@ -445,6 +449,22 @@ export default async function RentalProductPage({
                             figure above it is real and stays; what it buys is
                             Phase 2's job to promise. */}
                         <RequestButton piece={p.name} night={p.occasion} />
+
+                        {/* Gathering is the quieter of the two: asking about
+                            this one piece now is the primary act, and setting
+                            it aside to ask about several later is the
+                            alternative, so it takes the outline. */}
+                        <SelectionButton
+                          className="mt-4 w-full justify-center"
+                          item={{
+                            slug: p.slug,
+                            name: p.name,
+                            kind: "rental",
+                            href: `/rentals/${p.slug}`,
+                            image: still,
+                            price: p.pricePerDay,
+                          }}
+                        />
                         <p className="mt-6 text-caption italic leading-relaxed text-ink-600">
                           Dates are confirmed by message, and the advance is
                           taken once a piece is held.
