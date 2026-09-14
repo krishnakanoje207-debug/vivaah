@@ -86,8 +86,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
+    // Preloader's inline script sets data-preloader on <html> before hydration,
+    // on purpose, so React must not treat that attribute as a mismatch.
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${bodoni.variable} ${instrument.variable} ${notoDeva.variable} ${mukta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-porcelain-50 text-ink-900">
