@@ -5,6 +5,7 @@ import { SpinViewer } from "@/components/site/SpinViewer";
 import { SwipeGallery } from "@/components/site/SwipeGallery";
 import { ReviewStars } from "@/components/site/ReviewStars";
 import { Button } from "@/components/ui/Button";
+import { RequestButton } from "@/components/site/RequestButton";
 import { Ornament } from "@/components/site/Ornament";
 import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
@@ -195,19 +196,68 @@ export default async function RentalProductPage({
           </div>
         </div>
 
-        {/* Chrome, bottom: the cue out of the stage. */}
-        <div className="absolute inset-x-0 bottom-10 flex flex-col items-center gap-3">
-          <span className="eyebrow">Scroll to explore</span>
-          <div className="animate-bounce text-gold-500" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M7 13L12 18L17 13"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+        {/* Chrome, bottom: the plinth.
+            ------------------------------------------------------------------
+            This band used to hold "Scroll to explore" and a bouncing chevron,
+            which is to say the first viewport of a product page carried no
+            name, no price and nothing to press — a breadcrumb over a turntable,
+            and every fact about the piece a scroll away. A shopper who arrived
+            ready could not act, which is the whole complaint in
+            specs/ACTION_ROADMAP.md.
+
+            The stage keeps its full height: it is the best thing on the page
+            and shrinking it to make room would trade the argument for the
+            label. The plinth sits in the band the garment never reaches, in the
+            same register as the breadcrumb opposite it — the caption to an
+            object, which is the voice this site already speaks in on the proof
+            figures and the jewellery line.
+
+            The chevron stays, demoted to the right: the plinth itself says
+            there is more below, so the arrow no longer has to bounce to say it. */}
+        <div className="absolute inset-x-0 bottom-0 pb-8 pt-16">
+          <div className="shell">
+            <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+              <div className="min-w-0">
+                <p className="eyebrow">{p.occasion}</p>
+                <p className="mt-2 font-display text-h2 font-medium leading-[1.1] text-porcelain-50">
+                  {p.name}
+                </p>
+                {p.pricePerDay !== null && (
+                  <p className="mt-3 text-body text-porcelain-50">
+                    <span className="tabular font-medium">
+                      ₹{formatINR(p.pricePerDay)}
+                    </span>
+                    <span className="text-porcelain-50/70"> / day</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-end gap-6">
+                {/* The notice is suppressed here and carried by the booking
+                    aside in Act 2 instead: on the stage it would be four lines
+                    of small print over a photograph. */}
+                <RequestButton
+                  piece={p.name}
+                  night={p.occasion}
+                  tone="dark"
+                  notice={false}
+                />
+                <span
+                  aria-hidden="true"
+                  className="hidden pb-3 text-gold-500 sm:block"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M7 13L12 18L17 13"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -387,13 +437,17 @@ export default async function RentalProductPage({
                             ₹{formatINR(p.prebook || 0)}
                           </span>
                         </div>
-                        <Button href="/visit" variant="primary">
-                          Reserve this silhouette
-                        </Button>
-                        <p className="mt-6 text-center text-caption italic leading-relaxed text-ink-600">
-                          Secure your dates with a small advance.
-                          <br />
-                          Live availability arriving soon.
+                        {/* Was a hardcoded /visit link reading "Reserve this
+                            silhouette", under "Secure your dates with a small
+                            advance." No dates were secured, no advance taken,
+                            and it went to a directions page — it spent the
+                            visitor's intent and returned nothing. The advance
+                            figure above it is real and stays; what it buys is
+                            Phase 2's job to promise. */}
+                        <RequestButton piece={p.name} night={p.occasion} />
+                        <p className="mt-6 text-caption italic leading-relaxed text-ink-600">
+                          Dates are confirmed by message, and the advance is
+                          taken once a piece is held.
                         </p>
                       </div>
                     </div>
