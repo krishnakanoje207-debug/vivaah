@@ -6,22 +6,22 @@ routes fetched over HTTP, metadata read out of the rendered DOM at 390 and 1440,
 alt attributes counted in the live document. The evidence commands are at the
 foot of this file so any claim here can be re-run.
 
-Status at audit: **4 done, 5 partial, 10 not started, 1 blocked on the owner.**
+Status at audit (14 Sep, revised): **11 done, 4 partial, 4 not started, 1 blocked on the owner.**
 
 | # | Item | Status | Where it stands |
 |---|---|---|---|
 | 1 | Custom 404 page | **Done** | `app/not-found.tsx`, in the site-audit's seven routes. Wants its own `<title>` (see P1.1). |
 | 2 | CTA above the fold | **Done** | Two on the hero — "See what is in for rent", "Plan a visit" — at every width. |
-| 3 | Meta title per page | **Partial** | Every route has one, two are malformed. See P1.1. |
-| 4 | Meta description per page | **Partial** | Only `/`, `/rentals`, `/retail` write their own; four routes inherit the root string. See P1.2. |
-| 5 | Open Graph image | **Not started** | No `og:` tag on any route, no `opengraph-image`. See P1.3. |
+| 3 | Meta title per page | **Done** | 14 Sep: the two double-suffixed titles fixed; 404 titled. |
+| 4 | Meta description per page | **Done** | 14 Sep: jewellery, visit, policies and every product now describe themselves; the product's is built from its own row. |
+| 5 | Open Graph image | **Done** | 14 Sep: `metadataBase` + og/twitter tags sitewide, 1200x630 JPEG card; products use their own front frame. |
 | 6 | Favicon set | **Partial** | `favicon.ico` only; no `icon.png`, `apple-icon`, or manifest. Blocked with the logo. See P3.1. |
-| 7 | robots.txt | **Not started** | 404. See P1.4. |
-| 8 | sitemap.xml | **Not started** | 404. See P1.4. |
+| 7 | robots.txt | **Done** | 14 Sep: `app/robots.ts`, disallows `/admin`, points at the sitemap. |
+| 8 | sitemap.xml | **Done** | 14 Sep: `app/sitemap.ts`, six static routes plus every slug from `getRentals()`. |
 | 9 | Alt text on every image | **Partial** | No image anywhere is missing the attribute. 16 carry `alt=""` without `aria-hidden="true"`. See P1.5. |
 | 10 | Mobile breakpoints | **Done** | site-audit gates 1920/1440/390; hero-scrim adds Pixel 7. 10 Sep pass made the phone a first-class width. |
-| 11 | Sticky mobile CTA | **Not started** | The nav is sticky, but below `md` "Book a trial" is inside the hamburger. See P2.1. |
-| 12 | Loading states | **Not started** | Zero `loading.tsx`, `error.tsx` and zero `Suspense` boundaries in the whole app. See P2.2. |
+| 11 | Sticky mobile CTA | **Done** | 14 Sep: `ActionBar` — call + WhatsApp, appears after the hero, stands down at the footer and for the consent panel. |
+| 12 | Loading states | **Partial** | 14 Sep: `app/loading.tsx` and `app/error.tsx` added, so the document streams. Suspense boundaries still absent — see P2.2. |
 | 13 | Form error states | **Partial** | All 12 forms that exist (admin) render errors and pending states; none marks the invalid field. See P2.5. |
 | 14 | Thank-you page | **Not started** | Phase 2, the confirmation step of the booking state machine. |
 | 15 | Privacy policy page | **Not started** | `/policies` is rental terms, not privacy. The cookie banner sets a consent cookie with nothing explaining it. See P2.3. |
@@ -29,7 +29,7 @@ Status at audit: **4 done, 5 partial, 10 not started, 1 blocked on the owner.**
 | 17 | Cookie banner | **Not started** | The component is built and complete — and is mounted on no surface, so no visitor has ever seen it. See P2.3. |
 | 18 | Analytics installed | **Not started** | The consent gate is built and empty. See P2.4. |
 | 19 | Real contact address | **Blocked on owner** | `TODO(owner)`; `/` renders "Shop address, City" and "+91 00000 00000". See P3.2. |
-| 20 | Compressed images | **Not started** | The front door's hero is a 2.1 MB PNG that weighs 100 KB as WebP. See P1.6. |
+| 20 | Compressed images | **Done** | 14 Sep: hero 2137 KB -> 124 KB, 18 category JPEGs -> WebP, `fetchPriority` on the LCP image. |
 
 ---
 
