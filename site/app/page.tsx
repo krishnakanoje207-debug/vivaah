@@ -460,7 +460,7 @@ export default async function HomePage() {
         />
 
         <div className="shell-wide relative">
-          <div className="sm:w-fit">
+          <div className="sm:mx-auto sm:w-fit">
           <RippleHeading
             italic="back"
             className="max-w-[16ch] text-h2 text-ink-900"

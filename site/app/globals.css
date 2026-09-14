@@ -337,13 +337,14 @@
    the element's own overflow-hidden (the plates that zoom on hover carry it on
    their wrapper). Drawn just OUTSIDE the edge, on the ground: pulled inside, it
    painted over the photograph and vanished wherever the picture ran dark. Ink on
-   paper, porcelain on the dark grounds. */
+   paper, porcelain on the dark grounds. Strength raised from 20%/24% the same
+   day: at that weight the owner could not see it at all. */
 .keyline {
-  outline: 1px solid color-mix(in srgb, var(--color-ink-900) 20%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--color-ink-900) 45%, transparent);
   outline-offset: 0;
 }
 .on-dark .keyline {
-  outline-color: color-mix(in srgb, var(--color-porcelain-50) 24%, transparent);
+  outline-color: color-mix(in srgb, var(--color-porcelain-50) 42%, transparent);
 }
 
 /* Press feedback (§4). Nothing on this site confirmed a tap: every CTA, card and
@@ -392,7 +393,7 @@
    that one had got to instead of drawing from nothing again.
    ============================================================================= */
 .vv-stitch > span {
-  opacity: 0.6;
+  opacity: 0.85;
 }
 @media (prefers-reduced-motion: no-preference) {
   /* §3.4's preloader draw: 700ms, power1.inOut. */

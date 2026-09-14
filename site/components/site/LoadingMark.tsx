@@ -51,11 +51,11 @@ export function LoadingMark() {
       <span className="vv-mark-lockup mt-1 block self-start text-[0.5rem] font-medium uppercase tracking-[0.22em] text-violet-300">
         {SHOP.lockup}
       </span>
-      <span className="vv-stitch mt-6 flex gap-[5px]">
+      <span className="vv-stitch mt-6 flex gap-[6px]">
         {Array.from({ length: STITCHES }, (_, i) => (
           <span
             key={i}
-            className="block h-px flex-1 origin-left bg-gold-500"
+            className="block h-[3px] flex-1 origin-left rounded-full bg-gold-500"
             style={{ "--i": i } as CSSProperties}
           />
         ))}
