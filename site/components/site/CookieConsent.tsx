@@ -90,6 +90,38 @@ export function AnalyticsGate({ children }: { children: ReactNode }) {
   return useConsent()?.analytics ? <>{children}</> : null;
 }
 
+// Whether the panel is on screen right now. Anything that also wants the
+// bottom of the viewport has to know, and "has the visitor consented yet" is
+// NOT the same question: this component is not mounted on every surface, and
+// where it is absent nobody ever answers, so consent stays null forever. Asking
+// that instead would hide the other thing permanently — which is exactly what
+// it did to ActionBar on 14 Sep. Defaults to false, so a surface without the
+// banner is unaffected.
+let panelOpen = false;
+const panelListeners = new Set<() => void>();
+
+function subscribePanel(fn: () => void) {
+  panelListeners.add(fn);
+  return () => {
+    panelListeners.delete(fn);
+  };
+}
+
+function setPanelOpen(v: boolean) {
+  if (panelOpen === v) return;
+  panelOpen = v;
+  panelListeners.forEach((fn) => fn());
+}
+
+/** True only while the consent panel is actually displayed. */
+export function useCookiePanelOpen(): boolean {
+  return useSyncExternalStore(
+    subscribePanel,
+    () => panelOpen,
+    () => false
+  );
+}
+
 /** Reopens the panel so a visitor can change or withdraw a stored choice. */
 export function openCookieConsent() {
   openers.forEach((fn) => fn());
@@ -134,6 +166,12 @@ export default function CookieConsent() {
   }, []);
 
   const open = hydrated && !closed && (forced || consent === null);
+
+  // Publish it, so whatever else wants this corner of the screen can stand down.
+  useEffect(() => {
+    setPanelOpen(open);
+    return () => setPanelOpen(false);
+  }, [open]);
 
   // Entrance: opacity and transform only, and skipped outright under reduced
   // motion. The panel's resting DOM state is the final state either way, so
