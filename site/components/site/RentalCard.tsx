@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SelectionButton } from "@/components/site/SelectionButton";
 import { formatINR, productBadges, type Rental } from "@/lib/rentals";
 import { nightBadge } from "@/lib/navratri";
+import { RENTAL_CATEGORIES } from "@/lib/categories";
 
 // Shared rental card (homepage featured + /rentals gallery). Arch-topped image
 // (§3b jharokha motif) on the stage colour; shows the real turntable front frame
@@ -13,6 +14,10 @@ export function RentalCard({ p }: { p: Rental }) {
   // of, not what matches the day (owner, 12 Sep 2026). Null outside the nine
   // nights, and null for any piece whose colour does not actually match.
   const night = nightBadge(p);
+  // A piece with no photographs yet borrows its category's picture as a
+  // thumbnail (owner, 14 Sep 2026: every card needs one). It is labelled
+  // "Sample photo" on the card, because the picture is not this garment.
+  const sample = p.spin ? null : RENTAL_CATEGORIES.find((c) => c.slug === p.category)?.image ?? null;
   return (
     /* The card is a link, so the gather control cannot live inside it: a button
        nested in an anchor is invalid, and the click would navigate instead of
@@ -28,14 +33,25 @@ export function RentalCard({ p }: { p: Rental }) {
               alt={p.name}
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-400 ease-out-strong group-hover:scale-[1.03]"
             />
+          ) : sample ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={sample}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-400 ease-out-strong group-hover:scale-[1.03]"
+              />
+              {/* Bottom-left, clear of the badges at top-left and the gather
+                  control at top-right. The honesty of the card rests on this
+                  label: the name and price are real, the picture is not. */}
+              <span className="absolute bottom-4 left-3 rounded-full bg-porcelain-50/90 px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide text-ink-900">
+                Sample photo
+              </span>
+            </>
           ) : (
-            /* A real garment whose photographs have not been taken yet. It used to
-               render as a bare porcelain gradient, which on a rail beside shot
-               pieces read as a broken image rather than as a pending one — two of
-               the three live products are in this state (10 Sep 2026).
-               No stand-in photograph is used: the piece is real and its name and
-               price are real, so borrowing another garment's picture would be the
-               one lie on the card. The ornament and the label say what is true. */
+            /* No photographs and no category picture to stand in: the ornament
+               and the label say what is true. */
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-porcelain-100">
               <span aria-hidden="true" className="text-2xl text-gold-600/50">
                 &#10022;
