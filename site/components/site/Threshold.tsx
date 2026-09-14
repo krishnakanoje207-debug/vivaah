@@ -21,6 +21,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  */
 
 const LERP = 0.12; // §3.1, fixed
+// The film's own rate (both encodes are 24fps, 240 frames). Seeks are snapped
+// to a frame so a playhead that moves by less than one never asks for a decode.
+const FPS = 24;
 
 export function Threshold({ line }: { line: ReactNode }) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -59,12 +62,23 @@ export function Threshold({ line }: { line: ReactNode }) {
     let onScreen = true; // until the observer says otherwise
     let ready = video.readyState >= 1; // metadata may already be in
 
+    let asked = -1; // the frame the element was last told to show
+
+    // One seek in flight at a time. Setting currentTime while a seek is still
+    // decoding abandons it and starts over, so a fast scroll used to issue 118
+    // seeks and finish 28, with the picture frozen for up to 600ms in between
+    // (threshold-smooth.mjs, 14 Sep). Now a seek that arrives mid-decode is
+    // dropped, and `seeked` catches up to wherever the playhead has got to.
     const seek = () => {
-      if (ready && video.duration) {
-        // Stop just shy of the end: seeking to exactly duration fires `ended`
-        // on some browsers and parks the element on a blank frame.
-        video.currentTime = current * (video.duration - 0.05);
-      }
+      if (!ready || !video.duration || video.seeking) return;
+      const last = Math.floor(video.duration * FPS) - 1;
+      const frame = Math.round(current * last);
+      if (frame === asked) return;
+      asked = frame;
+      // The middle of the frame, not its edge, so rounding cannot land on the
+      // neighbour; and never exactly duration, which fires `ended` on some
+      // browsers and parks the element on a blank frame.
+      video.currentTime = Math.min((frame + 0.5) / FPS, video.duration - 0.05);
     };
 
     const onMeta = () => {
@@ -128,6 +142,7 @@ export function Threshold({ line }: { line: ReactNode }) {
     io.observe(section);
 
     video.addEventListener("loadedmetadata", onMeta);
+    video.addEventListener("seeked", seek);
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
@@ -138,6 +153,7 @@ export function Threshold({ line }: { line: ReactNode }) {
       stop();
       io.disconnect();
       video.removeEventListener("loadedmetadata", onMeta);
+      video.removeEventListener("seeked", seek);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
