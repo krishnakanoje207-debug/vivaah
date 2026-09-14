@@ -6,7 +6,7 @@ routes fetched over HTTP, metadata read out of the rendered DOM at 390 and 1440,
 alt attributes counted in the live document. The evidence commands are at the
 foot of this file so any claim here can be re-run.
 
-Status at audit: **5 done, 5 partial, 9 not started, 1 blocked on the owner.**
+Status at audit: **4 done, 5 partial, 10 not started, 1 blocked on the owner.**
 
 | # | Item | Status | Where it stands |
 |---|---|---|---|
@@ -26,7 +26,7 @@ Status at audit: **5 done, 5 partial, 9 not started, 1 blocked on the owner.**
 | 14 | Thank-you page | **Not started** | Phase 2, the confirmation step of the booking state machine. |
 | 15 | Privacy policy page | **Not started** | `/policies` is rental terms, not privacy. The cookie banner sets a consent cookie with nothing explaining it. See P2.3. |
 | 16 | Terms page | **Done** | `/policies` — booking and pre-payment, extensions, damage and care, pickup and return. |
-| 17 | Cookie banner | **Done** | `components/site/CookieConsent.tsx`, analytics toggle plus an `AnalyticsGate` that mounts nothing without consent. |
+| 17 | Cookie banner | **Not started** | The component is built and complete — and is mounted on no surface, so no visitor has ever seen it. See P2.3. |
 | 18 | Analytics installed | **Not started** | The consent gate is built and empty. See P2.4. |
 | 19 | Real contact address | **Blocked on owner** | `TODO(owner)`; `/` renders "Shop address, City" and "+91 00000 00000". See P3.2. |
 | 20 | Compressed images | **Not started** | The front door's hero is a 2.1 MB PNG that weighs 100 KB as WebP. See P1.6. |
@@ -131,7 +131,24 @@ being shown nothing at all, not a page assembling. Four pieces of work:
   tracks `ready`; it should show the first still under the canvas rather than an
   empty violet field, so the garment is visible while the frame set decodes.
 
-**P2.3 — Privacy policy.** Required by the cookie banner that is already
+**P2.3 — Privacy policy, and actually mounting the banner.** Corrected 14 Sep:
+this was recorded as done because `components/site/CookieConsent.tsx` exists and
+is complete — a real panel, a stored choice, an `AnalyticsGate`, focus handling.
+Grepping for who renders it returns nothing. It is mounted on no surface, so no
+visitor has ever seen it, `useConsent()` is null forever, and the component is
+dead code that reads as a shipped feature. The lesson is the same one the rest of
+this file was rewritten for: a file existing is not a feature existing.
+
+It should be mounted in `SiteChrome` beside `ActionBar`, which already yields to
+it through `useCookiePanelOpen()`. Do that in the same pass as the privacy
+section, not before — a banner that consents to analytics nobody has installed,
+pointing at a policy that does not exist, is worse than no banner.
+
+The privacy section belongs on `/policies` rather than at a new route, since that
+page is already the legal surface: what the consent cookie stores, what analytics
+would collect once P2.4 lands, what a booking stores, and how to ask for deletion.
+
+**P2.3b — Privacy policy (original note).** Required by the cookie banner that is already
 shipping. Should be a section on `/policies` rather than a new route, since the
 existing page is already the legal surface: what the consent cookie stores, what
 analytics would collect once P2.4 lands, what a booking stores, and how to ask
