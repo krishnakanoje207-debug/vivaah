@@ -19,15 +19,18 @@ import { REQUEST_NOTICE, enquiryHref } from "@/lib/enquiry";
  *
  * It retires itself: `navratriState` returns "over" from 21 Oct 2026 and this
  * renders null. No banner to remember to take down in November.
+ *
+ * `ground={false}` drops the band's own violet so a parent can paint beneath
+ * it: the home hero lets its photograph run down behind the band.
  */
-export function NavratriBand() {
+export function NavratriBand({ ground = true }: { ground?: boolean }) {
   const state = navratriState();
   if (state.phase === "over") return null;
 
   const isDuring = state.phase === "during";
 
   return (
-    <section className="on-dark relative bg-violet-950 py-7">
+    <section className={`on-dark relative py-7 ${ground ? "bg-violet-950" : ""}`}>
       <div className="shell-wide">
         <Reveal className="flex flex-wrap items-center justify-between gap-x-10 gap-y-5">
           <div data-reveal className="min-w-0">

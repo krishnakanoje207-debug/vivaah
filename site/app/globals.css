@@ -295,6 +295,17 @@
   letter-spacing: -0.02em;
   opacity: 0.92;
 }
+/* From sm the frame spans the hero row AND the Navratri row. Its foot fades to
+   nothing over the band, so the photograph dissolves into the ground rather
+   than ending on a line. Phones keep the frame to the hero row. Only while the
+   band is there: after the festival it renders nothing, and the fade would eat
+   the foot of the photograph instead. */
+@media (min-width: 640px) {
+  .hero-frame:has(~ .hero-band:not(:empty)) {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 15rem), transparent calc(100% - 2rem));
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 15rem), transparent calc(100% - 2rem));
+  }
+}
 /* Phones do not get it. Below sm the copy is centred OVER the photograph, so
    where her head lands relative to the heading moves with the viewport height:
    measured clear at 390x844 and 412x915, it ran straight through the eyebrow

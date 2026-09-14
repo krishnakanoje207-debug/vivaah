@@ -121,7 +121,10 @@ for (const vp of VIEWPORTS) {
     for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) cells.push({ id: `${r.id}|${i},${j}`, x: r.x - pad + i * cw, y: r.y - pad + j * ch, width: cw, height: ch });
   }
 
-  const hide = (v) => page.evaluate(({ sel, v }) => { document.querySelector(sel).querySelector(".hero-copy").style.visibility = v; }, { sel: HERO, v });
+  /* The name behind the bride (.hero-name, from sm up) goes with the copy: it is
+     neither photograph nor scrim, and once her cut-out is hidden for the bare
+     shot its white letters show through her face and read as lost light. */
+  const hide = (v) => page.evaluate(({ sel, v }) => { const s = document.querySelector(sel); s.querySelector(".hero-copy").style.visibility = v; const n = s.querySelector(".hero-name"); if (n) n.style.visibility = v; }, { sel: HERO, v });
   const scrims = (display) => page.evaluate(({ sel, display }) => {
     document.querySelector(sel).querySelectorAll('.hero-frame > div[aria-hidden="true"]').forEach((el) => { el.style.display = display; });
   }, { sel: HERO, display });

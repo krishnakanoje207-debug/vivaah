@@ -157,10 +157,13 @@ export default async function HomePage() {
       <section className="on-dark relative isolate bg-violet-950">
         {/* The sticky nav is in normal flow, so a full 100svh hero puts its own
             last 64px below the fold on a phone. The nav's height comes off. */}
-        <div className="relative grid min-h-[calc(100svh_-_4rem)] sm:min-h-[clamp(520px,62vh,760px)] sm:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
-          {/* The photograph. Absolute below md so the type lies over it; a real
-              grid column from md up so it owns the right of the frame. */}
-          <div className="hero-frame absolute inset-0 overflow-hidden [container-type:size] sm:relative sm:col-start-2 sm:row-start-1">
+        <div className="relative grid sm:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
+          {/* The photograph. Below sm it shares the panel's cell so the type
+              lies over it; from sm up it owns the right column and runs down
+              through the Navratri row too, so the band sits on the garden and
+              the picture dissolves into the violet instead of stopping on a
+              hard line above it. */}
+          <div className="hero-frame relative col-start-1 row-start-1 overflow-hidden [container-type:size] sm:col-start-2 sm:[grid-row:1/span_2]">
             <HeroPlate priority />
 
             {/* The name, standing in the garden behind her. Sized and placed in
@@ -184,7 +187,7 @@ export default async function HomePage() {
 
           {/* The panel. Its left padding is the shell's own margin, so the
               headline starts on the same line as every section below it. */}
-          <div className="relative z-10 flex items-center sm:col-start-1 sm:row-start-1">
+          <div className="relative z-10 col-start-1 row-start-1 flex min-h-[calc(100svh_-_4rem)] items-center sm:min-h-[clamp(520px,62vh,760px)]">
             <Reveal className="hero-copy w-full px-5 py-20 sm:px-[4vw] sm:py-12 sm:pl-[max(4vw,calc((100vw-1680px)/2))] sm:pr-10">
               <p className="eyebrow on-dark" data-reveal>
                 Bridal and occasion wear, to rent or to buy
@@ -219,15 +222,17 @@ export default async function HomePage() {
               </div>
             </Reveal>
           </div>
+
+          {/* ---------- Navratri ---------------------------------------------
+              Above the rail because it is the reason to look at the rail this
+              month, and in the hero's second row so the photograph runs down
+              behind it and the two read as one movement rather than as a
+              banner dropped on the page. Retires itself after 20 Oct 2026. */}
+          <div className="hero-band relative z-10 col-start-1 row-start-2 sm:[grid-column:1/3]">
+            <NavratriBand ground={false} />
+          </div>
         </div>
       </section>
-
-      {/* ---------- Navratri -------------------------------------------------
-          Above the rail because it is the reason to look at the rail this
-          month, and on the hero's own violet so the two read as one movement
-          rather than as a banner dropped on top of the page. Retires itself
-          after 20 Oct 2026. */}
-      <NavratriBand />
 
       {/* ---------- The rail ------------------------------------------------
           Real stock, immediately under the headline that promises it. See
