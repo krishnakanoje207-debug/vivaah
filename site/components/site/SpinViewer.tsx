@@ -275,11 +275,26 @@ export function SpinViewer({
   );
 
   // Auto-swing (pendulum). Draws directly each rAF for smoothness.
+  //
+  // ONE sweep, then it rests on the front (14 Sep 2026). This used to run
+  // `theta % 2π` forever, so the garment turned continuously for as long as the
+  // page was open and the first thing a shopper saw was whatever angle the
+  // 8-second cycle happened to be passing through — measured on arrival at
+  // frame 83 of 86, which is the back of the skirt. A renter judging a piece
+  // needs to see it still, and needs it to face her when it settles.
+  //
+  // `pos = (1 - cos θ) / 2` is already 0 at θ=0 and 0 again at θ=2π, so a single
+  // complete cycle IS the authored moment: the piece turns away, comes back, and
+  // stops facing front. Nothing has to be eased or snapped at the end.
+  //
+  // Gated on `ready` so the sweep starts against a decoded frame set rather than
+  // stuttering through the ~1.6s the coarse-to-fine loader needs.
   useEffect(() => {
-    if (!autoplay) return;
+    if (!autoplay || !ready) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const period = 2 * (arcDegrees / 90) * MS_PER_90;
+    const TAU = 2 * Math.PI;
     let theta = 0;
     let last: number | null = null;
     let raf = 0;
@@ -289,7 +304,13 @@ export function SpinViewer({
       const dt = t - last;
       last = t;
       if (t >= pausedUntil.current) {
-        theta = (theta + (2 * Math.PI * dt) / period) % (2 * Math.PI);
+        theta += (TAU * dt) / period;
+        if (theta >= TAU) {
+          // Home, facing front. The loop ends here and does not restart: from
+          // now on the piece only moves when the visitor moves it.
+          setIdx(0);
+          return;
+        }
         const pos = (1 - Math.cos(theta)) / 2;
         const i = Math.round(pos * (count - 1));
         if (i !== frameRef.current) setIdx(i);
@@ -298,7 +319,7 @@ export function SpinViewer({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [autoplay, arcDegrees, count, setIdx]);
+  }, [autoplay, ready, arcDegrees, count, setIdx]);
 
   const pauseAuto = () => {
     pausedUntil.current = performance.now() + RESUME_IDLE_MS;
