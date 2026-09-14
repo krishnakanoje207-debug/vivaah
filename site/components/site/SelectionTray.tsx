@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   clear,
@@ -30,10 +31,20 @@ import { formatINR } from "@/lib/rentals";
  *
  * The date is one free-text field for the whole selection, not one per piece.
  * See lib/selection for why.
+ *
+ * The panel is PORTALLED to the body, and that is not tidiness. It is rendered
+ * from inside the sticky header, and the header carries `backdrop-blur` — which,
+ * like `filter` and `transform`, makes an element a containing block for
+ * `position: fixed` descendants. Left in place the panel was contained by the
+ * header and clipped to its 64px, so on a desktop it showed a heading, a close
+ * button and nothing else (caught in a render, 14 Sep).
  */
 export function SelectionTray() {
   const sel = useSelection();
   const [open, setOpen] = useState(false);
+  // createPortal needs a DOM; false through SSR and the first hydration pass.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const count = sel.items.length;
@@ -78,7 +89,13 @@ export function SelectionTray() {
         }
         className="press relative inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-[180ms] hover:bg-current/10"
       >
-        <svg width="23" height="18" viewBox="0 0 26 20" fill="none" aria-hidden="true">
+        <svg
+          width="23"
+          height="18"
+          viewBox="0 0 26 20"
+          fill="none"
+          aria-hidden="true"
+        >
           <path
             d="M13 6.5c0-2 1.4-3 2.8-3 1.5 0 2.7 1.1 2.7 2.6"
             stroke="currentColor"
@@ -99,164 +116,182 @@ export function SelectionTray() {
         )}
       </button>
 
-      {open && (
-        <>
-          <div
-            className="fixed inset-0 z-[55] bg-violet-950/45"
-            onClick={close}
-            aria-hidden="true"
-          />
-          <div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Your selection"
-            tabIndex={-1}
-            /* Bottom sheet on a phone, a panel off the right edge from sm up:
+      {open &&
+        mounted &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[55] bg-violet-950/45"
+              onClick={close}
+              aria-hidden="true"
+            />
+            <div
+              ref={panelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Your selection"
+              tabIndex={-1}
+              /* Bottom sheet on a phone, a panel off the right edge from sm up:
                the same content, placed where the hand is in each case. */
-            className="on-dark fixed inset-x-0 bottom-0 z-[56] max-h-[86svh] overflow-y-auto border-t border-gold-500/30 bg-violet-950 p-6 outline-none sm:inset-y-0 sm:left-auto sm:right-0 sm:max-h-none sm:w-[27rem] sm:border-l sm:border-t-0 sm:p-8"
-          >
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <p className="eyebrow on-dark">Your selection</p>
-                <p className="mt-2 font-display text-h3 font-medium text-porcelain-50">
-                  {count === 0
-                    ? "Nothing gathered yet"
-                    : `${count} ${count === 1 ? "piece" : "pieces"}`}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Close"
-                className="press -mr-2 -mt-2 inline-flex h-11 w-11 items-center justify-center rounded-full text-porcelain-50 hover:bg-porcelain-50/10"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path
-                    d="M4 4l8 8M12 4l-8 8"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {count === 0 ? (
-              <p className="mt-8 text-caption text-porcelain-50/70">
-                Add a piece from anywhere on the site and it will wait here, so
-                you can ask about everything at once instead of one at a time.
-              </p>
-            ) : (
-              <>
-                <ul className="mt-8 flex flex-col gap-5">
-                  {sel.items.map((i) => (
-                    <li key={i.slug} className="flex items-start gap-4">
-                      {i.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={i.image}
-                          alt=""
-                          aria-hidden="true"
-                          width={52}
-                          height={69}
-                          className="h-[69px] w-[52px] shrink-0 object-cover"
-                        />
-                      ) : (
-                        <span
-                          aria-hidden="true"
-                          className="h-[69px] w-[52px] shrink-0 bg-porcelain-50/10"
-                        />
-                      )}
-                      <span className="min-w-0 flex-1">
-                        <Link
-                          href={i.href}
-                          onClick={close}
-                          className="block truncate text-body text-porcelain-50 underline-offset-4 hover:underline"
-                        >
-                          {i.name}
-                        </Link>
-                        <span className="mt-1 block text-caption text-porcelain-50/70">
-                          {i.price !== null ? (
-                            <>
-                              <span className="tabular">₹{formatINR(i.price)}</span>
-                              {i.kind === "rental" ? " / day" : ""}
-                            </>
-                          ) : (
-                            "Ask us"
-                          )}
-                        </span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => remove(i.slug)}
-                        aria-label={`Remove ${i.name}`}
-                        className="press -mr-2 -mt-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-porcelain-50/70 hover:bg-porcelain-50/10 hover:text-porcelain-50"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                          <path
-                            d="M4 4l8 8M12 4l-8 8"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                {count >= SELECTION_MAX && (
-                  <p className="mt-5 text-caption text-gold-500">
-                    That is as many as the tray holds. Remove one to add
-                    another.
+              className="on-dark fixed inset-x-0 bottom-0 z-[56] max-h-[86svh] overflow-y-auto border-t border-gold-500/30 bg-violet-950 p-6 outline-none sm:inset-y-0 sm:left-auto sm:right-0 sm:max-h-none sm:w-[27rem] sm:border-l sm:border-t-0 sm:p-8"
+            >
+              <div className="flex items-start justify-between gap-6">
+                <div>
+                  <p className="eyebrow on-dark">Your selection</p>
+                  <p className="mt-2 font-display text-h3 font-medium text-porcelain-50">
+                    {count === 0
+                      ? "Nothing gathered yet"
+                      : `${count} ${count === 1 ? "piece" : "pieces"}`}
                   </p>
-                )}
-
-                <div className="mt-8 border-t border-porcelain-50/15 pt-6">
-                  <label
-                    htmlFor="sel-date"
-                    className="block text-caption text-porcelain-50/70"
-                  >
-                    What day are you dressing for?
-                  </label>
-                  <input
-                    id="sel-date"
-                    type="text"
-                    defaultValue={sel.date ?? ""}
-                    onChange={(e) => setDate(e.target.value)}
-                    placeholder="14 November, or Diwali"
-                    className="mt-2 w-full rounded-control border border-porcelain-50/25 bg-transparent px-3 py-2.5 text-body text-porcelain-50 outline-none placeholder:text-porcelain-50/40 focus:border-gold-500"
-                  />
                 </div>
-
-                <a
-                  href={href}
-                  {...(real ? { target: "_blank", rel: "noreferrer" } : {})}
-                  onClick={close}
-                  className="press mt-6 flex min-h-[48px] items-center justify-center rounded-control bg-porcelain-50 px-6 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
-                >
-                  {real ? "Send this request" : "Plan a visit"}
-                </a>
-
-                {real && (
-                  <p className="mt-3 text-caption text-porcelain-50/70">
-                    {REQUEST_NOTICE}
-                  </p>
-                )}
-
                 <button
                   type="button"
-                  onClick={clear}
-                  className="press mt-6 text-caption text-porcelain-50/60 underline-offset-4 hover:text-porcelain-50 hover:underline"
+                  onClick={close}
+                  aria-label="Close"
+                  className="press -mr-2 -mt-2 inline-flex h-11 w-11 items-center justify-center rounded-full text-porcelain-50 hover:bg-porcelain-50/10"
                 >
-                  Empty the tray
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4 4l8 8M12 4l-8 8"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
                 </button>
-              </>
-            )}
-          </div>
-        </>
-      )}
+              </div>
+
+              {count === 0 ? (
+                <p className="mt-8 text-caption text-porcelain-50/70">
+                  Add a piece from anywhere on the site and it will wait here,
+                  so you can ask about everything at once instead of one at a
+                  time.
+                </p>
+              ) : (
+                <>
+                  <ul className="mt-8 flex flex-col gap-5">
+                    {sel.items.map((i) => (
+                      <li key={i.slug} className="flex items-start gap-4">
+                        {i.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={i.image}
+                            alt=""
+                            aria-hidden="true"
+                            width={52}
+                            height={69}
+                            className="h-[69px] w-[52px] shrink-0 object-cover"
+                          />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="h-[69px] w-[52px] shrink-0 bg-porcelain-50/10"
+                          />
+                        )}
+                        <span className="min-w-0 flex-1">
+                          <Link
+                            href={i.href}
+                            onClick={close}
+                            className="block truncate text-body text-porcelain-50 underline-offset-4 hover:underline"
+                          >
+                            {i.name}
+                          </Link>
+                          <span className="mt-1 block text-caption text-porcelain-50/70">
+                            {i.price !== null ? (
+                              <>
+                                <span className="tabular">
+                                  ₹{formatINR(i.price)}
+                                </span>
+                                {i.kind === "rental" ? " / day" : ""}
+                              </>
+                            ) : (
+                              "Ask us"
+                            )}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => remove(i.slug)}
+                          aria-label={`Remove ${i.name}`}
+                          className="press -mr-2 -mt-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-porcelain-50/70 hover:bg-porcelain-50/10 hover:text-porcelain-50"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M4 4l8 8M12 4l-8 8"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {count >= SELECTION_MAX && (
+                    <p className="mt-5 text-caption text-gold-500">
+                      That is as many as the tray holds. Remove one to add
+                      another.
+                    </p>
+                  )}
+
+                  <div className="mt-8 border-t border-porcelain-50/15 pt-6">
+                    <label
+                      htmlFor="sel-date"
+                      className="block text-caption text-porcelain-50/70"
+                    >
+                      What day are you dressing for?
+                    </label>
+                    <input
+                      id="sel-date"
+                      type="text"
+                      defaultValue={sel.date ?? ""}
+                      onChange={(e) => setDate(e.target.value)}
+                      placeholder="14 November, or Diwali"
+                      className="mt-2 w-full rounded-control border border-porcelain-50/25 bg-transparent px-3 py-2.5 text-body text-porcelain-50 outline-none placeholder:text-porcelain-50/40 focus:border-gold-500"
+                    />
+                  </div>
+
+                  <a
+                    href={href}
+                    {...(real ? { target: "_blank", rel: "noreferrer" } : {})}
+                    onClick={close}
+                    className="press mt-6 flex min-h-[48px] items-center justify-center rounded-control bg-porcelain-50 px-6 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
+                  >
+                    {real ? "Send this request" : "Plan a visit"}
+                  </a>
+
+                  {real && (
+                    <p className="mt-3 text-caption text-porcelain-50/70">
+                      {REQUEST_NOTICE}
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={clear}
+                    className="press mt-6 text-caption text-porcelain-50/60 underline-offset-4 hover:text-porcelain-50 hover:underline"
+                  >
+                    Empty the tray
+                  </button>
+                </>
+              )}
+            </div>
+          </>,
+          document.body,
+        )}
     </>
   );
 }
