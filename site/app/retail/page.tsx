@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SectionEdge } from "@/components/site/SectionEdge";
+import { RequestButton } from "@/components/site/RequestButton";
 import { GoldFrame } from "@/components/site/GoldFrame";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { Reveal } from "@/components/site/Reveal";
@@ -401,12 +402,20 @@ export default function RetailPage() {
                 </div>
               </dl>
 
-              <Link
-                href="/visit"
-                className="mt-8 inline-block rounded-control bg-violet-800 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:bg-violet-700"
-              >
-                Plan a visit
-              </Link>
+              {/* The paragraph above says a piece comes off the rail and waits
+                  for you — and the only thing under it was a link to
+                  directions, so the page answered a decision with a journey.
+                  The ask comes first now; the visit stays as the second step it
+                  actually is. */}
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+                <RequestButton notice={false} />
+                <Link
+                  href="/visit"
+                  className="text-caption text-gold-700 underline-offset-4 hover:underline"
+                >
+                  Plan a visit
+                </Link>
+              </div>
             </div>
 
             <GoldFrame tone="light">

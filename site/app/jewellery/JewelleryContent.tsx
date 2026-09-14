@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { SectionEdge } from "@/components/site/SectionEdge";
+import { RequestButton } from "@/components/site/RequestButton";
 import { GoldFrame } from "@/components/site/GoldFrame";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { Reveal } from "@/components/site/Reveal";
@@ -393,13 +394,19 @@ export function JewelleryContent() {
                 sets that go with it will be out on the counter.
               </p>
 
-              <Link
-                data-reveal
-                href="/visit"
-                className="mt-10 inline-block rounded-control bg-porcelain-50 px-6 py-3 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
-              >
-                Plan a visit
-              </Link>
+              {/* Jewellery goes out with an outfit, so the ask is the same one
+                  the rest of the site makes and the customer names the outfit
+                  in her own message. Before this the page closed on directions
+                  alone, like every other page did. */}
+              <div data-reveal className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
+                <RequestButton tone="dark" notice={false} />
+                <Link
+                  href="/visit"
+                  className="text-caption text-gold-500 underline-offset-4 hover:underline"
+                >
+                  Plan a visit
+                </Link>
+              </div>
             </Reveal>
 
             <dl className="grid gap-x-10 gap-y-8 text-caption sm:grid-cols-2 md:pt-4">

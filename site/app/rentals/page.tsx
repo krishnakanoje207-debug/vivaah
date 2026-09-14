@@ -15,6 +15,7 @@ import { DistortHeading } from "@/components/site/DistortHeading";
 import { Parallax } from "@/components/site/Parallax";
 import { WipeIn } from "@/components/site/WipeIn";
 import { SectionEdge } from "@/components/site/SectionEdge";
+import { RequestButton } from "@/components/site/RequestButton";
 import { GoldFrame } from "@/components/site/GoldFrame";
 import { SHOP } from "@/lib/site";
 import { getRentals, getRentalCategories } from "@/lib/rentals";
@@ -425,6 +426,15 @@ export default async function RentalsPage({
               Bring the date you are dressing for. We will put the pieces on you, and hold
               whichever one you choose for that week.
             </p>
+
+            {/* The paragraph above already promises the hold, and until now the
+                only thing under it was directions — so the page ended by asking
+                for a journey in answer to a decision. The ask goes where the
+                promise is made; "How to find us" stays, demoted to what it is. */}
+            <div data-reveal className="mt-10">
+              <RequestButton tone="dark" />
+            </div>
+
             <p data-reveal className="mt-10 text-[0.9375rem] text-violet-300">
               {SHOP.address} · <span className="tabular">{SHOP.hours}</span>
             </p>
