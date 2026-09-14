@@ -54,7 +54,7 @@ export const metadata: Metadata = {
 // the steps have their own section further down and saying them twice would make
 // the head read as a table of contents for it.
 const FACTS = [
-  "Eight categories",
+  `${RETAIL_CATEGORIES.length} categories`,
   "New pieces most days",
   "Reserve online, collect at the shop",
   "Nothing is posted",
@@ -65,10 +65,14 @@ const FACTS = [
  * cannot silently scramble the composition, and so a category added later gets a
  * sane default instead of an undefined span.
  *
- * The spans total 12 per row (5+4+3, 3+6+3, 7+5) and the aspect ratios change
- * with them, which is what stops eight tiles reading as eight squares. `end`
+ * The spans total 12 per row (5+4+3, 3+6+3, 5+3+4) and the aspect ratios change
+ * with them, which is what stops nine tiles reading as nine squares. `end`
  * drops a tile to the bottom of its row, so every row has a horizon its captions
  * sit on and the raggedness is at the top where it reads as composition.
+ *
+ * Nine since retail Sarees (migration 0004). The last row was 7+5 for two
+ * tiles; it is three now, and its tall arch sits at the right-hand end so the
+ * mosaic is bracketed by the two arches, first tile and last.
  */
 type Tile = { span: string; media: string; arch?: boolean; end?: boolean };
 const TILE: Record<string, Tile> = {
@@ -80,8 +84,9 @@ const TILE: Record<string, Tile> = {
   "night-suits": { span: "md:col-span-3", media: "aspect-square", end: true },
   // No arch here: the shape is a jharokha, and on a 3:2 landscape box its dome
   // flattens into a wide blob. It stays on the portrait plates only.
-  "kurta-pant-sets": { span: "md:col-span-7", media: "aspect-[3/2]" },
-  kaftans: { span: "md:col-span-5", media: "aspect-[4/3]", end: true },
+  "kurta-pant-sets": { span: "md:col-span-5", media: "aspect-[3/2]", end: true },
+  kaftans: { span: "md:col-span-3", media: "aspect-square", end: true },
+  "retail-sarees": { span: "md:col-span-4", media: "aspect-[3/4]", arch: true },
 };
 const TILE_DEFAULT: Tile = { span: "md:col-span-4", media: "aspect-[3/4]" };
 

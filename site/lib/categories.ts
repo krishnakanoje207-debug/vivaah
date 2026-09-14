@@ -32,4 +32,7 @@ export const RETAIL_CATEGORIES: Category[] = [
   { slug: "night-suits", name: "Night Suits", count: 0, image: "/categories/night-suits.webp" },
   { slug: "kurta-pant-sets", name: "2-Piece Kurta-Pant Sets", count: 0, image: "/categories/kurta-pant-sets.webp" },
   { slug: "kaftans", name: "Kaftans", count: 0, image: "/categories/kaftans.webp" },
+  // Migration 0004. The photograph is the rental sarees' own until the owner
+  // shoots the retail rail; its slug keeps it distinct from the rental one.
+  { slug: "retail-sarees", name: "Sarees", count: 0, image: "/categories/sarees.webp" },
 ];
