@@ -9,7 +9,16 @@ export const SHOP = {
   // Placeholder shop details — replaced by admin settings later.
   address: "Shop address, City",
   hours: "Mon–Sat, 11am – 8pm",
-  phone: "+91 00000 00000",
+  // The shop is run by two partners and there are two numbers. This is the one
+  // the site works from: every `tel:` link, and the WhatsApp hand-off in
+  // lib/enquiry.ts, resolve to it. Given by the owner 14 Sep 2026.
+  phone: "+91 83198 08797",
+  // The second partner's line, still to come. Kept separate rather than folded
+  // into `phone` because eleven call sites read that field and all of them want
+  // exactly one number — a `tel:` href and a WhatsApp thread cannot address two
+  // people. When it lands it is listed beside the first wherever the shop's
+  // contact details are set out in full (Footer, /visit), and nowhere else.
+  phoneAlt: null as string | null,
   mapsUrl: "https://maps.google.com/?q=Vivaah+Dresses+and+Suits",
   // The same place, as an embeddable frame. No API key: the q= form is the
   // public embed, so this costs nothing and needs no billing account.
