@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { getRentals } from "@/lib/rentals";
+import { getJewellery } from "@/lib/jewellery";
 
 /**
- * The six public pages, plus every rentable slug.
+ * The six public pages, plus every rentable slug and every jewellery piece.
  *
  * Built from `getRentals()` rather than a hand-kept list, because the catalogue
  * is owner-edited and a list maintained here would be wrong the first week she
@@ -38,6 +39,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch {
     // A sitemap listing the six static pages is worth serving even when the
     // database is unreachable; failing the route outright is not.
+  }
+
+  try {
+    for (const p of await getJewellery()) {
+      pages.push({
+        url: `${SITE_URL}/jewellery/${p.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      });
+    }
+  } catch {
+    // Same reasoning as the rentals block above.
   }
 
   return pages;
