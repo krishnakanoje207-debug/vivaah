@@ -283,6 +283,33 @@
   display: none !important;
 }
 
+/* Home hero: the name behind the bride. Both are measured against the
+   photograph's own box (.hero-frame is a size container), because the plate is
+   height-bound under object-cover at these widths, so her head sits at the same
+   fraction of the box height at every size. The mask is her alpha, cut from the
+   same file and fitted the same way as the <img>, so it lands on her exactly. */
+.hero-name {
+  display: none;
+  top: 15cqh;
+  font-size: min(25cqw, 34cqh);
+  letter-spacing: -0.02em;
+  opacity: 0.92;
+}
+/* Phones do not get it. Below sm the copy is centred OVER the photograph, so
+   where her head lands relative to the heading moves with the viewport height:
+   measured clear at 390x844 and 412x915, it ran straight through the eyebrow
+   and the h1 at 375x667 and 360x740. Only once the photograph has its own
+   column is there a height the name can own. */
+@media (min-width: 640px) {
+  .hero-name {
+    display: block;
+  }
+}
+.hero-subject {
+  -webkit-mask: url("/hero/hero-garden-subject.webp") center / cover no-repeat;
+  mask: url("/hero/hero-garden-subject.webp") center / cover no-repeat;
+}
+
 /* Hero overlay starts hidden (JS/GSAP reveals it as the scene settles).
    Reduced-motion and no-JS users see it immediately. */
 [data-hero] {

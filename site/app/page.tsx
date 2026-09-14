@@ -95,6 +95,45 @@ const HERO_JOIN =
 // app_public Neon connection, same proven path through the Worker.
 export const dynamic = "force-dynamic";
 
+/** The garden photograph with its tint, scrims and join, as one stack. */
+function HeroPlate({ priority = false }: { priority?: boolean }) {
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* The LCP image on every first visit, so it is told to jump the
+          queue: without this it competes with the sixteen other images on
+          the page, none of which is above the fold. */}
+      <img
+        src="/hero/hero-garden.webp"
+        alt=""
+        aria-hidden="true"
+        width={1247}
+        height={696}
+        fetchPriority={priority ? "high" : undefined}
+        className="absolute inset-0 h-full w-full object-cover object-center"
+      />
+      <div aria-hidden="true" className="absolute inset-0 bg-violet-950/14" />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 sm:hidden"
+        style={{ background: HERO_BLOOM }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 sm:hidden"
+        style={{ background: HERO_RISER }}
+      />
+      {/* The join. Opaque at the panel's edge, gone by two thirds across,
+          so the picture arrives out of the violet instead of beside it. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-y-0 left-0 hidden w-2/3 sm:block"
+        style={{ background: HERO_JOIN }}
+      />
+    </>
+  );
+}
+
 export default async function HomePage() {
   const [all, categories] = await Promise.all([getRentals(), getRentalCategories()]);
   // Categories with nothing photographed yet stand in on the rail, so all eight
@@ -121,38 +160,26 @@ export default async function HomePage() {
         <div className="relative grid min-h-[calc(100svh_-_4rem)] sm:min-h-[clamp(520px,62vh,760px)] sm:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
           {/* The photograph. Absolute below md so the type lies over it; a real
               grid column from md up so it owns the right of the frame. */}
-          <div className="hero-frame absolute inset-0 sm:relative sm:col-start-2 sm:row-start-1">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {/* The LCP image on every first visit, so it is told to jump the
-                queue: without this it competes with the sixteen other images on
-                the page, none of which is above the fold. */}
-            <img
-              src="/hero/hero-garden.webp"
-              alt=""
+          <div className="hero-frame absolute inset-0 overflow-hidden [container-type:size] sm:relative sm:col-start-2 sm:row-start-1">
+            <HeroPlate priority />
+
+            {/* The name, standing in the garden behind her. Sized and placed in
+                container units so it tracks the photograph's own box, which is
+                what decides where her head lands. Decorative: the h1 carries the
+                page, and the brand is already read out by the nav. */}
+            <p
               aria-hidden="true"
-              width={1247}
-              height={696}
-              fetchPriority="high"
-              className="absolute inset-0 h-full w-full object-cover object-center"
-            />
-            <div aria-hidden="true" className="absolute inset-0 bg-violet-950/14" />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 sm:hidden"
-              style={{ background: HERO_BLOOM }}
-            />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 sm:hidden"
-              style={{ background: HERO_RISER }}
-            />
-            {/* The join. Opaque at the panel's edge, gone by two thirds across,
-                so the picture arrives out of the violet instead of beside it. */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-y-0 left-0 hidden w-2/3 sm:block"
-              style={{ background: HERO_JOIN }}
-            />
+              className="hero-name pointer-events-none absolute inset-x-0 select-none text-center font-display leading-none text-porcelain-50"
+            >
+              Vivaah
+            </p>
+
+            {/* Her, laid back over the name: the same plate and scrims again,
+                masked to her silhouette, so she lands on herself exactly and
+                the only visible change is that the name is now behind her. */}
+            <div aria-hidden="true" className="hero-subject absolute inset-0">
+              <HeroPlate />
+            </div>
           </div>
 
           {/* The panel. Its left padding is the shell's own margin, so the
