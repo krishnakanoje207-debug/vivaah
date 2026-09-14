@@ -380,3 +380,76 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* =============================================================================
+   Loading mark (14 Sep 2026): the name drawing itself, and a running stitch.
+   Shared by app/loading.tsx and the Preloader; see LoadingMark.tsx for why it
+   is CSS. The base rules below ARE the finished state (drawn, filled, sewn),
+   and every animation is declared only under `no-preference`, so reduced
+   motion and a page that never gets its JavaScript both show a still mark.
+   `--vv-mark-at` is a negative offset the Preloader's inline script sets when
+   it takes over from a loading screen, so its copy of the mark starts where
+   that one had got to instead of drawing from nothing again.
+   ============================================================================= */
+.vv-stitch > span {
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* §3.4's preloader draw: 700ms, power1.inOut. */
+  .vv-mark-outline {
+    animation: vv-mark-draw 700ms cubic-bezier(0.45, 0, 0.55, 1) both;
+    animation-delay: var(--vv-mark-at, 0ms);
+  }
+  .vv-mark-fill,
+  .vv-mark-lockup {
+    animation: vv-mark-fill 320ms ease-out both;
+    animation-delay: calc(540ms + var(--vv-mark-at, 0ms));
+  }
+  /* Each stitch is pulled through a beat after the one before it, holds, and
+     is let go in the same order, so the row reads as thread moving along a
+     seam. The loop never implies progress it cannot measure. */
+  .vv-stitch > span {
+    animation: vv-mark-stitch 1900ms cubic-bezier(0.23, 1, 0.32, 1) infinite both;
+    animation-delay: calc(900ms + var(--i) * 75ms + var(--vv-mark-at, 0ms));
+  }
+}
+@keyframes vv-mark-draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes vv-mark-fill {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vv-mark-stitch {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.15);
+  }
+  12% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  55% {
+    opacity: 1;
+  }
+  75%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* While the Preloader holds the name, the nav's own copy is hidden, so there
+   is one name on screen and it travels home. The Preloader fades the nav's
+   copy back in on its own timeline as the travelling one lands on it (see its
+   release). Skipped visitors never see it hidden: their attribute is set by an
+   inline script before paint. */
+html:not([data-preloader="skip"]):has(.vv-preloader:not([data-released])) header [data-brand-slot],
+html:not([data-preloader="skip"]):has(.vv-preloader:not([data-released])) header [data-brand-slot] + span {
+  opacity: 0;
+}
