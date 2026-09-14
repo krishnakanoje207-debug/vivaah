@@ -20,6 +20,23 @@ export const SHOP = {
   logo: null as string | null, // e.g. "/brand/logo.svg"
 } as const;
 
+/**
+ * Whether `SHOP.address` is the owner's real one rather than the placeholder.
+ *
+ * The map embed uses the keyless `?q=` form, which renders an empty grey frame
+ * when the query matches no place — and the shop is not on Maps under its own
+ * name yet, so the front door's closing section was a 590x442 blank rectangle
+ * (measured 14 Sep). A missing frame reads as a page that does not have a map;
+ * a blank one reads as a page that is broken. So the embed is gated on this.
+ *
+ * Mirrors `hasRealPhone()` in lib/enquiry.ts, which gates the WhatsApp hand-off
+ * the same way and for the same reason.
+ */
+export function hasRealAddress(): boolean {
+  const a = SHOP.address.trim().toLowerCase();
+  return a.length > 0 && a !== "shop address, city";
+}
+
 export const NAV_LINKS = [
   { href: "/rentals", label: "Rent" },
   { href: "/retail", label: "Shop" },

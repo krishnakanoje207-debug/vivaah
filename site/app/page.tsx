@@ -7,7 +7,7 @@ import { WipeIn } from "@/components/site/WipeIn";
 import { Parallax } from "@/components/site/Parallax";
 import { RentalRail } from "@/components/site/RentalRail";
 import { NavratriBand } from "@/components/site/NavratriBand";
-import { SHOP } from "@/lib/site";
+import { SHOP, hasRealAddress } from "@/lib/site";
 import { getRentals, getRentalCategories } from "@/lib/rentals";
 
 /**
@@ -533,7 +533,14 @@ export default async function HomePage() {
             </RippleHeading>
           </Reveal>
 
-          <div className="mt-10 grid gap-10 sm:grid-cols-2 sm:items-start lg:gap-20">
+          {/* Two columns only when there is a map to fill the second. With the
+              address still a placeholder the invitation runs as one measure
+              rather than as a half-empty row. */}
+          <div
+            className={`mt-10 grid gap-10 sm:items-start lg:gap-20 ${
+              hasRealAddress() ? "sm:grid-cols-2" : "max-w-[60ch]"
+            }`}
+          >
             <Reveal>
               <p data-reveal className="max-w-[46ch] text-ink-600">
                 Fitting happens in person. Bring the date and we will bring the
@@ -594,18 +601,23 @@ export default async function HomePage() {
             </Reveal>
 
             {/* The map. Lazy so it costs nothing until it is scrolled to, and
-                keylined like the proof frames so it sits in the same system. */}
-            <Reveal>
-              <div data-reveal className="ring-1 ring-ink-900/15">
-                <iframe
-                  title={`Map to ${SHOP.name}`}
-                  src={SHOP.mapsEmbedUrl}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="block aspect-[4/3] w-full md:aspect-[3/4] lg:aspect-[4/3]"
-                />
-              </div>
-            </Reveal>
+                keylined like the proof frames so it sits in the same system.
+                Rendered only once the owner's real address is in, because the
+                keyless ?q= embed draws an empty grey frame for a place Maps
+                cannot find — see hasRealAddress(). */}
+            {hasRealAddress() && (
+              <Reveal>
+                <div data-reveal className="ring-1 ring-ink-900/15">
+                  <iframe
+                    title={`Map to ${SHOP.name}`}
+                    src={SHOP.mapsEmbedUrl}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="block aspect-[4/3] w-full md:aspect-[3/4] lg:aspect-[4/3]"
+                  />
+                </div>
+              </Reveal>
+            )}
           </div>
         </div>
       </section>
