@@ -55,10 +55,10 @@ export const dynamic = "force-dynamic";
 
 const ROOMS = [
   { id: "threshold", label: "Threshold" },
+  { id: "collection", label: "The collection" },
   { id: "week", label: "The week" },
   { id: "arithmetic", label: "The arithmetic" },
   { id: "craft", label: "The craft" },
-  { id: "collection", label: "The collection" },
   { id: "visit", label: "Visit" },
 ] as const;
 
@@ -263,10 +263,35 @@ export default async function RentalsPage({
           them says nothing. */}
       <NavratriBand />
 
+      {/* ============ THE COLLECTION ============
+          porcelain-50 · the catalogue · reveal per object. Straight after the
+          threshold (owner, 14 Sep): a shopper who has already decided reaches
+          the rack without crossing the argument, and the rooms below are there
+          for anyone who has not. */}
+      <section id="collection" data-room="collection" className="relative bg-porcelain-50 py-16 md:py-24">
+        <SectionEdge seed={4} paper="var(--color-violet-950)" reveal="var(--color-porcelain-50)" />
+        <div className="shell shell-rooms relative">
+          <Reveal>
+            <div data-reveal className="mx-auto max-w-3xl text-center">
+              <p className="eyebrow">The rental edit</p>
+              <h2 className="mt-6 text-h2 leading-[1.05]">
+                Rent bridal &amp; <em className="italic text-gold-600">festive</em> wear
+              </h2>
+              <p className="mt-8 text-[1.0625rem] leading-relaxed text-ink-600">
+                Choose your dates, pay a small advance to hold the piece, and collect it at
+                the shop.
+              </p>
+            </div>
+          </Reveal>
+          <Ornament className="mx-auto mt-10 max-w-sm opacity-25 md:mt-16" />
+          <div className="mt-14 md:mt-24">{catalogue}</div>
+        </div>
+      </section>
+
       {/* ============ ROOM I: THE WEEK ============
-          porcelain-50 · silk, photographed · flow + in */}
-      <section id="week" data-room="week" className="relative bg-porcelain-50 py-16 md:py-24">
-        <SectionEdge seed={1} paper="var(--color-violet-950)" reveal="var(--color-porcelain-50)" />
+          porcelain-100 · silk, photographed · flow + in */}
+      <section id="week" data-room="week" className="relative bg-porcelain-100 py-16 md:py-24">
+        <SectionEdge seed={1} paper="var(--color-porcelain-50)" reveal="var(--color-porcelain-100)" />
         {/* Positioned, so the tear's curls pass behind the room's first line of
             type instead of over it (the band hangs ~64px in on a phone). */}
         <div className="shell shell-rooms relative">
@@ -304,9 +329,9 @@ export default async function RentalsPage({
       </section>
 
       {/* ============ ROOM II: THE ARITHMETIC ============
-          porcelain-100 · figures, type · count */}
-      <section id="arithmetic" data-room="arithmetic" className="relative bg-porcelain-100 py-16 md:py-24">
-        <SectionEdge seed={2} paper="var(--color-porcelain-50)" reveal="var(--color-porcelain-100)" />
+          porcelain-50 · figures, type · count */}
+      <section id="arithmetic" data-room="arithmetic" className="relative bg-porcelain-50 py-16 md:py-24">
+        <SectionEdge seed={2} paper="var(--color-porcelain-100)" reveal="var(--color-porcelain-50)" />
         <div className="shell shell-rooms relative">
           <Reveal>
             <p data-reveal className="eyebrow">The arithmetic</p>
@@ -356,7 +381,7 @@ export default async function RentalsPage({
       {/* ============ ROOM III: THE CRAFT ============
           stage · thread, macro · signature move + parallax · THE PEAK */}
       <section id="craft" data-room="craft" className="relative bg-stage py-20 md:py-32">
-        <SectionEdge seed={3} paper="var(--color-porcelain-100)" reveal="var(--color-stage)" />
+        <SectionEdge seed={3} paper="var(--color-porcelain-50)" reveal="var(--color-stage)" />
         <div className="shell shell-rooms relative">
           <div className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
             <Parallax distance={44}>
@@ -387,28 +412,6 @@ export default async function RentalsPage({
         </div>
       </section>
 
-      {/* ============ THE COLLECTION ============
-          porcelain-50 · the catalogue · reveal per object */}
-      <section id="collection" data-room="collection" className="relative bg-porcelain-50 py-16 md:py-24">
-        <SectionEdge seed={4} paper="var(--color-stage)" reveal="var(--color-porcelain-50)" />
-        <div className="shell shell-rooms relative">
-          <Reveal>
-            <div data-reveal className="mx-auto max-w-3xl text-center">
-              <p className="eyebrow">The rental edit</p>
-              <h2 className="mt-6 text-h2 leading-[1.05]">
-                Rent bridal &amp; <em className="italic text-gold-600">festive</em> wear
-              </h2>
-              <p className="mt-8 text-[1.0625rem] leading-relaxed text-ink-600">
-                Choose your dates, pay a small advance to hold the piece, and collect it at
-                the shop.
-              </p>
-            </div>
-          </Reveal>
-          <Ornament className="mx-auto mt-10 max-w-sm opacity-25 md:mt-16" />
-          <div className="mt-14 md:mt-24">{catalogue}</div>
-        </div>
-      </section>
-
       {/* ============ VISIT ============
           violet-950 · still · flow. The threshold's ground, no longer moving. */}
       <section
@@ -417,7 +420,7 @@ export default async function RentalsPage({
         data-dark=""
         className="on-dark grain relative bg-violet-950 py-20 text-porcelain-50 md:py-44"
       >
-        <SectionEdge seed={5} paper="var(--color-porcelain-50)" reveal="var(--color-violet-950)" />
+        <SectionEdge seed={5} paper="var(--color-stage)" reveal="var(--color-violet-950)" />
         <div className="shell shell-rooms relative">
           <Reveal>
             <div data-reveal>
