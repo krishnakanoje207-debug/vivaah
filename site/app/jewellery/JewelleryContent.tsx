@@ -101,18 +101,20 @@ export function JewelleryContent() {
   return (
     <>
       {/* ---------- Head: the model, stated first --------------------------
-          The tear here is the site's own porcelain giving way to the vault, so
-          the ground change happens on the first screen rather than being eased
-          into. */}
-      <section className="on-dark grain relative bg-violet-950 pt-32 pb-20 md:pt-40 md:pb-28">
-        <SectionEdge
-          seed={21}
-          paper="var(--color-porcelain-50)"
-          reveal="var(--color-violet-950)"
-        />
-
-        <div className="shell-wide relative z-[1]">
-          <div className="grid items-center gap-12 md:grid-cols-[1.15fr_0.85fr] lg:gap-20">
+          Starts under the nav, which goes transparent over it (data-dark-hero),
+          so the vault begins at the top of the window. It used to open on a
+          torn strip of porcelain directly under the porcelain nav, with the
+          headline 290px down and the plate stranded across a wide gap (owner,
+          14 Sep: "offtracked"). */}
+      <section
+        data-dark-hero=""
+        className="on-dark grain relative -mt-16 flex min-h-[100svh] items-center bg-violet-950 pt-28 pb-20 md:pt-32 md:pb-24"
+      >
+        <div className="shell-wide relative z-[1] w-full">
+          {/* The text and the plate are one composition, centred as a pair: in
+              two stretched columns the headline hugged the left edge and the
+              plate the right, with 670px of ground between them at 1920. */}
+          <div className="grid items-center gap-12 md:grid-cols-[minmax(0,40rem)_auto] md:justify-center lg:gap-24">
             <Reveal>
               <p data-reveal className="eyebrow">
                 Jewellery
@@ -145,24 +147,19 @@ export function JewelleryContent() {
                 </Link>
               </div>
 
-              <p data-reveal className="mt-8 text-caption text-violet-300">
-                No piece is sold, and nothing is posted. Every set leaves the shop
-                with an outfit.
-              </p>
             </Reveal>
 
             {/* The page's only gold frame. It marks the plate the page is asking
                 you to look at, and it stops meaning that if everything wears one. */}
-            <Parallax distance={30}>
+            {/* A portrait, sized by width so the 4:5 crop holds: the old
+                height cap on a full-width column cut it to a letterbox. */}
+            <Parallax distance={30} className="w-full max-w-[26rem] justify-self-center md:w-[clamp(18rem,30vw,30rem)] md:max-w-none md:justify-self-end">
               <GoldFrame tone="dark">
-                {/* Height-capped rather than left to the aspect ratio: at 1920 a
-                    4:5 crop in a 40% column is 760px tall and strands the text
-                    block beside it in the middle of a much taller row. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/categories/bridal-lehengas.webp"
                   alt="A bride in a red lehenga wearing the matched necklace and maang tikka"
-                  className="aspect-[4/5] max-h-[24rem] w-full object-cover"
+                  className="aspect-[4/5] w-full object-cover"
                 />
               </GoldFrame>
             </Parallax>
@@ -230,9 +227,10 @@ export function JewelleryContent() {
               <span aria-hidden="true" className="text-caption text-gold-500">
                 ✦
               </span>
-              <p className="mt-6 text-caption text-violet-300">
-                What is on the shelf changes with the rail. Ask what matches the
-                piece you are taking.
+              {/* Three lines at most: the tile is a fixed 140px row, and the old
+                  four-line sentence ran out of the bottom of its border. */}
+              <p className="text-caption text-violet-300">
+                The shelf changes with the rail. Ask what matches your outfit.
               </p>
             </div>
 
