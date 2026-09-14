@@ -1,6 +1,13 @@
 // Single source of truth for shell content in Preview 1.
 // In Phase 1 these move to the `settings` / `site_content` tables (admin-editable).
 
+/**
+ * The canonical origin. Used by robots.ts, sitemap.ts and the Open Graph tags,
+ * all of which need absolute URLs — a relative og:image is ignored by every
+ * scraper that matters, WhatsApp included.
+ */
+export const SITE_URL = "https://vivaah.vivaah.workers.dev";
+
 export const SHOP = {
   name: "Vivaah Dresses and Suits",
   short: "Vivaah",
