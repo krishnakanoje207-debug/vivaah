@@ -371,7 +371,12 @@ export default async function HomePage() {
             <Link
               href={DOORS[2].href}
               data-wipe
-              className="group relative block overflow-hidden shadow-card transition-shadow duration-[180ms] hover:shadow-lift sm:mt-20"
+              /* max-w matches the photograph's own cap. Without it the anchor
+                 fills its 1.2fr column (449px measured at 1440) while the image
+                 stops at 340, and the caption below — which is positioned
+                 against the ANCHOR, not the image — juts 93px past the picture
+                 into bare page. */
+              className="group relative block max-w-[340px] overflow-hidden shadow-card transition-shadow duration-[180ms] hover:shadow-lift sm:mt-20"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
