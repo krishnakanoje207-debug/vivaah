@@ -482,3 +482,25 @@ html:not([data-preloader="skip"]):has(.vv-preloader:not([data-released])) header
 .retail-name {
   animation: retail-name 600ms var(--ease-out-strong) both;
 }
+
+/* =============================================================================
+   Heading underline (owner, 14 Sep 2026: headings on the pages other than the
+   front door "still look plain"). A short gold rule under every section h2, set
+   once here rather than on thirty headings. `/` is left out on purpose: it has
+   its own typographic hero and the owner asked for the other pages. Detected by
+   the home hero's frame, which exists nowhere else.
+   ============================================================================= */
+main:not(:has(.hero-frame)) h2.text-h2::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 2px;
+  margin-top: 0.5em;
+  background: var(--color-gold-600);
+}
+main:not(:has(.hero-frame)) .on-dark h2.text-h2::after {
+  background: var(--color-gold-500);
+}
+main:not(:has(.hero-frame)) :is(.text-center h2.text-h2, h2.text-h2.text-center)::after {
+  margin-inline: auto;
+}
