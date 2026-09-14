@@ -86,7 +86,28 @@ export async function generateMetadata({
   const p = await getRental(slug);
   // Not "Bridal Rental": this route serves every rental category, and the
   // turntable gating below is what surfaced the non-lehenga ones.
-  return { title: p ? `${p.name} | To rent | Vivaah` : "Not found | Vivaah" };
+  if (!p) return { title: "Piece not found" };
+
+  // The row is already loaded here, so the description and the share card can
+  // describe THIS garment. Before, every product served the site-wide string
+  // about renting lehengas, whatever the piece actually was.
+  const price =
+    p.pricePerDay !== null ? ` ₹${formatINR(p.pricePerDay)} a day.` : "";
+  const description = `${p.name}: ${p.colourName} ${p.occasion.toLowerCase()} wear to rent from Vivaah Dresses and Suits.${price} Reserve your dates and collect at the shop.`;
+  const image = p.spin ? `${p.spin.basePath}/000.${p.spin.ext}` : null;
+
+  return {
+    title: `${p.name}, to rent`,
+    description,
+    openGraph: {
+      title: `${p.name}, to rent`,
+      description,
+      // The garment's own front frame where one exists, else the site card.
+      // These are WebP; a piece with no frames falls back to the JPEG, which is
+      // the safer format for scrapers and the reason the default is one.
+      ...(image ? { images: [{ url: image, alt: p.name }] } : {}),
+    },
+  };
 }
 
 export default async function RentalProductPage({

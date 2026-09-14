@@ -38,7 +38,11 @@ import { SHOP } from "@/lib/site";
  * No photography, by the brief. The boundaries are `SectionEdge` tears.
  */
 
-export const metadata: Metadata = { title: "Rental terms" };
+export const metadata: Metadata = {
+  title: "Rental terms",
+  description:
+    "How booking, pre-payment, extensions, damage and returns work at Vivaah Dresses and Suits.",
+};
 
 // The four terms, carried over unchanged from the previous page. `covers` is the
 // old `d` string verbatim; `title` is the old `t` with "&" set as "and".

@@ -39,7 +39,11 @@ import { SHOP } from "@/lib/site";
  * carries a visible `TODO(owner)` rather than an invented direction.
  */
 
-export const metadata: Metadata = { title: "Visit us" };
+export const metadata: Metadata = {
+  title: "Visit us",
+  description:
+    "Where the shop is, when it is open, and what to bring to a fitting. Everything is tried on in person, so nothing is posted.",
+};
 
 // What actually happens at a fitting. Four steps, each one a thing the shop
 // really does; nothing here claims a duration or a service that does not exist.

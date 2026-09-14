@@ -42,7 +42,10 @@ import { getRentals, getRentalCategories } from "@/lib/rentals";
  */
 
 export const metadata: Metadata = {
-  title: "The Bridal Rental Edit | Vivaah Dresses and Suits",
+  // No brand here: layout.tsx appends it through the title template, and
+  // naming it again rendered "... | Vivaah Dresses and Suits · Vivaah Dresses
+  // and Suits" in the tab.
+  title: "The bridal rental edit",
   description:
     "Bridal lehengas, silk sarees and festive gowns to rent for the days they are needed. Reserve your dates and collect at the shop.",
 };
