@@ -338,7 +338,7 @@ export function ProductForm({
               <div className="mt-0.5 h-14 w-14 shrink-0 overflow-hidden rounded-control border border-ink-900/10 bg-porcelain-100">
                 {img.path ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={img.path} alt="" className="h-full w-full object-cover" />
+                  <img src={img.path} alt="" aria-hidden="true" className="h-full w-full object-cover" />
                 ) : null}
               </div>
               <div className="flex flex-1 flex-col gap-2 sm:flex-row">

@@ -330,6 +330,7 @@ export default async function HomePage() {
                 <img
                   src={DOORS[0].image}
                   alt=""
+                  aria-hidden="true"
                   className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
@@ -359,6 +360,7 @@ export default async function HomePage() {
                 <img
                   src={DOORS[1].image}
                   alt=""
+                  aria-hidden="true"
                   className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
@@ -388,6 +390,7 @@ export default async function HomePage() {
               <img
                 src={DOORS[2].image}
                 alt=""
+                aria-hidden="true"
                 className="aspect-[3/4] w-full max-h-[27rem] max-w-[340px] object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               />
               <p className="eyebrow on-dark absolute left-5 top-5">
@@ -430,6 +433,7 @@ export default async function HomePage() {
               <img
                 src="/categories/rajasthani-poshak.webp"
                 alt=""
+                aria-hidden="true"
                 className="h-11 w-11 rounded-full object-cover"
               />
               <span className="flex items-center gap-2">

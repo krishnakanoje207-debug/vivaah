@@ -56,6 +56,7 @@ export function CuratedMoment({ category }: { category: Category }) {
             <img
               src={category.image}
               alt=""
+              aria-hidden="true"
               className="absolute inset-0 h-full w-full object-cover object-[72%_center] md:object-[center_28%] opacity-60"
             />
           )

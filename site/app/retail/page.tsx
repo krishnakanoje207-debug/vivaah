@@ -162,18 +162,21 @@ export default function RetailPage() {
                 <img
                   src="/categories/short-kurtis.webp"
                   alt=""
+                  aria-hidden="true"
                   className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-14"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/categories/co-ord-sets.webp"
                   alt=""
+                  aria-hidden="true"
                   className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/categories/kaftans.webp"
                   alt=""
+                  aria-hidden="true"
                   className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-24"
                 />
               </div>
@@ -254,6 +257,7 @@ export default function RetailPage() {
                     <img
                       src={c.image}
                       alt=""
+                      aria-hidden="true"
                       className={`w-full object-cover transition-transform duration-[180ms] group-hover:scale-[1.03] ${t.media}`}
                     />
                   </div>
@@ -355,6 +359,7 @@ export default function RetailPage() {
             <img
               src="/categories/side-lehengas.webp"
               alt=""
+              aria-hidden="true"
               className="arch h-36 w-28 bg-violet-900 object-cover"
             />
           </div>

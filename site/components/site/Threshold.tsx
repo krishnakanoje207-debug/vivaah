@@ -185,6 +185,7 @@ export function Threshold({ line }: { line: ReactNode }) {
           <img
             src="/threshold/threshold-poster.jpg"
             alt=""
+            aria-hidden="true"
             className="absolute inset-0 h-full w-full object-cover"
           />
         )}
