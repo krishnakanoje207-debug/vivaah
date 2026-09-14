@@ -1,38 +1,51 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
+
 /**
- * The piece going into its cover, and travelling to the tray.
+ * The piece being set aside: its photograph gathers into a small arch and is
+ * lifted onto the hanger in the header.
  *
- * The owner asked for the garment to be packed and fly to the header, with the
- * journey itself animated rather than a straight slide. The packing is a
- * GARMENT COVER, not a box: this shop posts nothing, and a box would picture a
- * service that does not exist — while a cover is the thing actually pulled over
- * a rented outfit before it leaves the rail, so the flourish stays true.
+ * Rebuilt 14 Sep 2026. The first version pulled a frosted "garment cover" over
+ * a thumbnail and lobbed it in a high arc; the owner judged both the animation
+ * and its path wrong. Read frame by frame it was a thrown object: it left the
+ * page upwards, banked, swayed, and arrived at the tray from above at 16% of its
+ * size, which is the fly-to-cart gesture every shop uses. What is actually done
+ * with a garment someone is considering is quieter: it is taken off the display
+ * and hung on the rail behind the counter. So:
  *
- * How it is built, and why:
+ *   - IT IS THE PHOTOGRAPH, not a token. The ghost starts exactly on the card's
+ *     own clipped image, same box and same border-radius (so the arch comes
+ *     along without this file knowing about `.arch`), and gathers down to a
+ *     40px swatch. Nothing is drawn that the card did not already show.
+ *   - THE PATH IS ACROSS, THEN UP. x and y run on nested layers with different
+ *     curves: x front-loaded, y eased at both ends. The swatch crosses to the
+ *     tray's column first and then rises into the hook, decelerating from
+ *     below, which is how a hanger is put on a rail. No lift above the page, no
+ *     banking, no rotation in flight. A single element tweened between two
+ *     points cannot do this; two layers with two easings trace the curve for
+ *     free and stay on the compositor.
+ *   - THE ARRIVAL IS FELT AT THE DESTINATION. The hanger swings once about its
+ *     hook like something with weight has been hung on it, damped over ~0.7s,
+ *     and the count rolls up. The count does not change when the button is
+ *     pressed: the tray reads `useAirborne()` and holds the number back until
+ *     the piece lands, so cause, travel and result are one sentence.
  *
- *   - The traversal is a real arc, via CSS Motion Path (`offsetPath`), not a
- *     translate tween between two points. A quadratic bezier whose control
- *     point is lifted above both ends gives the lob a thrown garment bag has.
- *     Keyframing translate would fake the same curve in three or four steps and
- *     read as a corner turned rather than a curve followed.
- *   - `offsetRotate: "0deg"` pins the rotation, because the default makes the
- *     element bank into the tangent of the path, which on a lob means it
- *     arrives upside down. The sway is applied separately and deliberately.
- *   - It is rendered into `document.body`, fixed, and `pointer-events-none`, so
- *     nothing it passes over can be clicked by accident and no ancestor's
- *     `overflow: hidden` can clip it mid-flight. Several of the surfaces this
- *     launches from — the rail, the stage — do clip.
- *   - Everything is torn down on `finish`, including when the tab is hidden
- *     mid-flight and the animation never resolves normally.
+ * Rendered into `document.body`, fixed and `pointer-events: none`: several of
+ * the surfaces this launches from clip (`overflow: hidden`), and nothing it
+ * crosses can be clicked by accident. Every path ends in `land`, including a
+ * tab hidden mid-flight, so the count can never be left held back.
  *
- * Reduced motion skips the whole thing. The selection is still updated and the
- * tray still counts: the animation is the confirmation made pleasant, never the
- * confirmation itself.
+ * Reduced motion: nothing travels and nothing swings. The number still arrives
+ * with a short opacity fade, because that is the confirmation, not decoration.
  */
 
-const DURATION = 820;
-const COVER_MS = 240; // the cover coming down before the lob begins
+const SWATCH_W = 40; // px, the gathered piece; 4:5 like the cards
+const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)"; // --ease-out-strong
+const EASE_GATHER = "cubic-bezier(0.33, 1, 0.68, 1)"; // gentler: the gather is seen
+const LEAD = 0.14; // share of the flight the gather has to itself before travel
+const EASE_X = "cubic-bezier(0.3, 0.6, 0.35, 1)"; // across early
+const EASE_Y = "cubic-bezier(0.65, 0, 0.35, 1)"; // rises late, settles
 
 /** Where the flight lands. Registered by the tray in the header. */
 let target: HTMLElement | null = null;
@@ -41,164 +54,208 @@ export function registerFlightTarget(el: HTMLElement | null) {
   target = el;
 }
 
-/** The drawn hanger hook that sits on the cover. SVG built, never parsed. */
-function hookSvg(): SVGSVGElement {
-  const NS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(NS, "svg");
-  svg.setAttribute("width", "26");
-  svg.setAttribute("height", "20");
-  svg.setAttribute("viewBox", "0 0 26 20");
-  svg.setAttribute("fill", "none");
-  for (const d of [
-    "M13 6.5c0-2 1.4-3 2.8-3 1.5 0 2.7 1.1 2.7 2.6",
-    "M13 6.5 3 13.4c-.8.6-.4 1.9.6 1.9h18.8c1 0 1.4-1.3.6-1.9L13 6.5Z",
-  ]) {
-    const path = document.createElementNS(NS, "path");
-    path.setAttribute("d", d);
-    path.setAttribute("stroke", "#c6a04a");
-    path.setAttribute("stroke-width", "1.4");
-    path.setAttribute("stroke-linecap", "round");
-    path.setAttribute("stroke-linejoin", "round");
-    svg.appendChild(path);
-  }
-  return svg;
+// Pieces in the air. A module-level store in the same shape as lib/selection:
+// the tray subtracts it from the real count so the number waits for the piece.
+let airborne = 0;
+const listeners = new Set<() => void>();
+function setAirborne(n: number) {
+  airborne = Math.max(0, n);
+  listeners.forEach((fn) => fn());
+}
+function subscribe(fn: () => void) {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
+  };
+}
+export function useAirborne(): number {
+  return useSyncExternalStore(subscribe, () => airborne, () => 0);
 }
 
-/** A short bump on the tray, so the arrival is felt at the destination too. */
-function bump(el: HTMLElement) {
-  el.animate(
-    [
-      { transform: "scale(1)" },
-      { transform: "scale(1.22)" },
-      { transform: "scale(1)" },
-    ],
-    { duration: 340, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+/** The count, once React has painted the new number. */
+function tick(reduced: boolean, hadPill: boolean) {
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      const num = target?.querySelector<HTMLElement>("[data-count]");
+      const pill = target?.querySelector<HTMLElement>("[data-count-pill]");
+      if (!num) return;
+      if (reduced) {
+        num.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220 });
+        return;
+      }
+      // The first piece brings the pill itself; later ones roll the figure
+      // inside it, so a changing number never looks like a new badge.
+      if (!hadPill && pill) {
+        pill.animate(
+          [
+            { transform: "scale(0.4)", opacity: 0 },
+            { transform: "scale(1)", opacity: 1 },
+          ],
+          { duration: 320, easing: EASE_OUT },
+        );
+      } else {
+        num.animate(
+          [
+            { transform: "translateY(70%)", opacity: 0 },
+            { transform: "translateY(0)", opacity: 1 },
+          ],
+          { duration: 300, easing: EASE_OUT },
+        );
+      }
+    }),
   );
 }
 
+/**
+ * One swing about the hook, as if weight had just been hung on it. `dir` is
+ * the side the piece came from: its momentum carries the hanger's foot onward.
+ */
+function sway(dir: number) {
+  const svg = target?.querySelector("svg");
+  if (!svg) return;
+  const a = 9 * dir;
+  // The hook is at the top of the drawing, so that is the pivot.
+  svg.style.transformOrigin = "50% 22%";
+  // Each half-swing eases in and out on its own (a pendulum is slowest at the
+  // ends of its travel), and each is shorter and smaller than the last.
+  const swing = [0, a, -a * 0.55, a * 0.25, -a * 0.08, 0];
+  const at = [0, 0.2, 0.46, 0.7, 0.88, 1];
+  svg.animate(
+    swing.map((deg, i) => ({
+      transform: `rotate(${deg}deg)`,
+      offset: at[i],
+      easing: "cubic-bezier(0.37, 0, 0.63, 1)",
+    })),
+    { duration: 760 },
+  );
+}
+
+/** The nearest box that actually clips `el`, so the ghost matches what shows. */
+function clipBox(el: HTMLElement): HTMLElement {
+  const parent = el.parentElement;
+  if (el.tagName === "IMG" && parent && getComputedStyle(parent).overflow !== "visible") {
+    return parent;
+  }
+  return el;
+}
+
 export function flyGarment(from: HTMLElement, image: string | null) {
-  if (typeof window === "undefined") return;
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    if (target) bump(target);
+  if (typeof window === "undefined" || !target) return;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const hadPill = !!target.querySelector("[data-count-pill]");
+  if (reduced) {
+    tick(true, hadPill);
     return;
   }
-  if (!target) return; // tray not on screen (admin, or a very narrow header)
 
-  const a = from.getBoundingClientRect();
-  const b = target.getBoundingClientRect();
-  if (!a.width || !b.width) return;
+  const hook = (target.querySelector("svg") ?? target).getBoundingClientRect();
+  const isPhoto = from.tagName === "IMG";
+  const box = isPhoto ? clipBox(from) : from;
+  const a = box.getBoundingClientRect();
+  if (!a.width || !hook.width) return;
 
-  // Start small enough to read as a garment bag rather than as the page's own
-  // photograph detaching, but large enough to see the cover come down.
-  const w = Math.min(a.width, 132);
-  const h = w * 1.34; // a cover is taller than it is wide
-  const x0 = a.left + a.width / 2 - w / 2;
-  const y0 = a.top + a.height / 2 - h / 2;
-  const dx = b.left + b.width / 2 - (x0 + w / 2);
-  const dy = b.top + b.height / 2 - (y0 + h / 2);
+  // A photograph starts as itself and gathers. Anything else (the product
+  // page's button, a card still waiting for its photograph) starts as the
+  // swatch at the centre of what was pressed, since blowing a button up to a
+  // picture would be a shape the page never had.
+  const w = isPhoto ? a.width : SWATCH_W;
+  const h = isPhoto ? a.height : SWATCH_W * 1.25;
+  const cx = a.left + a.width / 2;
+  const cy = a.top + a.height / 2;
+  const dx = hook.left + hook.width / 2 - cx;
+  const dy = hook.top + hook.height / 2 - cy;
+  const gathered = SWATCH_W / w;
 
-  // The lob. The control point is lifted well above the higher of the two ends
-  // so the arc clears the page rather than cutting across it; the lift scales
-  // with the distance travelled, and is clamped so a short hop still arcs and a
-  // full-page journey does not leave the viewport.
-  const lift = Math.max(90, Math.min(Math.abs(dx) * 0.55 + 120, 380));
-  const path = `path("M 0 0 Q ${dx / 2} ${Math.min(dy, 0) - lift} ${dx} ${dy}")`;
+  // Longer journeys take a little longer, never so long it feels like waiting.
+  const T = Math.round(Math.min(900, Math.max(620, 560 + Math.hypot(dx, dy) * 0.18)));
 
-  const host = document.createElement("div");
+  const layer = (css: string) => {
+    const d = document.createElement("div");
+    d.style.cssText = css;
+    return d;
+  };
+  const fill = "position:absolute;inset:0;";
+  const host = layer(
+    `position:fixed;left:${cx - w / 2}px;top:${cy - h / 2}px;width:${w}px;height:${h}px;z-index:70;pointer-events:none;`,
+  );
   host.setAttribute("aria-hidden", "true");
-  host.style.cssText = `position:fixed;left:${x0}px;top:${y0}px;width:${w}px;height:${h}px;z-index:70;pointer-events:none;will-change:transform;`;
+  const xl = layer(fill + "will-change:transform;");
+  const yl = layer(fill + "will-change:transform;");
+  const body = layer(fill + "will-change:transform,opacity;");
+  const radius = isPhoto ? getComputedStyle(box).borderRadius : "50% 50% 3px 3px / 22% 22% 3px 3px";
+  // The lift shadow is its own layer so it can come up as the piece leaves the
+  // card, instead of a 40px shadow appearing around the card's photograph.
+  const shade = layer(
+    fill + `border-radius:${radius};box-shadow:0 14px 30px -10px rgba(25,17,41,0.5);opacity:0;`,
+  );
+  const clip = layer(fill + `border-radius:${radius};overflow:hidden;background:#f2f1ec;`);
 
-  // The cover: a porcelain panel with a gold keyline and a drawn hook, sliding
-  // down over the garment. `overflow:hidden` on the inner box is what makes the
-  // panel arrive as a cover rather than as a rectangle floating over the photo.
-  //
-  // Built with DOM calls rather than an innerHTML string. The first version
-  // interpolated `image` into `<img src="${image}">`, and although that value
-  // only ever comes from an admin-entered product path — never from a customer
-  // — a quote in it would have broken out of the attribute and injected markup.
-  // Assigning `img.src` sets a property and parses no HTML at all, so the whole
-  // class of bug is gone instead of being validated against.
-  const inner = document.createElement("div");
-  inner.style.cssText =
-    "position:relative;width:100%;height:100%;overflow:hidden;border-radius:2px;box-shadow:0 18px 40px -12px rgba(25,17,41,0.55);";
-
-  const art = document.createElement("div");
-  art.style.cssText = "position:absolute;inset:0;";
+  // DOM calls, never an HTML string: `image` is an admin-entered path, and a
+  // quote in it must not be able to break out of an attribute.
   if (image) {
     const img = document.createElement("img");
-    img.src = image;
+    img.src = isPhoto ? (from as HTMLImageElement).currentSrc || image : image;
     img.alt = "";
-    img.style.cssText = "width:100%;height:100%;object-fit:cover;";
-    art.appendChild(img);
+    img.style.cssText = "width:100%;height:100%;object-fit:cover;display:block;";
+    clip.appendChild(img);
   } else {
-    art.style.background = "#2a1f42";
+    // The card's own "photograph coming" ornament, so a piece with no picture
+    // travels as what the card shows rather than as a blank.
+    clip.style.cssText += "display:flex;align-items:center;justify-content:center;border:1px solid rgba(169,133,58,0.45);color:#a9853a;font-size:12px;";
+    clip.textContent = "✦";
   }
-
-  const cover = document.createElement("div");
-  cover.style.cssText =
-    "position:absolute;inset:0;transform:translateY(-101%);background:rgba(250,248,245,0.74);" +
-    "backdrop-filter:blur(2.5px);-webkit-backdrop-filter:blur(2.5px);" +
-    "border:1px solid rgba(198,160,74,0.55);display:flex;align-items:flex-start;" +
-    "justify-content:center;padding-top:9px;";
-  // The hanger hook, the same mark the tray and the gather button carry.
-  cover.appendChild(hookSvg());
 
   // appendChild, not append: the Workers type definitions in
   // worker-configuration.d.ts put a FormData-shaped `append` in scope and tsc
   // resolves the Element one to it.
-  inner.appendChild(art);
-  inner.appendChild(cover);
-  host.appendChild(inner);
-
+  body.appendChild(shade);
+  body.appendChild(clip);
+  yl.appendChild(body);
+  xl.appendChild(yl);
+  host.appendChild(xl);
   document.body.appendChild(host);
+  setAirborne(airborne + 1);
 
-  // 1. The cover comes down over the piece.
-  cover.animate(
-    [{ transform: "translateY(-101%)" }, { transform: "translateY(0)" }],
-    { duration: COVER_MS, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
-  );
+  // The piece starts gathering before it starts moving, so the first thing
+  // seen is the photograph lifting off its card, not a thumbnail shooting away.
+  const opts = (easing: string): KeyframeAnimationOptions => ({
+    duration: T * (1 - LEAD),
+    delay: T * LEAD,
+    easing,
+    fill: "forwards",
+  });
+  xl.animate([{ transform: "translateX(0)" }, { transform: `translateX(${dx}px)` }], opts(EASE_X));
+  const flight = yl.animate([{ transform: "translateY(0)" }, { transform: `translateY(${dy}px)` }], opts(EASE_Y));
 
-  // 2. The lob, beginning as the cover lands.
-  const flight = host.animate(
+  // Gather over the first ~40%, hold as a swatch, then go into the hook: the
+  // last stretch shrinks it under the hanger's own drawing and lets it go.
+  const s0 = isPhoto ? 1 : 0.5;
+  const s1 = isPhoto ? gathered : 1;
+  body.animate(
     [
-      { offsetDistance: "0%", opacity: 1 },
-      { offsetDistance: "100%", opacity: 1, offset: 0.82 },
-      { offsetDistance: "100%", opacity: 0 },
+      { transform: `scale(${s0})`, opacity: isPhoto ? 1 : 0, easing: EASE_GATHER },
+      { transform: `scale(${s1})`, opacity: 1, offset: 0.42 },
+      { transform: `scale(${s1})`, opacity: 1, offset: 0.82, easing: EASE_OUT },
+      { transform: `scale(${s1 * 0.4})`, opacity: 0 },
     ],
-    {
-      duration: DURATION,
-      delay: COVER_MS * 0.7,
-      easing: "cubic-bezier(0.32, 0, 0.2, 1)",
-      fill: "forwards",
-    }
+    { duration: T, fill: "forwards" },
   );
-  host.style.offsetPath = path;
-  host.style.offsetRotate = "0deg";
+  shade.animate([{ opacity: 0 }, { opacity: 1, offset: 0.42 }, { opacity: 1 }], {
+    duration: T,
+    fill: "forwards",
+  });
 
-  // 3. It shrinks into the tray, and sways on the way like something hanging.
-  inner.animate(
-    [
-      { transform: "scale(1) rotate(0deg)" },
-      { transform: "scale(0.62) rotate(-7deg)", offset: 0.45 },
-      { transform: "scale(0.16) rotate(3deg)" },
-    ],
-    {
-      duration: DURATION,
-      delay: COVER_MS * 0.7,
-      easing: "cubic-bezier(0.32, 0, 0.2, 1)",
-      fill: "forwards",
-    }
-  );
-
-  const done = () => {
+  let landed = false;
+  const land = () => {
+    if (landed) return;
+    landed = true;
     host.remove();
-    if (target) bump(target);
+    setAirborne(airborne - 1);
+    sway(dx > 0 ? -1 : 1);
+    tick(false, hadPill);
   };
-  flight.addEventListener("finish", done, { once: true });
-  // A tab hidden mid-flight never fires `finish`, so the node would outlive the
-  // gesture and sit over the page on return.
-  flight.addEventListener("cancel", () => host.remove(), { once: true });
-  window.setTimeout(() => {
-    if (host.isConnected) done();
-  }, DURATION + COVER_MS + 400);
+  flight.addEventListener("finish", land, { once: true });
+  flight.addEventListener("cancel", land, { once: true });
+  // A hidden tab may never deliver `finish`; the count must not stay held.
+  window.setTimeout(land, T + 400);
 }

@@ -106,8 +106,8 @@ export function SelectionButton({
         </>
       ) : (
         <>
-          {/* The hanger, the same mark the tray and the flight's cover use, so
-              the three read as one object moving between places. */}
+          {/* The hanger, the same mark the tray carries, so pressing this and
+              the piece landing there read as one object in two places. */}
           <svg
             width="16"
             height="13"

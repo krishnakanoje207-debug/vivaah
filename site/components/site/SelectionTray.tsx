@@ -11,7 +11,7 @@ import {
   SELECTION_MAX,
 } from "@/lib/selection";
 import { selectionHref, hasRealPhone, REQUEST_NOTICE } from "@/lib/enquiry";
-import { registerFlightTarget } from "@/components/site/GarmentFlight";
+import { registerFlightTarget, useAirborne } from "@/components/site/GarmentFlight";
 import { formatINR } from "@/lib/rentals";
 
 /**
@@ -48,6 +48,10 @@ export function SelectionTray() {
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const count = sel.items.length;
+  // The badge waits for the piece: a gathered piece still in the air is not
+  // counted until it lands. The accessible label and the panel use the real
+  // count, because a screen reader has no flight to wait for.
+  const shown = Math.max(0, count - useAirborne());
 
   // The flight needs to know where to land, and the mark moves with the sticky
   // nav, so the element itself is registered rather than a measured point.
@@ -109,9 +113,16 @@ export function SelectionTray() {
             strokeLinejoin="round"
           />
         </svg>
-        {count > 0 && (
-          <span className="tabular absolute -right-0.5 -top-0.5 flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-gold-500 px-1 text-[11px] font-semibold leading-none text-violet-950">
-            {count}
+        {shown > 0 && (
+          /* The pill clips its figure so a new number can roll up into it
+             (GarmentFlight's `tick`). */
+          <span
+            data-count-pill
+            className="tabular absolute -right-0.5 -top-0.5 flex h-[19px] min-w-[19px] items-center justify-center overflow-hidden rounded-full bg-gold-500 px-1 text-[11px] font-semibold leading-none text-violet-950"
+          >
+            <span data-count className="block">
+              {shown}
+            </span>
           </span>
         )}
       </button>
