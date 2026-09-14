@@ -78,12 +78,27 @@ function buildTorn(seed: number): Torn {
   for (let i = n - 1; i >= 0; i--) tear += ` L${(i * step).toFixed(0)} ${ys[i].toFixed(1)}`;
   tear += ` Z`;
 
-  // Three to four rolls, spaced out, never touching.
+  // Where the paper actually curls back is not evenly spaced. The first build
+  // dropped each roll into its own lane — `(k + 0.5) / count` with a jitter of
+  // only ±20% of a lane — and made every belly a symmetric bell of near-enough
+  // the same size. Rendered, that reads as a scalloped border or a repeating
+  // artifact rather than as a tear: three or four identical domes at regular
+  // intervals (measured 14 Sep on the front door).
+  //
+  // A real rip rolls where the fibre let go and lies flat everywhere else. So
+  // positions are WALKED across the width with random gaps, which lets the run
+  // cluster two rolls and then leave a third of the span untouched; sizes vary
+  // by up to 3x so a deep roll can sit beside a shallow lip; and each belly
+  // leans, with its low point off-centre and its two arms carrying different
+  // weight. No two rolls in a seam are the same shape any more.
   const curls: { d: string; shadow: string }[] = [];
-  const count = 3 + Math.floor(rnd() * 2);
-  const lanes = Array.from({ length: count }, (_, k) => (k + 0.5) / count);
-  for (const lane of lanes) {
-    const centre = lane * W + (rnd() - 0.5) * (W / count) * 0.4;
+  const centres: number[] = [];
+  for (let x = W * (0.06 + rnd() * 0.2); x < W * 0.94 && centres.length < 3; ) {
+    centres.push(x);
+    x += W * (0.3 + rnd() * 0.34);
+  }
+
+  for (const centre of centres) {
     // Narrow and deep: a roll, not a swell. Wide shallow curves read as waves.
     //
     // These numbers are in viewBox units and the box is drawn with
@@ -92,14 +107,28 @@ function buildTorn(seed: number): Torn {
     // height map to a 74-104px band (~0.6x). A roll authored square here renders
     // half as deep as it is wide. The first build missed that and the curls read
     // as shallow bowls, so the width is cut and the depth raised to compensate.
-    const half = 38 + rnd() * 34;
+    // Proportion is what decides whether this reads as paper or as a bucket.
+    // The first tuning made the rolls DEEPER than they were wide (half 13-84
+    // units against a depth of 26-129) and the rendered result was a row of
+    // hanging sacks. Paper peeling off a surface is the opposite shape: wide and
+    // shallow, three to six times broader than it lifts. Rendered at 1440 the
+    // box squashes x by ~0.9 and y by ~0.65, so these authored numbers land at
+    // roughly 200-400px across and 15-35px deep — a lift, not a pouch.
+    const scale = 0.6 + rnd() * 0.7;
+    const half = (110 + rnd() * 120) * scale;
+    const depth = (20 + rnd() * 18) * scale; // how far it lifts off the rip
+    const lift = 3 + rnd() * 4; // its ends taper back to points on the tear
+    // Which way the roll leans, and how unevenly it carries. A symmetric bell
+    // is the single biggest giveaway that a shape was generated.
+    const lean = (rnd() - 0.5) * 0.7;
+    const armL = 0.55 + rnd() * 0.45;
+    const armR = 0.55 + rnd() * 0.45;
+
     const x0 = Math.max(-40, centre - half);
     const x1 = Math.min(W + 40, centre + half);
-    const depth = 74 + rnd() * 26; // how far the roll hangs into the revealed room
-    const lift = 3 + rnd() * 4; // its ends taper back to points on the tear
-
     const iStart = Math.max(0, Math.round(x0 / step));
     const iEnd = Math.min(n, Math.round(x1 / step));
+    if (iEnd - iStart < 2) continue; // too narrow to read as anything
 
     // Top of the roll follows the rip itself, so it is welded to the tear.
     let top = `M${(iStart * step).toFixed(0)} ${ys[iStart].toFixed(1)}`;
@@ -107,29 +136,21 @@ function buildTorn(seed: number): Torn {
       top += ` L${(i * step).toFixed(0)} ${ys[i].toFixed(1)}`;
     }
 
-    // Its underside is a smooth curve: paper rolls, it does not crease.
+    // Its underside is a smooth curve: paper rolls, it does not crease. The
+    // shadow is the same curve dropped and swollen, so the two can never drift
+    // apart the way two hand-copied path strings can.
     const yMid = ys[Math.round((iStart + iEnd) / 2)];
     const belly = yMid + depth;
-    const under =
-      ` C ${(x1 - half * 0.06).toFixed(0)} ${(ys[iEnd] + lift + depth * 0.55).toFixed(1)},` +
-      ` ${(centre + half * 0.72).toFixed(0)} ${belly.toFixed(1)},` +
-      ` ${centre.toFixed(0)} ${belly.toFixed(1)}` +
-      ` C ${(centre - half * 0.72).toFixed(0)} ${belly.toFixed(1)},` +
-      ` ${(x0 + half * 0.06).toFixed(0)} ${(ys[iStart] + lift + depth * 0.55).toFixed(1)},` +
+    const bx = centre + lean * half; // where the roll actually hangs lowest
+    const under = (dy: number, swell: number) =>
+      ` C ${(x1 - half * 0.06).toFixed(0)} ${(ys[iEnd] + lift + depth * armR * 0.55 + dy).toFixed(1)},` +
+      ` ${(bx + half * 0.72).toFixed(0)} ${(belly + swell).toFixed(1)},` +
+      ` ${bx.toFixed(0)} ${(belly + swell).toFixed(1)}` +
+      ` C ${(bx - half * 0.72).toFixed(0)} ${(belly + swell).toFixed(1)},` +
+      ` ${(x0 + half * 0.06).toFixed(0)} ${(ys[iStart] + lift + depth * armL * 0.55 + dy).toFixed(1)},` +
       ` ${(iStart * step).toFixed(0)} ${ys[iStart].toFixed(1)} Z`;
 
-    curls.push({
-      d: top + under,
-      // The cast shadow is the same roll, dropped and swollen slightly.
-      shadow:
-        top +
-        ` C ${(x1 - half * 0.06).toFixed(0)} ${(ys[iEnd] + lift + depth * 0.55 + 8).toFixed(1)},` +
-        ` ${(centre + half * 0.72).toFixed(0)} ${(belly + 11).toFixed(1)},` +
-        ` ${centre.toFixed(0)} ${(belly + 11).toFixed(1)}` +
-        ` C ${(centre - half * 0.72).toFixed(0)} ${(belly + 11).toFixed(1)},` +
-        ` ${(x0 + half * 0.06).toFixed(0)} ${(ys[iStart] + lift + depth * 0.55 + 8).toFixed(1)},` +
-        ` ${(iStart * step).toFixed(0)} ${ys[iStart].toFixed(1)} Z`,
-    });
+    curls.push({ d: top + under(0, 0), shadow: top + under(8, 11) });
   }
 
   // The rip's own drop shadow: the same ragged line, thickened downward.
@@ -183,20 +204,17 @@ export function SectionEdge({
               its own shadow where it curls under. Mixed from the paper colour so
               one gradient serves a porcelain tear and a violet one. */}
           <linearGradient id={`${id}-roll`} x1="0" y1="0" x2="0" y2="1">
-            {/* Tucked under the sheet, so it starts in shadow. The band is deep
-                enough to read at this scale: at 6% it was a hairline nobody saw,
-                which left the roll looking lit from the top down like a bowl. */}
-            <stop offset="0%" stopColor={`color-mix(in srgb, ${paper} 44%, black)`} />
-            <stop offset="14%" stopColor={`color-mix(in srgb, ${paper} 66%, black)`} />
-            {/* The lit ridge along the top of the roll: the paper's outer face
+            {/* Tucked under the sheet, so it starts in shadow. */}
+            <stop offset="0%" stopColor={`color-mix(in srgb, ${paper} 52%, black)`} />
+            {/* The lit ridge along the top of the lift: the paper's outer face
                 turning over, and the one thing that says "curl" rather than
-                "hole". Kept tight, because a wide highlight reads as a sphere. */}
-            <stop offset="26%" stopColor={`color-mix(in srgb, ${paper} 40%, white)`} />
-            <stop offset="33%" stopColor={`color-mix(in srgb, ${paper} 72%, white)`} />
-            <stop offset="46%" stopColor={paper} />
-            <stop offset="72%" stopColor={`color-mix(in srgb, ${paper} 70%, black)`} />
-            <stop offset="92%" stopColor={`color-mix(in srgb, ${paper} 42%, black)`} />
-            <stop offset="100%" stopColor={`color-mix(in srgb, ${paper} 30%, black)`} />
+                "hole". On a shallow lift this is most of what is visible, so it
+                sits high and carries the section rather than being a hairline
+                between two dark bands. */}
+            <stop offset="18%" stopColor={`color-mix(in srgb, ${paper} 55%, white)`} />
+            <stop offset="38%" stopColor={paper} />
+            <stop offset="70%" stopColor={`color-mix(in srgb, ${paper} 74%, black)`} />
+            <stop offset="100%" stopColor={`color-mix(in srgb, ${paper} 46%, black)`} />
           </linearGradient>
           <filter id={`${id}-blur`} x="-10%" y="-30%" width="120%" height="180%">
             <feGaussianBlur stdDeviation="5" />
