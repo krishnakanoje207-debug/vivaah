@@ -95,22 +95,16 @@ export default async function RentalsPage({
           filter, and a filter belongs beside what it filters, not in front of
           it. */}
       <div>
-        <Reveal>
-          <div data-reveal className="mb-12 md:mb-20">
-            <p className="eyebrow">{category ? "The collection" : "The full collection"}</p>
-            <h2 className="mt-4 text-h2">
-              {category ? (
-                <>
-                  {category.name}, to <em className="italic">rent</em>
-                </>
-              ) : (
-                <>
-                  All <em className="italic">rentals</em>
-                </>
-              )}
+        {/* Only the filtered rack names itself here: unfiltered, the section
+            heading above ("Rent bridal & festive wear") already says it, and a
+            second "All rentals" under it was the page repeating itself. */}
+        {category && (
+          <Reveal>
+            <h2 data-reveal className="mb-12 text-h2 md:mb-20">
+              {category.name}, to <em className="italic">rent</em>
             </h2>
-          </div>
-        </Reveal>
+          </Reveal>
+        )}
 
         {items.length === 0 ? (
           <Reveal>
@@ -165,20 +159,6 @@ export default async function RentalsPage({
                   </div>
                 );
               })}
-
-            <div
-              data-wipe
-              className="arch group relative hidden aspect-[3/4] items-center justify-center overflow-hidden border border-porcelain-200/50 bg-porcelain-100/40 p-16 text-center lg:flex"
-            >
-              <div className="absolute inset-0 bg-violet-950/[0.01] transition-colors duration-700 group-hover:bg-violet-950/[0.03]" />
-              <div className="relative z-10">
-                <span aria-hidden="true" className="mb-8 block text-3xl text-gold-600 opacity-60">✦</span>
-                <p className="font-display text-[1.625rem] italic leading-[1.4] text-ink-900/70 transition-colors duration-700 group-hover:text-ink-900">
-                  &ldquo;A bride is not just dressed; she is{" "}
-                  <em className="not-italic">adorned</em>.&rdquo;
-                </p>
-              </div>
-            </div>
           </WipeIn>
         )}
       </div>
@@ -194,17 +174,11 @@ export default async function RentalsPage({
           <Reveal>
             <div
               data-reveal
-              className="mb-10 mt-16 flex items-end justify-between gap-6 border-b border-porcelain-200 pb-8 md:mb-16 md:mt-28"
+              className="mb-10 mt-16 border-b border-porcelain-200 pb-8 md:mb-16 md:mt-28"
             >
-              <div>
-                <p className="eyebrow mb-2">Categorical index</p>
-                <h2 className="text-h2">
-                  Browse by <em className="italic">silhouette</em>
-                </h2>
-              </div>
-              <span className="hidden text-caption uppercase italic tracking-widest text-ink-600 opacity-60 sm:block">
-                Filtered by her perspective
-              </span>
+              <h2 className="text-h2">
+                Browse by <em className="italic">silhouette</em>
+              </h2>
             </div>
           </Reveal>
           {/* One tile at a time: `CategoryTiles` carries its own reveal per
@@ -273,18 +247,13 @@ export default async function RentalsPage({
         <div className="shell shell-rooms relative">
           <Reveal>
             <div data-reveal className="mx-auto max-w-3xl text-center">
-              <p className="eyebrow">The rental edit</p>
-              <h2 className="mt-6 text-h2 leading-[1.05]">
+              <h2 className="text-h2 leading-[1.05]">
                 Rent bridal &amp; <em className="italic text-gold-600">festive</em> wear
               </h2>
-              <p className="mt-8 text-[1.0625rem] leading-relaxed text-ink-600">
-                Choose your dates, pay a small advance to hold the piece, and collect it at
-                the shop.
-              </p>
             </div>
           </Reveal>
           <Ornament className="mx-auto mt-10 max-w-sm opacity-25 md:mt-16" />
-          <div className="mt-14 md:mt-24">{catalogue}</div>
+          <div className="mt-10 md:mt-16">{catalogue}</div>
         </div>
       </section>
 
@@ -297,15 +266,10 @@ export default async function RentalsPage({
         <div className="shell shell-rooms relative">
           <Reveal className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
             <div data-reveal>
-              <p className="eyebrow">The week</p>
-              <h2 className="mt-5 text-h2">Everything is decided at once</h2>
+              <h2 className="text-h2">Everything is decided at once</h2>
               <p className="mt-7 max-w-[44ch] leading-relaxed text-ink-600">
                 Sangeet on the Thursday. The wedding on the Saturday. A reception nobody
                 has thought about yet, because there has not been an hour to.
-              </p>
-              <p className="mt-4 max-w-[44ch] leading-relaxed text-ink-600">
-                Somewhere in that week you are expected to look like the photographs will
-                be looked at for thirty years.
               </p>
             </div>
             {/* The room's material: silk, photographed. */}
@@ -320,9 +284,6 @@ export default async function RentalsPage({
                   className="keyline aspect-[4/5] w-full bg-stage object-cover"
                 />
               </GoldFrame>
-              <figcaption className="mt-4 text-caption text-ink-600">
-                Reserved by the date, returned after the day it was needed.
-              </figcaption>
             </figure>
           </Reveal>
         </div>
@@ -334,14 +295,9 @@ export default async function RentalsPage({
         <SectionEdge seed={2} paper="var(--color-porcelain-100)" reveal="var(--color-porcelain-50)" />
         <div className="shell shell-rooms relative">
           <Reveal>
-            <p data-reveal className="eyebrow">The arithmetic</p>
-            <h2 data-reveal className="mt-5 max-w-[18ch] text-h2">
+            <h2 data-reveal className="max-w-[18ch] text-h2">
               What it costs to own it
             </h2>
-            <p data-reveal className="mt-7 max-w-[46ch] leading-relaxed text-ink-600">
-              A bridal lehenga is bought once, worn once, and folded into a steel almirah
-              for the rest of its life.
-            </p>
           </Reveal>
 
           <div className="mt-14 flex flex-wrap gap-x-10 gap-y-8 sm:gap-x-20 sm:gap-y-10">
@@ -386,19 +342,14 @@ export default async function RentalsPage({
           <div className="grid items-center gap-14 md:grid-cols-2 md:gap-20">
             <Parallax distance={44}>
               <Reveal>
-                <p data-reveal className="eyebrow">The craft</p>
                 <div data-reveal>
-                  <DistortHeading className="mt-5 max-w-[16ch] text-h2">
+                  <DistortHeading className="max-w-[16ch] text-h2">
                     We know how it was made
                   </DistortHeading>
                 </div>
                 <p data-reveal className="mt-7 max-w-[42ch] leading-relaxed text-ink-600">
                   Drag the seam. The photograph resolves into the garment&rsquo;s own draft:
                   the panel seams, the hem, the placement of every motif.
-                </p>
-                <p data-reveal className="mt-4 max-w-[42ch] text-caption text-ink-600">
-                  Drawn from the piece itself, not an illustration of it. Arrow keys move
-                  the seam if you would rather not drag.
                 </p>
               </Reveal>
             </Parallax>
@@ -428,15 +379,9 @@ export default async function RentalsPage({
                 Come and see it on
               </DistortHeading>
             </div>
-            <p data-reveal className="mt-8 max-w-[44ch] leading-relaxed text-violet-300">
-              Bring the date you are dressing for. We will put the pieces on you, and hold
-              whichever one you choose for that week.
-            </p>
-
-            {/* The paragraph above already promises the hold, and until now the
-                only thing under it was directions — so the page ended by asking
-                for a journey in answer to a decision. The ask goes where the
-                promise is made; "How to find us" stays, demoted to what it is. */}
+            {/* The ask comes before the directions: the page used to end by
+                asking for a journey in answer to a decision. "How to find us"
+                stays, demoted to what it is. */}
             <div data-reveal className="mt-10">
               <RequestButton tone="dark" />
             </div>

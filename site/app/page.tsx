@@ -201,11 +201,6 @@ export default async function HomePage() {
                 The rail changes every day. Come and see what arrived this week.
               </RippleHeading>
 
-              <p className="mt-6 max-w-[46ch] text-porcelain-50" data-reveal>
-                Two partners, one shop. Rentals and retail opened together, on
-                the same rail, and the stock is updated day to day.
-              </p>
-
               <div className="mt-8 flex flex-wrap gap-3" data-reveal>
                 <Link
                   href="/rentals"
@@ -263,32 +258,18 @@ export default async function HomePage() {
             </Parallax>
 
             <Reveal>
-              <p data-reveal className="eyebrow on-dark">
-                The shop
-              </p>
-
               <RippleHeading
                 italic="ourselves"
-                className="mt-5 max-w-[20ch] text-h2 text-porcelain-50"
+                className="max-w-[20ch] text-h2 text-porcelain-50"
               >
                 We are two partners. We handle every rental ourselves.
               </RippleHeading>
 
-              <div className="mt-10 grid gap-x-12 gap-y-5 text-porcelain-50/85 sm:grid-cols-2">
-                <p data-reveal>
-                  Rentals and retail began on the same day. One shop, two ways to
-                  take a garment home: reserve the dates and collect it, or
-                  reserve it and buy it.
-                </p>
-                <p data-reveal>
-                  The stock changes day to day. What is on the rail this week was
-                  not there last month, and new pieces keep arriving.
-                </p>
-                <p data-reveal>
-                  Every rental is handled personally, to the best of our
-                  abilities, by the same two people each time.
-                </p>
-              </div>
+              <p data-reveal className="mt-8 max-w-[46ch] text-porcelain-50/85">
+                Rentals and retail began on the same day. One shop, two ways to
+                take a garment home: reserve the dates and collect it, or
+                reserve it and buy it.
+              </p>
 
               {/* The two facts the owner has not given yet. Left visible on
                   purpose (work order §A): a placeholder is honest, an invented
@@ -326,25 +307,12 @@ export default async function HomePage() {
         />
 
         <div className="shell-wide relative">
-          <div className="grid gap-8 sm:grid-cols-[1fr_minmax(0,38ch)] sm:items-end sm:gap-16">
-            <Reveal>
-              <p data-reveal className="eyebrow">
-                Three doors
-              </p>
-              <RippleHeading
-                italic="home"
-                className="mt-5 max-w-[18ch] text-h2 text-ink-900"
-              >
-                Three ways to take a garment home.
-              </RippleHeading>
-            </Reveal>
-            <Reveal>
-              <p data-reveal className="text-ink-600">
-                Nothing is posted. Rentals are reserved by the date, retail is
-                reserved and collected, jewellery goes out with an outfit.
-              </p>
-            </Reveal>
-          </div>
+          <RippleHeading
+            italic="home"
+            className="max-w-[18ch] text-h2 text-ink-900"
+          >
+            Three ways to take a garment home.
+          </RippleHeading>
 
           <WipeIn className="mt-12 grid items-start gap-8 md:grid-cols-[minmax(0,0.92fr)_minmax(0,0.98fr)_minmax(0,1.2fr)] lg:gap-14">
             {/* 1 — rentals, on the dark plate */}
@@ -449,12 +417,9 @@ export default async function HomePage() {
       <section className="on-dark relative bg-violet-950 py-7">
         <div className="shell-wide">
           <Reveal className="flex flex-wrap items-center justify-between gap-6">
-            <div data-reveal className="flex flex-wrap items-baseline gap-x-8 gap-y-2">
-              <p className="eyebrow on-dark">Jewellery</p>
-              <p className="font-display text-h3 font-medium text-porcelain-50">
-                Rented alongside an outfit, never sold.
-              </p>
-            </div>
+            <p data-reveal className="font-display text-h3 font-medium text-porcelain-50">
+              Rented alongside an outfit, never sold.
+            </p>
 
             <Link
               href="/jewellery"
@@ -494,29 +459,14 @@ export default async function HomePage() {
           reveal="var(--color-porcelain-50)"
         />
 
-        {/* w-fit: the header takes the pictures' width, so the paragraph ends
-            over the last column instead of over empty paper. */}
         <div className="shell-wide relative">
           <div className="sm:w-fit">
-          <div className="grid gap-8 sm:grid-cols-[1fr_minmax(0,40ch)] sm:items-end sm:gap-16">
-            <Reveal>
-              <p data-reveal className="eyebrow">
-                Proof
-              </p>
-              <RippleHeading
-                italic="back"
-                className="mt-5 max-w-[16ch] text-h2 text-ink-900"
-              >
-                Before anything goes back on the rail.
-              </RippleHeading>
-            </Reveal>
-            <Reveal>
-              <p data-reveal className="text-ink-600">
-                Five checks, made by hand, on every piece, every time it comes
-                back.
-              </p>
-            </Reveal>
-          </div>
+          <RippleHeading
+            italic="back"
+            className="max-w-[16ch] text-h2 text-ink-900"
+          >
+            Before anything goes back on the rail.
+          </RippleHeading>
 
           {/* Sized to the pictures, not stretched to the shell. Two fractional
               columns across a 1800px shell left 500px of paper between the
@@ -597,18 +547,9 @@ export default async function HomePage() {
             }`}
           >
             <Reveal>
-              <p data-reveal className="max-w-[46ch] text-ink-600">
-                Fitting happens in person. Bring the date and we will bring the
-                rail.
-              </p>
-              <p data-reveal className="mt-4 max-w-[46ch] text-ink-600">
-                Come in during shop hours, or plan a visit so a piece you have
-                seen is waiting.
-              </p>
-
               {/* Practical detail, from lib/site so it follows the admin
                   settings when those land. Never hardcoded here. */}
-              <dl data-reveal className="mt-10">
+              <dl data-reveal>
                 <dt className="eyebrow">Hours</dt>
                 <dd className="mt-2 font-display text-h3 font-medium text-ink-900">
                   {SHOP.hours}

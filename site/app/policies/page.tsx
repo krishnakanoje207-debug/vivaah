@@ -171,7 +171,6 @@ export default function PoliciesPage() {
                   </li>
                 ))}
               </ol>
-              <p className="mt-6 text-caption text-ink-600">Four sections.</p>
             </nav>
 
             <div>
@@ -232,8 +231,7 @@ export default function PoliciesPage() {
           <div className="mt-10 grid items-start gap-12 lg:grid-cols-[1fr_minmax(0,22rem)] lg:gap-24">
             <div className="2xl:grid 2xl:grid-cols-[minmax(0,1fr)_minmax(0,38ch)] 2xl:gap-16">
               <div>
-                <p className="eyebrow">Being finalised</p>
-                <RippleHeading className="mt-5 max-w-[18ch] text-h2 text-porcelain-50 2xl:max-w-[26ch]">
+                <RippleHeading className="max-w-[18ch] text-h2 text-porcelain-50 2xl:max-w-[26ch]">
                   Full terms are being set by the shop.
                 </RippleHeading>
               </div>

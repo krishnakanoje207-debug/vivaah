@@ -127,11 +127,6 @@ export function JewelleryContent() {
                 Rented alongside an outfit, never sold.
               </RippleHeading>
 
-              <p data-reveal className="mt-8 max-w-[50ch] text-violet-300">
-                The set goes out with the lehenga, on the same dates, and comes back
-                with it. Nothing has to be hunted for separately.
-              </p>
-
               <div data-reveal className="mt-10 flex flex-wrap gap-3">
                 <Link
                   href="/rentals"
@@ -180,20 +175,9 @@ export function JewelleryContent() {
         />
 
         <div className="shell-wide relative z-[1]">
-          <div className="grid items-end gap-8 md:grid-cols-[1.4fr_1fr]">
-            <div>
-              <p className="eyebrow">The pieces</p>
-              <RippleHeading className="mt-5 text-h2 text-porcelain-50">
-                Three kinds, matched to what you take.
-              </RippleHeading>
-            </div>
-            <p className="max-w-[44ch] text-violet-300 md:justify-self-end md:pb-2">
-              Kundan, polki with pearls, and temple gold. Each set is kept against
-              the outfits it goes with, so the{" "}
-              <em className="font-display italic text-porcelain-50">choosing</em> is
-              short.
-            </p>
-          </div>
+          <RippleHeading className="text-h2 text-porcelain-50">
+            Three kinds, matched to what you take.
+          </RippleHeading>
 
           <WipeIn className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:grid-rows-[208px_140px_140px]">
             {PIECES.map((p) => (
@@ -274,19 +258,9 @@ export function JewelleryContent() {
         <div className="relative z-[1] grid items-center gap-12 pl-5 md:grid-cols-[minmax(0,25rem)_1fr] md:pl-8 lg:gap-16 lg:pl-[max(2.5rem,calc((100vw-1600px)/2+2.5rem))]">
           <div className="pr-5 md:pr-0">
             <Reveal>
-              <p data-reveal className="eyebrow">
-                Matched to the outfit
-              </p>
-
-              <RippleHeading className="mt-5 max-w-[16ch] text-h2 text-porcelain-50">
+              <RippleHeading className="max-w-[16ch] text-h2 text-porcelain-50">
                 One reservation, two things on the same dates.
               </RippleHeading>
-
-              <p data-reveal className="mt-8 max-w-[46ch] text-violet-300">
-                Take the lehenga for the wedding week and the set that goes with it
-                leaves with it. We match it against the outfit in the shop, and the
-                dates are the outfit&rsquo;s dates.
-              </p>
 
               <Link
                 data-reveal
@@ -331,7 +305,10 @@ export function JewelleryContent() {
         </div>
       </section>
 
-      {/* ---------- How it works: three lines, laid across ------------------ */}
+      {/* ---------- How it works: three lines, laid across ------------------
+          No header. It had two ("How it works" and "Three lines, nothing
+          more."), and the gold rule with the three step titles under it says
+          both. */}
       <section className="on-dark grain relative bg-violet-900 pt-28 pb-20 md:pt-32 md:pb-24">
         <SectionEdge
           seed={24}
@@ -340,16 +317,7 @@ export function JewelleryContent() {
         />
 
         <div className="shell-wide relative z-[1]">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <p className="eyebrow">How it works</p>
-            <p className="text-caption text-violet-300">
-              Three lines,{" "}
-              <em className="font-display italic text-porcelain-50">nothing</em>{" "}
-              more.
-            </p>
-          </div>
-
-          <div className="mt-6 h-px w-full bg-gold-500/50" />
+          <div className="h-px w-full bg-gold-500/50" />
 
           <Reveal className="mt-10 grid gap-10 md:grid-cols-3">
             {STEPS.map((s) => (
@@ -386,11 +354,6 @@ export function JewelleryContent() {
               <RippleHeading className="mt-8 max-w-[16ch] text-h2 text-porcelain-50">
                 Bring the outfit. Try the pieces against it.
               </RippleHeading>
-
-              <p data-reveal className="mt-6 max-w-[46ch] text-violet-300">
-                If the outfit is already reserved, say so when you come in and the
-                sets that go with it will be out on the counter.
-              </p>
 
               {/* Jewellery goes out with an outfit, so the ask is the same one
                   the rest of the site makes and the customer names the outfit

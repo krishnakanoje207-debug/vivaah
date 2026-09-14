@@ -105,13 +105,10 @@ export default function VisitPage() {
           would be a phone layout stretched wide (shared contract §H.1). */}
       <section className="bg-porcelain-50 pt-24 pb-20 md:pt-28 md:pb-28">
         <div className="shell-wide">
-          {/* Three tracks up to 2xl; four past it. At 2560 the heading runs out
-              at ~1030px inside a 1400px track and the standfirst is pinned to
-              the right edge, so the row had a 460px hole in the middle of it.
-              `2xl:contents` dissolves the standfirst's wrapper so its two
-              paragraphs become grid items of their own, which closes the hole
-              by putting something in it rather than by stretching the type. */}
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,7rem)_minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-16 2xl:grid-cols-[minmax(0,7rem)_minmax(0,1fr)_minmax(0,26ch)_minmax(0,26ch)]">
+          {/* The label in the margin, the sentence beside it. The standfirst
+              that held the right edge is gone (owner, 14 Sep: it restated the
+              heading and the four steps below), so the row is two tracks. */}
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,7rem)_minmax(0,1fr)] lg:items-start lg:gap-16">
             <div>
               <p className="eyebrow">Visit us</p>
               <div className="mt-4 hidden h-px bg-gold-600/40 lg:block" />
@@ -120,16 +117,6 @@ export default function VisitPage() {
             <RippleHeading as="h1" className="text-h1 text-ink-900">
               Fitting happens in person.
             </RippleHeading>
-
-            <div className="lg:pt-3 2xl:contents">
-              <p className="max-w-[38ch] text-ink-600 2xl:pt-3">
-                Nothing is posted. Come in, try pieces on, and we pin and alter them
-                here, in front of you.
-              </p>
-              <p className="mt-5 max-w-[38ch] text-caption text-ink-600 2xl:mt-0 2xl:pt-3">
-                Two of us run the shop, and we handle every fitting ourselves.
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -147,23 +134,16 @@ export default function VisitPage() {
           reveal="var(--color-stage)"
         />
 
-        {/* The ledger sits in its own track beside a standfirst rather than
-            spanning the whole 1600px band: full width, a four-word value and a
-            note pinned to the right edge leave a hole in the middle of every
-            row. Narrowing the track is what closes it. */}
+        {/* The ledger does not span the whole band: full width, a four-word
+            value and a note pinned to the right edge leave a hole in the middle
+            of every row. It used to be narrowed by a label and a standfirst in
+            a column beside it; with those gone it is indented instead, onto the
+            head's heading line (7rem margin plus the 4rem gap). */}
         {/* Positioned, so the tear above hangs behind the first line of type
             rather than over it: the band reaches ~64px into the section on a
             phone and ~93px from md up, against 48/64px of padding. */}
         <div className="shell-wide relative">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,17rem)_1fr] lg:gap-20">
-            <div>
-              <p className="eyebrow">Where, and when</p>
-              <p className="mt-5 max-w-[34ch] text-caption text-ink-600">
-                The shop keeps these current. If anything here has changed, the phone is
-                the fastest way to check.
-              </p>
-            </div>
-
+          <div className="lg:pl-[11rem]">
             <Reveal className="border-t border-ink-900/15 2xl:grid 2xl:grid-cols-2 2xl:gap-x-16">
               <div data-reveal className={ROW}>
                 <p className="eyebrow">Address</p>
@@ -187,10 +167,6 @@ export default function VisitPage() {
                 <p className="tabular max-w-[22ch] font-display text-h2 text-ink-900">
                   {SHOP.hours}
                 </p>
-                <p className={NOTE}>
-                  Come during these hours, or tell us when you are coming so a piece you
-                  have seen is waiting.
-                </p>
               </div>
 
               <div data-reveal className={ROW}>
@@ -203,7 +179,6 @@ export default function VisitPage() {
                     {SHOP.phone}
                   </a>
                 </p>
-                <p className={NOTE}>Call during shop hours and one of us will pick up.</p>
               </div>
 
               {/* The owner has not given the town, so there is nothing honest to
@@ -239,18 +214,12 @@ export default function VisitPage() {
               the heading over steps 1 and 2, the note over step 4. Pinning the
               two to the outer edges instead (space-between) put a 1150px gap
               between them that answered to nothing below it. */}
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,30rem)_minmax(0,24rem)] lg:items-end lg:justify-between lg:gap-20 2xl:grid-cols-4 2xl:justify-normal 2xl:gap-x-12">
-            <div className="2xl:col-span-2">
-              <p className="eyebrow">When you come in</p>
-              <RippleHeading className="mt-5 text-h2 text-ink-900">
-                Four things happen here.
-              </RippleHeading>
-            </div>
-            <p className="text-ink-600 2xl:col-start-4">
-              Two of us, one rail, and the date you are dressing for. Everything below
-              happens in the shop.
-            </p>
-          </div>
+          {/* One heading. The eyebrow's words are the heading now: "Four things
+              happen here" said nothing the four numbered steps did not, and
+              the note beside it restated the page's own h1. */}
+          <RippleHeading className="text-h2 text-ink-900">
+            When you come in.
+          </RippleHeading>
 
           <WipeIn className="mt-16 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4 lg:gap-x-12">
             {STEPS.map((s) => (
@@ -283,10 +252,7 @@ export default function VisitPage() {
                 1616px shell left the text with 1100px it could not fill, and
                 nothing at all holding the right edge. */}
             <Reveal className="md:order-1">
-              <p data-reveal className="eyebrow">
-                What to bring
-              </p>
-              <RippleHeading className="mt-5 max-w-[16ch] text-h2 text-ink-900">
+              <RippleHeading className="max-w-[16ch] text-h2 text-ink-900">
                 Bring the date, and whatever you are matching to.
               </RippleHeading>
 
@@ -346,10 +312,6 @@ export default function VisitPage() {
               <h3 className="mt-4 text-h3 text-porcelain-50">
                 Reserve the dates, collect, return.
               </h3>
-              <p className="mt-3 max-w-[46ch] text-violet-300">
-                Bridal and festive wear, rented by the date and fitted here before your
-                day.
-              </p>
               <div className="mt-8">
                 <Button href="/rentals" variant="ghost-dark">
                   See what is in for rent
@@ -362,10 +324,6 @@ export default function VisitPage() {
               <h3 className="mt-4 text-h3 text-porcelain-50">
                 Reserve online, collect at the shop.
               </h3>
-              <p className="mt-3 max-w-[46ch] text-violet-300">
-                Suits, kurtis, co-ord sets and kaftans to keep. Try it on here, then take
-                it home.
-              </p>
               <div className="mt-8">
                 <Button href="/retail" variant="ghost-dark">
                   See what is in to buy

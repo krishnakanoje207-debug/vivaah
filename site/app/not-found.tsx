@@ -49,10 +49,6 @@ export default function NotFound() {
             <h1 className="mt-3 text-h1">
               This piece is <em className="italic">not here</em>
             </h1>
-            <p className="mt-6 max-w-xl text-[1.0625rem] leading-relaxed text-ink-600">
-              The link you followed points to a page that has moved, or to a piece we no longer
-              keep on the rails. Both collections are one step away.
-            </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <Button href="/rentals" variant="primary">
                 Browse the rental collection

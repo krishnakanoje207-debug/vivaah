@@ -33,7 +33,7 @@ import { SHOP } from "@/lib/site";
  *   Head        porcelain-50    type left, arch strip right     ripple + parallax
  *   Categories  porcelain-100   12-column mosaic, mixed spans   wipe per tile
  *   Reserving   stage           35/65 sideways, steps across    reveal
- *   Rentals     violet-950      one row, eyebrow to image       reveal
+ *   Rentals     violet-950      one row, sentence to image      reveal
  *   Close       porcelain-50    reading shell, capped plate     gold frame
  *
  * Boundaries are torn, never blended: `SectionEdge` at each seam, the two grounds
@@ -225,18 +225,9 @@ export default function RetailPage() {
         />
 
         <div className="shell-wide">
-          <div className="grid items-end gap-8 md:grid-cols-[1.3fr_1fr] lg:gap-16">
-            <div>
-              <p className="eyebrow">Eight categories</p>
-              <RippleHeading className="mt-5 text-h2 text-ink-900">
-                What is on the rail.
-              </RippleHeading>
-            </div>
-            <p className="max-w-[44ch] text-ink-600 md:pb-2">
-              New pieces most days. What is here this week was not here last
-              month. Every category is reserved online and collected at the shop.
-            </p>
-          </div>
+          <RippleHeading className="text-h2 text-ink-900">
+            What is on the rail.
+          </RippleHeading>
 
           <WipeIn className="mt-14 grid grid-cols-1 gap-x-6 gap-y-12 md:mt-16 md:grid-cols-12 md:gap-y-14">
             {RETAIL_CATEGORIES.map((c, i) => {
@@ -290,16 +281,12 @@ export default function RetailPage() {
         />
 
         <div className="shell-wide grid items-start gap-12 md:grid-cols-[minmax(0,34fr)_minmax(0,66fr)] lg:gap-20">
-          <div>
-            <p className="eyebrow">How reserving works</p>
-            <RippleHeading className="mt-5 text-h2 text-ink-900">
-              Four steps.
-            </RippleHeading>
-            <p className="mt-6 max-w-[36ch] text-ink-600">
-              Nothing is posted. The reservation holds the piece, and the shop is
-              where it finishes.
-            </p>
-          </div>
+          {/* The eyebrow's words are the heading now. "Four steps." under
+              "How reserving works" counted what the four numbers beside it
+              already count. */}
+          <RippleHeading className="max-w-[12ch] text-h2 text-ink-900">
+            How reserving works.
+          </RippleHeading>
 
           {/* The gold hairline is the container's own top border, so it cannot
               drift out of register with the columns hanging from it. A floating
@@ -323,7 +310,7 @@ export default function RetailPage() {
       </section>
 
       {/* ---------- The doorway to rentals ----------------------------------
-          Variant B's version: one row, read left to right, eyebrow to sentence
+          Variant B's version: one row, read left to right, sentence
           to link to a single small plate. The page's only dark beat, and it is
           deliberately one line tall so it reads as a door and not as a pitch. */}
       <section className="grain on-dark relative bg-violet-950 py-12 md:py-16">
@@ -334,13 +321,9 @@ export default function RetailPage() {
         />
 
         <Reveal className="shell-wide relative grid items-center gap-8 md:grid-cols-12 md:gap-10">
-          <p data-reveal className="eyebrow md:col-span-2">
-            Rentals
-          </p>
-
           <h2
             data-reveal
-            className="text-h3 text-porcelain-50 md:col-span-5"
+            className="text-h3 text-porcelain-50 md:col-span-7"
           >
             Some pieces are for keeping. Some are for one week only.
           </h2>
@@ -384,15 +367,9 @@ export default function RetailPage() {
               of this, where centring strands a short block, is the trap. */}
           <div className="grid gap-12 md:grid-cols-[1fr_minmax(0,420px)] md:items-center lg:gap-16">
             <div>
-              <p className="eyebrow">Visit</p>
-              <RippleHeading className="mt-5 max-w-[22ch] text-h2 text-ink-900">
+              <RippleHeading className="max-w-[22ch] text-h2 text-ink-900">
                 Come in and try it on.
               </RippleHeading>
-              <p className="mt-6 max-w-[42ch] text-ink-600">
-                Reserve a piece and it is off the rail and waiting when you
-                arrive. Two of us run the shop, so it is the same people each
-                time.
-              </p>
 
               <dl className="mt-8 grid gap-x-10 gap-y-4 border-t border-ink-900/10 pt-6 text-caption sm:grid-cols-2">
                 <div>
@@ -407,11 +384,9 @@ export default function RetailPage() {
                 </div>
               </dl>
 
-              {/* The paragraph above says a piece comes off the rail and waits
-                  for you — and the only thing under it was a link to
-                  directions, so the page answered a decision with a journey.
-                  The ask comes first now; the visit stays as the second step it
-                  actually is. */}
+              {/* The ask comes first; the visit stays as the second step it
+                  actually is. Directions alone answered a decision with a
+                  journey. */}
               <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
                 <RequestButton notice={false} />
                 <Link

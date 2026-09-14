@@ -354,22 +354,13 @@ export default async function RentalProductPage({
               {/* The stills, for the details the turntable moves past. */}
               {p.spin && (
                 <div>
-                  <Reveal className="mb-12 flex flex-wrap items-end justify-between gap-4 border-b border-porcelain-200 pb-6">
-                    <div>
-                      <p data-reveal className="eyebrow mb-2">
-                        Detailed View
-                      </p>
-                      <RippleHeading className="text-h2 text-ink-900">
-                        Studio Perspectives
-                      </RippleHeading>
-                    </div>
-                    <span
-                      data-reveal
-                      className="text-caption italic uppercase tracking-widest text-ink-600"
-                    >
-                      Swipe to zoom
-                    </span>
-                  </Reveal>
+                  {/* No "Swipe to zoom" beside it: the gallery swipes and has
+                      arrows, and has never zoomed. */}
+                  <div className="mb-12 border-b border-porcelain-200 pb-6">
+                    <RippleHeading className="text-h2 text-ink-900">
+                      Studio Perspectives
+                    </RippleHeading>
+                  </div>
                   <WipeIn>
                     <SwipeGallery images={galleryFrames(p.spin, 6)} alt={p.name} />
                   </WipeIn>
@@ -378,14 +369,9 @@ export default async function RentalProductPage({
 
               {/* What she said afterwards. */}
               <div>
-                <Reveal className="mb-12">
-                  <p data-reveal className="eyebrow mb-3">
-                    Customer Perspective
-                  </p>
-                  <RippleHeading className="text-h2 text-ink-900">
-                    Reflections of her day
-                  </RippleHeading>
-                </Reveal>
+                <RippleHeading className="mb-12 text-h2 text-ink-900">
+                  Reflections of her day
+                </RippleHeading>
 
                 {p.reviews.length > 0 ? (
                   <WipeIn className="grid gap-8 md:grid-cols-2">
@@ -494,9 +480,6 @@ export default async function RentalProductPage({
                     </div>
                   ) : (
                     <div className="py-8 text-center">
-                      <p className="mb-6 italic text-ink-600">
-                        In-boutique exclusive silhouette.
-                      </p>
                       <Button href="/visit" variant="ghost">
                         Enquire at Boutique
                       </Button>
@@ -512,15 +495,15 @@ export default async function RentalProductPage({
                 <div data-reveal>
                   <GoldFrame tone="dark" className="on-dark">
                     <div className="grain group relative overflow-hidden rounded-card bg-violet-900 p-8 text-porcelain-50 shadow-lift lg:p-10">
+                      {/* The line that sat under this heading claimed "most
+                          brides" add a set and that sets were "curated
+                          specifically for this lehenga", on every rental
+                          including the ones that are not lehengas. Neither
+                          was true, so the heading stands alone. */}
                       <div className="relative z-10">
-                        <p className="eyebrow mb-4">Complete the Look</p>
-                        <h2 className="mb-5 text-h3 leading-tight text-porcelain-50">
+                        <h2 className="mb-8 text-h3 leading-tight text-porcelain-50">
                           Add matching jewellery
                         </h2>
-                        <p className="mb-10 max-w-[38ch] leading-relaxed text-violet-300">
-                          Most brides add matching jewellery for their dates.
-                          Explore sets curated specifically for this lehenga.
-                        </p>
                         <Button href="/jewellery" variant="ghost-dark">
                           Explore Jewellery Pairing
                         </Button>
@@ -547,8 +530,7 @@ export default async function RentalProductPage({
 
         <Reveal className="shell relative flex flex-col items-start gap-8 md:flex-row md:items-center md:justify-between">
           <div data-reveal>
-            <p className="eyebrow">Rentals</p>
-            <Ornament className="mt-5 w-28" />
+            <Ornament className="w-28" />
           </div>
           <div data-reveal>
             <Button href="/rentals" variant="ghost-dark">

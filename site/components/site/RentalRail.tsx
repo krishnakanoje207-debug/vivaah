@@ -60,10 +60,7 @@ export function RentalRail({
       <div className="shell-wide relative">
         <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-end sm:gap-16">
           <Reveal>
-            <p data-reveal className="eyebrow">
-              On the rail this week
-            </p>
-            <h2 data-reveal className="mt-5 max-w-[20ch] text-h2 text-ink-900">
+            <h2 data-reveal className="max-w-[20ch] text-h2 text-ink-900">
               Here is what is hanging up <em className="italic">right now</em>.
             </h2>
           </Reveal>

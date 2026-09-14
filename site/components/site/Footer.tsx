@@ -70,9 +70,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-2 border-t border-porcelain-50/12 pt-6 text-[0.8125rem] text-violet-300 md:flex-row md:items-center md:justify-between">
-          <p>© {SHOP.name}. Reserve online, collect at our shop.</p>
-          <p>Made for weddings, in India.</p>
+        <div className="mt-14 border-t border-porcelain-50/12 pt-6 text-[0.8125rem] text-violet-300">
+          <p>© {SHOP.name}</p>
         </div>
       </div>
     </footer>
