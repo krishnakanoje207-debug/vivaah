@@ -290,7 +290,7 @@ export default async function RentalsPage({
               <GoldFrame>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/categories/side-lehengas.jpg"
+                  src="/categories/side-lehengas.webp"
                   alt="A side lehenga in silk, photographed on the wearer"
                   className="aspect-[4/5] w-full bg-stage object-cover"
                 />
@@ -379,7 +379,7 @@ export default async function RentalsPage({
             </Parallax>
 
             <PatternSeam
-              photo="/categories/bridal-lehengas.jpg"
+              photo="/categories/bridal-lehengas.webp"
               draft="/flagship/draft-lehenga.png"
               alt="Bridal lehenga in red and gold, worn with a matching dupatta"
             />

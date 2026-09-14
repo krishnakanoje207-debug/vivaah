@@ -310,7 +310,7 @@ export default function VisitPage() {
             <Parallax distance={30}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/categories/sarees.jpg"
+                src="/categories/sarees.webp"
                 alt="A saree being tried on in the shop"
                 className="arch aspect-[4/5] max-h-[23rem] w-full object-cover shadow-card"
               />

@@ -49,7 +49,7 @@ const DOORS = [
     heading: "Reserve the dates, collect, return.",
     body: "Bridal and festive wear, rented by the date. Bridal and side lehengas, sarees, poshak, chaniya cholis, gowns and indo-western pieces, fitted in the shop before your day.",
     cta: "See what is in for rent",
-    image: "/categories/bridal-lehengas.jpg",
+    image: "/categories/bridal-lehengas.webp",
   },
   {
     href: "/retail",
@@ -57,7 +57,7 @@ const DOORS = [
     heading: "Reserve online, collect at the shop.",
     body: "Suits, kurtis, co-ord sets and kaftans to keep. Reserve a piece online, then come in, try it on and take it home.",
     cta: "See what is in to buy",
-    image: "/categories/co-ord-sets.jpg",
+    image: "/categories/co-ord-sets.webp",
   },
   {
     href: "/jewellery",
@@ -65,18 +65,18 @@ const DOORS = [
     heading: "Rented alongside an outfit, never sold.",
     body: "Matched to the outfit you are taking, on the same dates, so nothing has to be hunted for separately.",
     cta: "Match to your outfit",
-    image: "/categories/rajasthani-poshak.jpg",
+    image: "/categories/rajasthani-poshak.webp",
   },
 ];
 
 // Five checks, the shop's own process. Real, and small enough to be true.
 // Each one is shown as well as said, so the picture carries the claim.
 const CHECKS = [
-  { text: "Hooks and zips checked after every return.", image: "/categories/bridal-lehengas.jpg" },
-  { text: "Hem pinned at the fitting.", image: "/categories/gowns.jpg" },
-  { text: "Dupatta edge pressed.", image: "/categories/chaniya-cholis.jpg" },
-  { text: "Blouse altered in the shop.", image: "/categories/indo-western.jpg" },
-  { text: "Every piece steamed before it leaves.", image: "/categories/sarees.jpg" },
+  { text: "Hooks and zips checked after every return.", image: "/categories/bridal-lehengas.webp" },
+  { text: "Hem pinned at the fitting.", image: "/categories/gowns.webp" },
+  { text: "Dupatta edge pressed.", image: "/categories/chaniya-cholis.webp" },
+  { text: "Blouse altered in the shop.", image: "/categories/indo-western.webp" },
+  { text: "Every piece steamed before it leaves.", image: "/categories/sarees.webp" },
 ];
 
 // The hero scrim, measured against the bare plate rather than guessed at
@@ -224,7 +224,7 @@ export default async function HomePage() {
             <Parallax distance={34}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/categories/side-lehengas.jpg"
+                src="/categories/side-lehengas.webp"
                 alt="A piece being fitted in the shop"
                 className="aspect-[4/5] w-full object-cover shadow-card"
               />
@@ -428,7 +428,7 @@ export default async function HomePage() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/categories/rajasthani-poshak.jpg"
+                src="/categories/rajasthani-poshak.webp"
                 alt=""
                 className="h-11 w-11 rounded-full object-cover"
               />

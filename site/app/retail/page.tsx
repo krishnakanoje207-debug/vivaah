@@ -160,19 +160,19 @@ export default function RetailPage() {
               <div className="grid grid-cols-3 gap-4 lg:gap-5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/categories/short-kurtis.jpg"
+                  src="/categories/short-kurtis.webp"
                   alt=""
                   className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-14"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/categories/co-ord-sets.jpg"
+                  src="/categories/co-ord-sets.webp"
                   alt=""
                   className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/categories/kaftans.jpg"
+                  src="/categories/kaftans.webp"
                   alt=""
                   className="arch aspect-[3/4] w-full bg-porcelain-200 object-cover md:mt-24"
                 />
@@ -353,7 +353,7 @@ export default function RetailPage() {
           <div data-reveal className="md:col-span-2 md:justify-self-end">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/categories/side-lehengas.jpg"
+              src="/categories/side-lehengas.webp"
               alt=""
               className="arch h-36 w-28 bg-violet-900 object-cover"
             />
@@ -421,7 +421,7 @@ export default function RetailPage() {
             <GoldFrame tone="light">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/categories/party-wear-suits.jpg"
+                src="/categories/party-wear-suits.webp"
                 alt="A party wear suit on the rail in the shop"
                 className="aspect-[4/5] w-full bg-porcelain-200 object-cover"
               />

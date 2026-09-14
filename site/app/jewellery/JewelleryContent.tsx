@@ -52,7 +52,7 @@ const PIECES = [
   {
     name: "Kundan",
     note: "Sets for the bridal and side lehengas.",
-    image: "/categories/sarees.jpg",
+    image: "/categories/sarees.webp",
     alt: "A woman in a saree wearing a kundan necklace and earrings",
     // 3x3: the mosaic's anchor, and the page's arch.
     span: "lg:col-span-3 lg:row-span-3",
@@ -62,7 +62,7 @@ const PIECES = [
   {
     name: "Polki & Pearls",
     note: "Goes with gowns and indo-western pieces.",
-    image: "/categories/indo-western.jpg",
+    image: "/categories/indo-western.webp",
     alt: "A woman in an indo-western outfit with a polki and pearl necklace",
     span: "lg:col-span-3",
     ratio: "aspect-[16/10]",
@@ -71,7 +71,7 @@ const PIECES = [
   {
     name: "Temple Gold",
     note: "For sarees and poshak.",
-    image: "/categories/ready-to-wear-sarees.jpg",
+    image: "/categories/ready-to-wear-sarees.webp",
     alt: "A woman in a ready-to-wear saree with a temple gold necklace",
     span: "lg:col-span-2 lg:row-span-2",
     ratio: "aspect-[4/5]",
@@ -160,7 +160,7 @@ export function JewelleryContent() {
                     block beside it in the middle of a much taller row. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/categories/bridal-lehengas.jpg"
+                  src="/categories/bridal-lehengas.webp"
                   alt="A bride in a red lehenga wearing the matched necklace and maang tikka"
                   className="aspect-[4/5] max-h-[24rem] w-full object-cover"
                 />
@@ -243,7 +243,7 @@ export function JewelleryContent() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/categories/side-lehengas.jpg"
+                src="/categories/side-lehengas.webp"
                 alt="A woman in a side lehenga wearing stacked bangles"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               />
@@ -305,7 +305,7 @@ export function JewelleryContent() {
             <Parallax distance={30} className="ml-[24%] md:ml-[16%]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/categories/rajasthani-poshak.jpg"
+                src="/categories/rajasthani-poshak.webp"
                 alt="A woman in a Rajasthani poshak wearing the full set that goes with it"
                 className="aspect-[3/4] max-h-[26rem] w-full object-cover"
               />
@@ -315,7 +315,7 @@ export function JewelleryContent() {
               <div className="arch aspect-square overflow-hidden shadow-lift">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/categories/chaniya-cholis.jpg"
+                  src="/categories/chaniya-cholis.webp"
                   alt="The set matched to the outfit, worn with a chaniya choli"
                   className="h-full w-full object-cover"
                 />
