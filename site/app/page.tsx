@@ -494,7 +494,10 @@ export default async function HomePage() {
           reveal="var(--color-porcelain-50)"
         />
 
+        {/* w-fit: the header takes the pictures' width, so the paragraph ends
+            over the last column instead of over empty paper. */}
         <div className="shell-wide relative">
+          <div className="sm:w-fit">
           <div className="grid gap-8 sm:grid-cols-[1fr_minmax(0,40ch)] sm:items-end sm:gap-16">
             <Reveal>
               <p data-reveal className="eyebrow">
@@ -515,14 +518,18 @@ export default async function HomePage() {
             </Reveal>
           </div>
 
-          <Reveal className="mt-12 grid gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.04fr)] lg:gap-12">
-            <figure data-reveal className="m-0">
+          {/* Sized to the pictures, not stretched to the shell. Two fractional
+              columns across a 1800px shell left 500px of paper between the
+              first picture and the rest (owner, 14 Sep). The lead frame is
+              sized so it stands as tall as the two-up grid beside it. */}
+          <Reveal className="mt-12 grid gap-8 sm:grid-cols-[auto_auto] sm:justify-start sm:gap-10 lg:gap-14">
+            <figure data-reveal className="m-0 max-w-[300px] sm:w-[clamp(250px,32vw,620px)] sm:max-w-none">
               <Parallax distance={26}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={CHECKS[0].image}
                   alt={CHECKS[0].text}
-                  className="aspect-[3/4] w-full max-h-[23rem] max-w-[300px] object-cover ring-1 ring-ink-900/15"
+                  className="aspect-[3/4] w-full object-cover ring-1 ring-ink-900/15"
                 />
               </Parallax>
               <figcaption className="mt-4 flex gap-4 text-caption">
@@ -531,14 +538,14 @@ export default async function HomePage() {
               </figcaption>
             </figure>
 
-            <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
+            <div className="grid grid-cols-2 content-between gap-6 sm:gap-x-8 lg:gap-x-10">
               {CHECKS.slice(1).map((c, i) => (
-                <figure key={c.text} data-reveal className="m-0">
+                <figure key={c.text} data-reveal className="m-0 max-w-[200px] sm:w-[clamp(140px,15.5vw,300px)] sm:max-w-none">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={c.image}
                     alt={c.text}
-                    className="aspect-[4/5] w-full max-h-[15rem] max-w-[200px] object-cover ring-1 ring-ink-900/15"
+                    className="aspect-[4/5] w-full object-cover ring-1 ring-ink-900/15"
                   />
                   <figcaption className="mt-4 flex gap-3 text-caption">
                     <span className="tabular text-gold-700">
@@ -550,6 +557,7 @@ export default async function HomePage() {
               ))}
             </div>
           </Reveal>
+          </div>
         </div>
       </section>
 
