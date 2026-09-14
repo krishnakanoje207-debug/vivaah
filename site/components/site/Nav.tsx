@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { NAV_LINKS } from "@/lib/site";
+import { SelectionTray } from "@/components/site/SelectionTray";
 import { Button } from "@/components/ui/Button";
 import { Brand } from "@/components/site/Brand";
 
@@ -66,26 +67,35 @@ export function Nav() {
           ))}
         </ul>
 
-        <div className="hidden md:flex items-center gap-4">
-          <LangToggle overDark={overDark} />
-          <Button href="/visit" variant={overDark ? "ghost-dark" : "ghost"}>
-            Book a trial
-          </Button>
-        </div>
+        {/* The tray sits with the trailing controls at every width rather than
+            being duplicated per breakpoint: it registers itself as the landing
+            point for the garment flight, and two instances would mean the
+            hidden one could win that registration and send every piece to a
+            display:none target. One element, always mounted. */}
+        <div className={`flex items-center gap-1 md:gap-4 ${linkColor}`}>
+          <div className="hidden md:flex items-center gap-4">
+            <LangToggle overDark={overDark} />
+            <Button href="/visit" variant={overDark ? "ghost-dark" : "ghost"}>
+              Book a trial
+            </Button>
+          </div>
 
-        {/* 44x44, not the 40x28 the padding gave it: the bars are 24x12 and a
-           tap target has to be reachable, not just visible. The negative margin
-           keeps the bars flush with the shell's own edge as before. */}
-        <button
-          className="md:hidden -mr-2.5 inline-flex h-11 w-11 flex-col items-center justify-center gap-[5px]"
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span className={`h-px w-6 ${bar} transition-transform ${open ? "translate-y-[6px] rotate-45" : ""}`} />
-          <span className={`h-px w-6 ${bar} transition-opacity ${open ? "opacity-0" : ""}`} />
-          <span className={`h-px w-6 ${bar} transition-transform ${open ? "-translate-y-[6px] -rotate-45" : ""}`} />
-        </button>
+          <SelectionTray />
+
+          {/* 44x44, not the 40x28 the padding gave it: the bars are 24x12 and a
+             tap target has to be reachable, not just visible. The negative margin
+             keeps the bars flush with the shell's own edge as before. */}
+          <button
+            className="md:hidden -mr-2.5 inline-flex h-11 w-11 flex-col items-center justify-center gap-[5px]"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <span className={`h-px w-6 ${bar} transition-transform ${open ? "translate-y-[6px] rotate-45" : ""}`} />
+            <span className={`h-px w-6 ${bar} transition-opacity ${open ? "opacity-0" : ""}`} />
+            <span className={`h-px w-6 ${bar} transition-transform ${open ? "-translate-y-[6px] -rotate-45" : ""}`} />
+          </button>
+        </div>
       </nav>
 
       {open && (
