@@ -160,7 +160,31 @@ async function auditRoute(browser, route) {
       const bgOf = (el) => {
         const layers = [];
         let opaque = false;
-        let n = el;
+        // An element's ground is not always an ancestor. A transparent nav over a
+        // dark first section (data-dark-hero, pulled up under it with -mt-16) has
+        // <body> as its only opaque ancestor, so walking parents reported light
+        // nav type as sitting on porcelain (1:1) while it is painted on violet.
+        // On screen, the paint stack under the element's centre is the truth, and
+        // it includes the ancestors in their real order. Off screen, fall back to
+        // the parent walk.
+        const r0 = el.getBoundingClientRect();
+        const cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
+        if (cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight) {
+          for (const u of document.elementsFromPoint(cx, cy)) {
+            if ((u !== el && el.contains(u)) || u === document.documentElement) continue;
+            const c = getComputedStyle(u).backgroundColor;
+            const a = c && c !== "transparent" ? alphaOf(c) : 0;
+            if (a > 0.001) {
+              layers.push({ rgb: toRgb(c), a });
+              if (a >= 0.999) {
+                opaque = true;
+                break;
+              }
+            }
+          }
+        }
+        let n = opaque ? null : el;
+        if (!opaque) layers.length = 0;
         while (n && n !== document.documentElement) {
           const c = getComputedStyle(n).backgroundColor;
           if (c && c !== "transparent") {
