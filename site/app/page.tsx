@@ -123,10 +123,16 @@ export default async function HomePage() {
               grid column from md up so it owns the right of the frame. */}
           <div className="hero-frame absolute inset-0 sm:relative sm:col-start-2 sm:row-start-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
+            {/* The LCP image on every first visit, so it is told to jump the
+                queue: without this it competes with the sixteen other images on
+                the page, none of which is above the fold. */}
             <img
-              src="/hero/hero-garden.png"
+              src="/hero/hero-garden.webp"
               alt=""
               aria-hidden="true"
+              width={1247}
+              height={696}
+              fetchPriority="high"
               className="absolute inset-0 h-full w-full object-cover object-center"
             />
             <div aria-hidden="true" className="absolute inset-0 bg-violet-950/14" />
