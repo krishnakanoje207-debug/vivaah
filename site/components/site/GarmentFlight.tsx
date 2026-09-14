@@ -41,6 +41,29 @@ export function registerFlightTarget(el: HTMLElement | null) {
   target = el;
 }
 
+/** The drawn hanger hook that sits on the cover. SVG built, never parsed. */
+function hookSvg(): SVGSVGElement {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("width", "26");
+  svg.setAttribute("height", "20");
+  svg.setAttribute("viewBox", "0 0 26 20");
+  svg.setAttribute("fill", "none");
+  for (const d of [
+    "M13 6.5c0-2 1.4-3 2.8-3 1.5 0 2.7 1.1 2.7 2.6",
+    "M13 6.5 3 13.4c-.8.6-.4 1.9.6 1.9h18.8c1 0 1.4-1.3.6-1.9L13 6.5Z",
+  ]) {
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", d);
+    path.setAttribute("stroke", "#c6a04a");
+    path.setAttribute("stroke-width", "1.4");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(path);
+  }
+  return svg;
+}
+
 /** A short bump on the tray, so the arrival is felt at the destination too. */
 function bump(el: HTMLElement) {
   el.animate(
@@ -88,24 +111,46 @@ export function flyGarment(from: HTMLElement, image: string | null) {
   // The cover: a porcelain panel with a gold keyline and a drawn hook, sliding
   // down over the garment. `overflow:hidden` on the inner box is what makes the
   // panel arrive as a cover rather than as a rectangle floating over the photo.
-  host.innerHTML = `
-    <div class="gf-inner" style="position:relative;width:100%;height:100%;overflow:hidden;border-radius:2px;box-shadow:0 18px 40px -12px rgba(25,17,41,0.55);">
-      ${
-        image
-          ? `<img src="${image}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
-          : `<div style="position:absolute;inset:0;background:#2a1f42;"></div>`
-      }
-      <div class="gf-cover" style="position:absolute;inset:0;transform:translateY(-101%);background:rgba(250,248,245,0.74);backdrop-filter:blur(2.5px);-webkit-backdrop-filter:blur(2.5px);border:1px solid rgba(198,160,74,0.55);display:flex;align-items:flex-start;justify-content:center;padding-top:9px;">
-        <svg width="26" height="20" viewBox="0 0 26 20" fill="none" aria-hidden="true">
-          <path d="M13 6.5c0-2 1.4-3 2.8-3 1.5 0 2.7 1.1 2.7 2.6" stroke="#c6a04a" stroke-width="1.4" stroke-linecap="round"/>
-          <path d="M13 6.5 3 13.4c-.8.6-.4 1.9.6 1.9h18.8c1 0 1.4-1.3.6-1.9L13 6.5Z" stroke="#c6a04a" stroke-width="1.4" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </div>`;
+  //
+  // Built with DOM calls rather than an innerHTML string. The first version
+  // interpolated `image` into `<img src="${image}">`, and although that value
+  // only ever comes from an admin-entered product path — never from a customer
+  // — a quote in it would have broken out of the attribute and injected markup.
+  // Assigning `img.src` sets a property and parses no HTML at all, so the whole
+  // class of bug is gone instead of being validated against.
+  const inner = document.createElement("div");
+  inner.style.cssText =
+    "position:relative;width:100%;height:100%;overflow:hidden;border-radius:2px;box-shadow:0 18px 40px -12px rgba(25,17,41,0.55);";
+
+  const art = document.createElement("div");
+  art.style.cssText = "position:absolute;inset:0;";
+  if (image) {
+    const img = document.createElement("img");
+    img.src = image;
+    img.alt = "";
+    img.style.cssText = "width:100%;height:100%;object-fit:cover;";
+    art.appendChild(img);
+  } else {
+    art.style.background = "#2a1f42";
+  }
+
+  const cover = document.createElement("div");
+  cover.style.cssText =
+    "position:absolute;inset:0;transform:translateY(-101%);background:rgba(250,248,245,0.74);" +
+    "backdrop-filter:blur(2.5px);-webkit-backdrop-filter:blur(2.5px);" +
+    "border:1px solid rgba(198,160,74,0.55);display:flex;align-items:flex-start;" +
+    "justify-content:center;padding-top:9px;";
+  // The hanger hook, the same mark the tray and the gather button carry.
+  cover.appendChild(hookSvg());
+
+  // appendChild, not append: the Workers type definitions in
+  // worker-configuration.d.ts put a FormData-shaped `append` in scope and tsc
+  // resolves the Element one to it.
+  inner.appendChild(art);
+  inner.appendChild(cover);
+  host.appendChild(inner);
 
   document.body.appendChild(host);
-  const inner = host.firstElementChild as HTMLElement;
-  const cover = host.querySelector(".gf-cover") as HTMLElement;
 
   // 1. The cover comes down over the piece.
   cover.animate(
