@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listProducts, type ListProduct } from "./data";
-import { formatINR, totalStock } from "./helpers";
+import { formatINR, rentable, totalStock } from "./helpers";
 import type { Section } from "./types";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 const SECTIONS: { key: Section; label: string }[] = [
   { key: "rental", label: "Rentals" },
   { key: "retail", label: "Retail" },
+  { key: "jewellery", label: "Jewellery" },
 ];
 
 export default async function AdminProductsPage() {
@@ -70,7 +71,7 @@ function ProductRow({ product: p }: { product: ListProduct }) {
         <p className="truncate text-caption text-ink-600">{p.category_name ?? "Uncategorised"}</p>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-ink-600">
           <span className="tabular">
-            {p.type === "rental"
+            {rentable(p.type)
               ? `${formatINR(p.rental_price)} rental · ${formatINR(p.prebook_charge)} pre-book`
               : `${formatINR(p.price)}`}
           </span>

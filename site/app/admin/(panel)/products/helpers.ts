@@ -2,6 +2,12 @@
 // client modules alike.
 import type { ProductFormValues } from "./types";
 
+// Rentals and jewellery share the rental pricing (rental price, pre-book,
+// extension) and the DB rule rental_needs_pricing; retail has a sale price.
+export function rentable(type: string): boolean {
+  return type === "rental" || type === "jewellery";
+}
+
 export function slugify(s: string): string {
   return s
     .toLowerCase()

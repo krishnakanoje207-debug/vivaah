@@ -1,7 +1,9 @@
 // Shared types for the products admin (list, form, actions). Types-only module —
 // safe to import from both server and client components.
 
-export type Section = "rental" | "retail";
+// jewellery: added 14 Sep 2026 (migration 0002). Rented and priced like a
+// garment, so every pricing rule asks rentable(), not type === "rental".
+export type Section = "rental" | "retail" | "jewellery";
 
 export type LangText = { en: string; hi: string };
 export type ProductImage = { path: string; alt: string };

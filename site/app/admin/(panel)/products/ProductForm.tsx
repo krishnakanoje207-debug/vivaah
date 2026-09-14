@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { slugify } from "./helpers";
+import { rentable, slugify } from "./helpers";
 import { VariantsEditor } from "./VariantsEditor";
 import {
   OCCASIONS,
@@ -138,7 +138,7 @@ export function ProductForm({
           <div>
             <span className={labelClass}>Type</span>
             <div className="flex gap-2">
-              {(["rental", "retail"] as const).map((t) => (
+              {(["rental", "retail", "jewellery"] as const).map((t) => (
                 <label
                   key={t}
                   className={`flex-1 cursor-pointer rounded-control border px-4 py-2.5 text-center text-body capitalize transition-colors ${
@@ -212,7 +212,7 @@ export function ProductForm({
             </div>
           </div>
 
-          {type === "rental" && (
+          {rentable(type) && (
             <div>
               <span className={labelClass}>Occasions</span>
               <div className="flex flex-wrap gap-2">
@@ -263,7 +263,7 @@ export function ProductForm({
       {/* Pricing */}
       <div className={sectionClass}>
         <h2 className="mb-4 font-display text-h3 text-ink-900">Pricing</h2>
-        {type === "rental" ? (
+        {rentable(type) ? (
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label htmlFor="rental_price" className={labelClass}>

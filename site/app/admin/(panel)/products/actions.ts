@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/requireAdmin";
-import { slugify } from "./helpers";
+import { rentable, slugify } from "./helpers";
 import {
   DEFAULT_VARIANT_HEX,
   DEFAULT_VARIANT_NAME,
@@ -83,17 +83,17 @@ async function save(formData: FormData, id: string | null): Promise<FormState> {
   if (!slug) slug = slugify(name);
   if (!slug) errors.slug = "Slug is required.";
   else if (!SLUG_RE.test(slug)) errors.slug = "Use lowercase letters, numbers and hyphens only.";
-  if (type !== "rental" && type !== "retail") errors.type = "Choose a type.";
+  if (type !== "rental" && type !== "retail" && type !== "jewellery") errors.type = "Choose a type.";
   if (!category_id) errors.category_id = "Choose a category.";
 
-  const occasions = type === "rental" ? formData.getAll("occasions").map(String) : [];
+  const occasions = rentable(type) ? formData.getAll("occasions").map(String) : [];
 
   // Pricing depends on type.
   let price: number | null = null;
   let rental_price: number | null = null;
   let prebook_charge: number | null = null;
   let extension_rate: number | null = null;
-  if (type === "rental") {
+  if (rentable(type)) {
     const rp = parseAmount(String(formData.get("rental_price") ?? ""));
     const pc = parseAmount(String(formData.get("prebook_charge") ?? ""));
     const er = parseAmount(String(formData.get("extension_rate") ?? ""));

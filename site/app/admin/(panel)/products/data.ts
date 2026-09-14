@@ -81,7 +81,7 @@ export async function listProducts(): Promise<Record<Section, ListProduct[]>> {
     byProduct.set(v.product_id, arr);
   }
 
-  const grouped: Record<Section, ListProduct[]> = { rental: [], retail: [] };
+  const grouped: Record<Section, ListProduct[]> = { rental: [], retail: [], jewellery: [] };
   for (const p of products) {
     const first = Array.isArray(p.images) ? p.images[0] : undefined;
     grouped[p.type].push({
