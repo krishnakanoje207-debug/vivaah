@@ -25,7 +25,8 @@ export function SelectionButton({
 }: {
   item: SelectionItem;
   tone?: "light" | "dark";
-  size?: "sm" | "md";
+  /** `icon` is the catalogue form: the mark alone, named for a screen reader. */
+  size?: "sm" | "md" | "icon";
   className?: string;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -34,20 +35,35 @@ export function SelectionButton({
   const onClick = () => {
     const result = toggle(item);
     if (result !== "added") return;
-    const host =
-      ref.current?.closest<HTMLElement>("[data-piece]") ?? ref.current;
-    const img = host?.querySelector("img") ?? ref.current;
-    if (img) flyGarment(img as HTMLElement, item.image);
+    // The photograph if there is one, else the piece's own box — the product
+    // stage draws its turntable into a canvas and has no <img> at all, and
+    // launching from the garment's box still reads as the garment leaving,
+    // where launching from the button reads as the button leaving.
+    const host = ref.current?.closest<HTMLElement>("[data-piece]");
+    const from = host?.querySelector("img") ?? host ?? ref.current;
+    if (from) flyGarment(from as HTMLElement, item.image);
   };
 
-  const pad = size === "sm" ? "px-4 py-2 text-caption" : "px-6 py-3";
-  const skin = selected
-    ? tone === "dark"
-      ? "border border-porcelain-50/40 text-porcelain-50"
-      : "border border-ink-900/25 text-ink-900"
-    : tone === "dark"
-      ? "border border-porcelain-50/40 text-porcelain-50 hover:bg-porcelain-50/10"
-      : "border border-ink-900/25 text-ink-900 hover:bg-ink-900/[0.04]";
+  const icon = size === "icon";
+  const pad = icon
+    ? "h-10 w-10 justify-center"
+    : size === "sm"
+      ? "px-4 py-2 text-caption"
+      : "px-6 py-3";
+  // On a card the control sits over a photograph, so it carries its own ground
+  // rather than a border: a keyline on an unknown image is unreadable half the
+  // time, and the catalogue already has badges at the opposite corner.
+  const skin = icon
+    ? selected
+      ? "rounded-full bg-violet-950 text-porcelain-50 shadow-card"
+      : "rounded-full bg-porcelain-50/92 text-ink-900 shadow-card hover:bg-porcelain-50"
+    : selected
+      ? tone === "dark"
+        ? "border border-porcelain-50/40 text-porcelain-50"
+        : "border border-ink-900/25 text-ink-900"
+      : tone === "dark"
+        ? "border border-porcelain-50/40 text-porcelain-50 hover:bg-porcelain-50/10"
+        : "border border-ink-900/25 text-ink-900 hover:bg-ink-900/[0.04]";
 
   return (
     <button
@@ -59,7 +75,14 @@ export function SelectionButton({
          instruction, so aria-pressed carries the state for a screen reader
          rather than the verb flipping to "Remove" and hiding the fact. */
       aria-pressed={selected}
-      className={`press inline-flex items-center gap-2.5 rounded-control font-medium transition-colors duration-[180ms] ${pad} ${skin} ${className}`}
+      aria-label={
+        icon
+          ? selected
+            ? `${item.name} is in your selection`
+            : `Add ${item.name} to your selection`
+          : undefined
+      }
+      className={`press inline-flex items-center gap-2.5 font-medium transition-colors duration-[180ms] ${icon ? "" : "rounded-control"} ${pad} ${skin} ${className}`}
     >
       {selected ? (
         <>
@@ -79,7 +102,7 @@ export function SelectionButton({
               strokeLinejoin="round"
             />
           </svg>
-          In your selection
+          {!icon && "In your selection"}
         </>
       ) : (
         <>
@@ -105,7 +128,7 @@ export function SelectionButton({
               strokeLinejoin="round"
             />
           </svg>
-          Add to my selection
+          {!icon && "Add to my selection"}
         </>
       )}
     </button>
