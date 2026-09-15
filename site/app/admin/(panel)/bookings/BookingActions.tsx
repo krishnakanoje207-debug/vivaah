@@ -1,24 +1,31 @@
 "use client";
 
 // The interactive transition controls for the detail page. Kept minimal: a
-// primary one-tap button per status, plus a confirm-on-tap Cancel (destructive,
-// so it arms before it fires). Errors from the guarded server actions render
-// inline — no toast system in this build.
+// primary one-tap button per status, plus an arm-then-fire button for the
+// destructive moves (decline, cancel). Errors from the guarded server actions
+// render inline — no toast system in this build.
 import { useActionState, useState } from "react";
 import {
-  cancelBooking,
+  approveExtensionRequest,
   cancelConfirmed,
+  confirmBooking,
+  declineBooking,
   markPickedUp,
   markReturned,
+  rejectExtensionRequest,
   reviveBooking,
-  verifyPayment,
   type ActionState,
 } from "./actions";
+
+type Action = (prev: ActionState, formData: FormData) => Promise<ActionState>;
 
 const INITIAL: ActionState = {};
 
 const PRIMARY_BTN =
   "w-full rounded-control bg-violet-800 px-4 py-2.5 text-body text-porcelain-50 transition-colors hover:bg-violet-700 disabled:opacity-60";
+
+const SECONDARY_BTN =
+  "w-full rounded-control border border-ink-900/20 px-4 py-2.5 text-body text-ink-600 transition-colors hover:border-ink-900/40 disabled:opacity-60";
 
 function ActionError({ state }: { state: ActionState }) {
   if (!state.error) return null;
@@ -29,24 +36,29 @@ function ActionError({ state }: { state: ActionState }) {
   );
 }
 
-// One-tap forward transition (verify / pickup / return).
+// One-tap transition. `request` is set only for extension decisions.
 function TransitionButton({
   action,
   id,
+  request,
   label,
   busyLabel,
+  className = PRIMARY_BTN,
 }: {
-  action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
+  action: Action;
   id: string;
+  request?: string;
   label: string;
   busyLabel: string;
+  className?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, INITIAL);
   return (
-    <div>
+    <div className="flex-1">
       <form action={formAction}>
         <input type="hidden" name="id" value={id} />
-        <button type="submit" disabled={pending} className={PRIMARY_BTN}>
+        {request && <input type="hidden" name="request" value={request} />}
+        <button type="submit" disabled={pending} className={className}>
           {pending ? busyLabel : label}
         </button>
       </form>
@@ -55,14 +67,21 @@ function TransitionButton({
   );
 }
 
-// Cancel is destructive → arm-then-confirm to avoid a fat-finger reject. The
-// action differs by source status (pending vs confirmed) but the UX is identical.
-function CancelButton({
+// Decline and cancel are destructive → arm-then-confirm to avoid a fat-finger.
+function ArmedButton({
   id,
   action,
+  label,
+  prompt,
+  confirmLabel,
+  busyLabel,
 }: {
   id: string;
-  action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
+  action: Action;
+  label: string;
+  prompt: string;
+  confirmLabel: string;
+  busyLabel: string;
 }) {
   const [state, formAction, pending] = useActionState(action, INITIAL);
   const [armed, setArmed] = useState(false);
@@ -74,16 +93,14 @@ function CancelButton({
         onClick={() => setArmed(true)}
         className="w-full rounded-control border border-danger/40 px-4 py-2.5 text-body text-danger transition-colors hover:bg-danger/5"
       >
-        Cancel booking
+        {label}
       </button>
     );
   }
 
   return (
     <div>
-      <p className="mb-2 text-caption text-ink-600">
-        Cancel this booking? The held dates will be released.
-      </p>
+      <p className="mb-2 text-caption text-ink-600">{prompt}</p>
       <div className="flex gap-2">
         <form action={formAction} className="flex-1">
           <input type="hidden" name="id" value={id} />
@@ -92,14 +109,10 @@ function CancelButton({
             disabled={pending}
             className="w-full rounded-control bg-danger px-4 py-2.5 text-body text-porcelain-50 transition-colors hover:opacity-90 disabled:opacity-60"
           >
-            {pending ? "Cancelling…" : "Yes, cancel"}
+            {pending ? busyLabel : confirmLabel}
           </button>
         </form>
-        <button
-          type="button"
-          onClick={() => setArmed(false)}
-          className="flex-1 rounded-control border border-ink-900/20 px-4 py-2.5 text-body text-ink-600 transition-colors hover:border-ink-900/40"
-        >
+        <button type="button" onClick={() => setArmed(false)} className={`flex-1 ${SECONDARY_BTN}`}>
           Keep it
         </button>
       </div>
@@ -112,13 +125,15 @@ export function BookingActions({ id, status }: { id: string; status: string }) {
   if (status === "pending") {
     return (
       <div className="flex flex-col gap-3">
-        <TransitionButton
-          action={verifyPayment}
+        <TransitionButton action={confirmBooking} id={id} label="Confirm booking" busyLabel="Confirming…" />
+        <ArmedButton
           id={id}
-          label="Mark payment verified"
-          busyLabel="Verifying…"
+          action={declineBooking}
+          label="Decline"
+          prompt="Decline this request? The held dates will be released. Let the customer know."
+          confirmLabel="Yes, decline"
+          busyLabel="Declining…"
         />
-        <CancelButton id={id} action={cancelBooking} />
       </div>
     );
   }
@@ -126,7 +141,14 @@ export function BookingActions({ id, status }: { id: string; status: string }) {
     return (
       <div className="flex flex-col gap-3">
         <TransitionButton action={markPickedUp} id={id} label="Mark picked up" busyLabel="Saving…" />
-        <CancelButton id={id} action={cancelConfirmed} />
+        <ArmedButton
+          id={id}
+          action={cancelConfirmed}
+          label="Cancel booking"
+          prompt="Cancel this booking? The held dates will be released."
+          confirmLabel="Yes, cancel"
+          busyLabel="Cancelling…"
+        />
       </div>
     );
   }
@@ -141,4 +163,26 @@ export function BookingActions({ id, status }: { id: string; status: string }) {
     );
   }
   return null; // returned is terminal
+}
+
+export function ExtensionDecision({ id, request }: { id: string; request: string }) {
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <TransitionButton
+        action={approveExtensionRequest}
+        id={id}
+        request={request}
+        label="Approve"
+        busyLabel="Approving…"
+      />
+      <TransitionButton
+        action={rejectExtensionRequest}
+        id={id}
+        request={request}
+        label="Reject"
+        busyLabel="Rejecting…"
+        className={SECONDARY_BTN}
+      />
+    </div>
+  );
 }

@@ -1,19 +1,24 @@
 import Link from "next/link";
 import { sql } from "@/lib/db";
+import { lapseExpired } from "@/lib/booking";
+import { formatDay, formatTime } from "@/lib/bookingRules";
 import {
   STATUS_META,
-  formatINR,
-  formatDateRange,
+  lapsesLabel,
+  statusLabel,
   type BookingStatus,
+  type CancelledBy,
 } from "./bookings/format";
 
 export const dynamic = "force-dynamic";
 
 type Stats = {
-  pending_verify: number;
-  awaiting_utr: number;
+  awaiting: number;
+  next_lapse_ms: string | null;
   pickups_today: number;
   returns_today: number;
+  overdue_returns: number;
+  open_extensions: number;
   active_products: number;
 };
 
@@ -22,22 +27,29 @@ type RecentBooking = {
   code: string;
   customer_name: string;
   pickup: string;
+  pickup_time: string | null;
   return_day: string;
   status: BookingStatus;
-  amount_due: string;
+  cancelled_by: CancelledBy;
+  was_confirmed: boolean;
 };
 
 async function loadStats(): Promise<Stats> {
   // booked_range is a [pickup, return+1) daterange: the pickup day is lower(),
-  // the inclusive return day is upper() - 1.
+  // the inclusive return day is upper() - 1. "Today" is the shop's day, not the
+  // database session's (which runs on GMT).
   const [row] = await sql<Stats>`
     select
-      count(*) filter (where b.status = 'pending' and b.payment_ref is not null)                            as pending_verify,
-      count(*) filter (where b.status = 'pending' and b.payment_ref is null)                                as awaiting_utr,
-      count(*) filter (where b.status = 'confirmed' and lower(b.booked_range) = current_date)               as pickups_today,
-      count(*) filter (where b.status = 'picked_up' and (upper(b.booked_range) - 1) = current_date)         as returns_today,
-      (select count(*) from products where is_active)                                                        as active_products
-    from bookings b
+      count(*) filter (where b.status = 'pending')::int                                              as awaiting,
+      extract(epoch from min(b.expires_at) filter (where b.status = 'pending')) * 1000                as next_lapse_ms,
+      count(*) filter (where b.status = 'confirmed' and lower(b.booked_range) = t.today)::int        as pickups_today,
+      count(*) filter (where b.status = 'picked_up' and (upper(b.booked_range) - 1) = t.today)::int  as returns_today,
+      count(*) filter (where b.status = 'picked_up' and (upper(b.booked_range) - 1) < t.today)::int  as overdue_returns,
+      (select count(*)::int from extension_requests where status = 'pending')                         as open_extensions,
+      (select count(*)::int from products where is_active)                                            as active_products
+    from (select (now() at time zone 'Asia/Kolkata')::date as today) t
+    left join bookings b on true
+    group by t.today
   `;
   return row;
 }
@@ -49,9 +61,11 @@ async function loadRecent(): Promise<RecentBooking[]> {
       code,
       customer_name,
       to_char(lower(booked_range), 'YYYY-MM-DD')       as pickup,
+      to_char(pickup_time, 'HH24:MI')                  as pickup_time,
       to_char(upper(booked_range) - 1, 'YYYY-MM-DD')   as return_day,
       status,
-      amount_due
+      cancelled_by,
+      verified_at is not null                          as was_confirmed
     from bookings
     order by created_at desc
     limit 5
@@ -91,33 +105,40 @@ function StatCard({ label, value, href, hint, accent }: StatCard) {
 }
 
 export default async function AdminDashboardPage() {
+  // Lapse first, so the request count never includes one whose window has passed.
+  await lapseExpired();
   const [stats, recent] = await Promise.all([loadStats(), loadRecent()]);
 
   const cards: StatCard[] = [
     {
-      label: "Payments to verify",
-      value: stats.pending_verify,
-      href: "/admin/bookings?tab=pending",
-      hint: "UTR submitted, awaiting your check",
-      accent: stats.pending_verify > 0,
-    },
-    {
-      label: "Holds awaiting UTR",
-      value: stats.awaiting_utr,
-      href: "/admin/bookings?tab=pending",
-      hint: "Reserved, payment not yet sent",
+      label: "Requests to confirm",
+      value: stats.awaiting,
+      href: "/admin/bookings",
+      hint: stats.awaiting > 0 ? `Call the customer · next ${lapsesLabel(stats.next_lapse_ms)}` : "No requests waiting",
+      accent: stats.awaiting > 0,
     },
     {
       label: "Pickups today",
       value: stats.pickups_today,
       href: "/admin/bookings?tab=confirmed",
-      hint: "Confirmed bookings starting today",
+      hint: "Confirmed bookings collecting today",
     },
     {
-      label: "Returns today",
+      label: "Returns due today",
       value: stats.returns_today,
       href: "/admin/bookings?tab=picked_up",
-      hint: "Garments due back today",
+      hint:
+        stats.overdue_returns > 0
+          ? `Plus ${stats.overdue_returns} overdue from earlier days`
+          : "Garments due back today",
+      accent: stats.overdue_returns > 0,
+    },
+    {
+      label: "Extension requests",
+      value: stats.open_extensions,
+      href: "/admin/bookings?tab=extensions",
+      hint: "Customers asking to keep a piece longer",
+      accent: stats.open_extensions > 0,
     },
     {
       label: "Active products",
@@ -174,16 +195,14 @@ export default async function AdminDashboardPage() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-eyebrow font-medium uppercase tracking-wide ${meta.badge}`}
                         >
-                          {meta.label}
+                          {statusLabel(b.status, b.cancelled_by, b.was_confirmed)}
                         </span>
                       </div>
                       <p className="mt-0.5 truncate text-caption text-ink-600">
-                        {b.customer_name} · {formatDateRange(b.pickup, b.return_day)}
+                        {b.customer_name} · Pickup {formatDay(b.pickup)}
+                        {b.pickup_time && `, ${formatTime(b.pickup_time)}`} · Return {formatDay(b.return_day)}
                       </p>
                     </div>
-                    <span className="tabular shrink-0 text-body font-medium text-ink-900">
-                      {formatINR(b.amount_due)}
-                    </span>
                   </Link>
                 </li>
               );

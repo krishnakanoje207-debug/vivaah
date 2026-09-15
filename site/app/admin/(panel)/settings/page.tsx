@@ -1,8 +1,8 @@
 import { sql } from "@/lib/db";
+import { getBookingSettings } from "@/lib/booking";
 import {
   BookingRulesForm,
   ShopForm,
-  PaymentsForm,
   ChargesForm,
 } from "./SettingsForms";
 
@@ -21,7 +21,10 @@ function str(v: unknown): string {
 }
 
 export default async function AdminSettingsPage() {
-  const rows = await sql<SettingRow>`select key, value from settings`;
+  const [rows, rules] = await Promise.all([
+    sql<SettingRow>`select key, value from settings`,
+    getBookingSettings(),
+  ]);
   const map = new Map(rows.map((r) => [r.key, r.value]));
 
   const shop = obj(map.get("shop_info"), {
@@ -31,7 +34,6 @@ export default async function AdminSettingsPage() {
     hours: "",
     phone: "",
   });
-  const upi = obj(map.get("upi"), { id: "", number: "", qr_path: "" });
   const charges = obj(map.get("charges_copy"), { en: "", hi: "" });
 
   return (
@@ -40,15 +42,18 @@ export default async function AdminSettingsPage() {
         <p className="eyebrow">Vivaah</p>
         <h1 className="mt-1 font-display text-h2 text-ink-900">Settings</h1>
         <p className="mt-2 text-body text-ink-600">
-          Shop details, booking rules and payment information.
+          Shop details and booking rules.
         </p>
       </header>
 
       <div className="mt-8 flex flex-col gap-6">
         <BookingRulesForm
           initial={{
-            buffer_days: num(map.get("buffer_days"), 2),
-            booking_expiry_minutes: num(map.get("booking_expiry_minutes"), 120),
+            buffer_days: rules.bufferDays,
+            // Stored as minutes; she thinks in hours.
+            confirm_within_hours: Math.max(1, Math.round(rules.expiryMinutes / 60)),
+            cancel_cutoff_hours: rules.cancelCutoffHours,
+            pickup_hours: rules.pickupHours,
             sms_daily_quota: num(map.get("sms_daily_quota"), 100),
           }}
         />
@@ -60,9 +65,6 @@ export default async function AdminSettingsPage() {
             hours: str(shop.hours),
             phone: str(shop.phone),
           }}
-        />
-        <PaymentsForm
-          initial={{ id: str(upi.id), number: str(upi.number), qr_path: str(upi.qr_path) }}
         />
         <ChargesForm initial={{ en: str(charges.en), hi: str(charges.hi) }} />
       </div>

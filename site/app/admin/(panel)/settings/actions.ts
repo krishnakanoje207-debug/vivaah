@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { isTime, type PickupHours } from "@/lib/bookingRules";
 
 export type SettingsState = {
   ok?: boolean;
@@ -34,7 +35,9 @@ function readInt(
   return n;
 }
 
-// --- Booking rules: three jsonb-number settings ------------------------------
+const STEP_CHOICES = [15, 30, 60];
+
+// --- Booking rules: jsonb-number settings plus the pickup_hours object --------
 export async function saveBookingRules(
   _prev: SettingsState,
   form: FormData,
@@ -42,17 +45,48 @@ export async function saveBookingRules(
   await requireAdmin();
   const errors: Record<string, string> = {};
   const buffer = readInt(form, "buffer_days", "Buffer days", errors);
-  const expiry = readInt(form, "booking_expiry_minutes", "Hold expiry (minutes)", errors);
+  const confirmHours = readInt(form, "confirm_within_hours", "Confirm within", errors);
+  const cutoff = readInt(form, "cancel_cutoff_hours", "Cancel cutoff", errors);
+  const step = readInt(form, "step_minutes", "Slot length", errors);
   const quota = readInt(form, "sms_daily_quota", "SMS daily quota", errors);
+  const open = String(form.get("open") ?? "").trim();
+  const close = String(form.get("close") ?? "").trim();
+  const closed = [...new Set(form.getAll("closed_weekdays").map((v) => Number(v)))]
+    .filter((n) => Number.isInteger(n) && n >= 0 && n <= 6)
+    .sort((a, b) => a - b);
 
   if (buffer !== null && buffer > 14) {
     errors.buffer_days = "Buffer days cannot exceed 14 (per booking rules).";
   }
+  // A week is already longer than any pickup lead; a request lapses at its pickup
+  // time regardless (V2 §2.1).
+  if (confirmHours !== null && (confirmHours < 1 || confirmHours > 168)) {
+    errors.confirm_within_hours = "Confirm within must be between 1 and 168 hours.";
+  }
+  if (cutoff !== null && cutoff > 72) {
+    errors.cancel_cutoff_hours = "Cancel cutoff cannot exceed 72 hours.";
+  }
+  if (step !== null && !STEP_CHOICES.includes(step)) {
+    errors.step_minutes = "Slot length must be 15, 30 or 60 minutes.";
+  }
+  if (!isTime(open)) errors.open = "Opening time must be HH:MM.";
+  if (!isTime(close)) errors.close = "Closing time must be HH:MM.";
+  // Zero-padded HH:MM compares correctly as a string.
+  if (isTime(open) && isTime(close) && open >= close) {
+    errors.close = "Closing time must be after opening time.";
+  }
+  if (closed.length === 7) {
+    errors.closed_weekdays = "The shop has to be open for pickups on at least one day.";
+  }
   if (Object.keys(errors).length > 0) return { fieldErrors: errors };
+
+  const pickupHours: PickupHours = { open, close, step_minutes: step!, closed_weekdays: closed };
 
   // to_jsonb(int) keeps these as jsonb *numbers*, not strings.
   await sql`update settings set value = to_jsonb(${buffer}::int) where key = 'buffer_days'`;
-  await sql`update settings set value = to_jsonb(${expiry}::int) where key = 'booking_expiry_minutes'`;
+  await sql`update settings set value = to_jsonb(${confirmHours! * 60}::int) where key = 'booking_expiry_minutes'`;
+  await sql`update settings set value = to_jsonb(${cutoff}::int) where key = 'cancel_cutoff_hours'`;
+  await sql`update settings set value = ${JSON.stringify(pickupHours)}::jsonb where key = 'pickup_hours'`;
   await sql`update settings set value = to_jsonb(${quota}::int) where key = 'sms_daily_quota'`;
 
   revalidatePath("/admin/settings");
@@ -82,27 +116,6 @@ export async function saveShop(_prev: SettingsState, form: FormData): Promise<Se
   await sql`
     update settings set value = value || ${JSON.stringify(patch)}::jsonb
     where key = 'shop_info'
-  `;
-  revalidatePath("/admin/settings");
-  return { ok: true };
-}
-
-// --- Payments (UPI) ----------------------------------------------------------
-export async function savePayments(_prev: SettingsState, form: FormData): Promise<SettingsState> {
-  await requireAdmin();
-  const patch = {
-    id: String(form.get("id") ?? "").trim(),
-    number: String(form.get("number") ?? "").trim(),
-    qr_path: String(form.get("qr_path") ?? "").trim(),
-  };
-  // The QR path becomes an img src. It is a local asset, so it starts with a
-  // slash; a bare scheme would let a saved value point anywhere.
-  if (patch.qr_path !== "" && !patch.qr_path.startsWith("/")) {
-    return { fieldErrors: { qr_path: "Must start with a slash." } };
-  }
-  await sql`
-    update settings set value = value || ${JSON.stringify(patch)}::jsonb
-    where key = 'upi'
   `;
   revalidatePath("/admin/settings");
   return { ok: true };

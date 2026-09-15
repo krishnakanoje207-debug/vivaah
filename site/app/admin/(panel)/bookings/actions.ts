@@ -4,16 +4,17 @@
 // IN SQL (`where id=… and status='<expected>'`) so a stale click or a second
 // open tab can never drive an illegal move — if 0 rows match, the booking has
 // already moved on and we return an error the UI surfaces. Transitions follow
-// BOOKING_ENGINE_SPEC §1 exactly; the DB triggers cascade status to
-// booking_items, so we never touch that table here.
+// BOOKING_ENGINE_SPEC_V2 §1; the DB triggers cascade status to booking_items,
+// so we never touch that table here.
 import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
+import { approveExtension, rejectExtension } from "@/lib/booking";
 import { requireAdmin } from "@/lib/requireAdmin";
 
 export type ActionState = { ok?: boolean; error?: string };
 
 const STALE =
-  "This booking already moved on — it may have expired or been updated in another tab. Refresh to see its current state.";
+  "This booking already moved on — it may have lapsed or been updated in another tab. Refresh to see its current state.";
 
 // Distinct from STALE: not a race on the row, a race on the DATES. The revive
 // UPDATE re-fires the GiST exclusion constraint (23P01) if another booking took
@@ -21,13 +22,20 @@ const STALE =
 const DATES_TAKEN =
   "Those dates are no longer free — another booking now holds them, so this one can’t be revived.";
 
+const EXTENSION_STALE =
+  "This request was already decided, or the booking is no longer confirmed or picked up. Refresh to see its current state.";
+
+const EXTENSION_DATES_TAKEN =
+  "Another booking holds one of these pieces in the extra days, so the booking can’t be extended. The request has been marked rejected; refresh to see it.";
+
 function refresh(id: string) {
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${id}`);
 }
 
-// pending → confirmed: record verification, drop the hold deadline.
-export async function verifyPayment(_prev: ActionState, formData: FormData): Promise<ActionState> {
+// pending → confirmed: she has spoken to the customer and accepts the request.
+// `verified_at` is reused as "confirmed at"; the lapse deadline no longer applies.
+export async function confirmBooking(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
   const id = String(formData.get("id"));
   const rows = await sql`
@@ -39,12 +47,12 @@ export async function verifyPayment(_prev: ActionState, formData: FormData): Pro
   return { ok: true };
 }
 
-// pending → cancelled (admin reject before verification).
-export async function cancelBooking(_prev: ActionState, formData: FormData): Promise<ActionState> {
+// pending → cancelled (the shop declines the request).
+export async function declineBooking(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
   const id = String(formData.get("id"));
   const rows = await sql`
-    update bookings set status = 'cancelled', expires_at = null
+    update bookings set status = 'cancelled', cancelled_by = 'shop', expires_at = null
     where id = ${id} and status = 'pending'
     returning id`;
   if (rows.length === 0) return { error: STALE };
@@ -57,7 +65,7 @@ export async function cancelConfirmed(_prev: ActionState, formData: FormData): P
   await requireAdmin();
   const id = String(formData.get("id"));
   const rows = await sql`
-    update bookings set status = 'cancelled'
+    update bookings set status = 'cancelled', cancelled_by = 'shop'
     where id = ${id} and status = 'confirmed'
     returning id`;
   if (rows.length === 0) return { error: STALE };
@@ -76,7 +84,8 @@ export async function reviveBooking(_prev: ActionState, formData: FormData): Pro
   try {
     rows = await sql`
       update bookings
-         set status = 'confirmed', verified_at = coalesce(verified_at, now()), expires_at = null
+         set status = 'confirmed', verified_at = coalesce(verified_at, now()),
+             expires_at = null, cancelled_by = null
        where id = ${id} and status = 'cancelled'
       returning id`;
   } catch (err) {
@@ -114,5 +123,25 @@ export async function markReturned(_prev: ActionState, formData: FormData): Prom
     returning id`;
   if (rows.length === 0) return { error: STALE };
   refresh(id);
+  return { ok: true };
+}
+
+// Extension decisions. The guarded writes live in lib/booking (approval widens
+// the booking through the exclusion constraint); these only gate and word them.
+export async function approveExtensionRequest(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const result = await approveExtension(String(formData.get("request")));
+  // Not refreshed on failure: a collision marks the request rejected, and a
+  // re-render would unmount these buttons and the message with them.
+  if (!result.ok) return { error: result.error === "dates_taken" ? EXTENSION_DATES_TAKEN : EXTENSION_STALE };
+  refresh(String(formData.get("id")));
+  return { ok: true };
+}
+
+export async function rejectExtensionRequest(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const result = await rejectExtension(String(formData.get("request")));
+  if (!result.ok) return { error: EXTENSION_STALE };
+  refresh(String(formData.get("id")));
   return { ok: true };
 }

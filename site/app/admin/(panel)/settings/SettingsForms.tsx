@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
+import type { PickupHours } from "@/lib/bookingRules";
 import {
   saveBookingRules,
   saveShop,
-  savePayments,
   saveCharges,
   type SettingsState,
 } from "./actions";
@@ -71,58 +71,147 @@ function Section({
   );
 }
 
-type BookingRules = { buffer_days: number; booking_expiry_minutes: number; sms_daily_quota: number };
+type BookingRules = {
+  buffer_days: number;
+  confirm_within_hours: number;
+  cancel_cutoff_hours: number;
+  pickup_hours: PickupHours;
+  sms_daily_quota: number;
+};
 type ShopInfo = { name: string; address: string; maps_url: string; hours: string; phone: string };
-type Upi = { id: string; number: string; qr_path: string };
 type Charges = { en: string; hi: string };
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // index = 0..6, 0 = Sunday
+
+function NumberField({
+  name,
+  label,
+  hint,
+  value,
+  error,
+}: {
+  name: string;
+  label: string;
+  hint: string;
+  value: number;
+  error?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={name} className={labelCls}>
+        {label}
+      </label>
+      <input id={name} name={name} inputMode="numeric" defaultValue={value} className={field} />
+      <p className="mt-1 text-caption text-ink-400">{hint}</p>
+      <FieldError msg={error} />
+    </div>
+  );
+}
 
 export function BookingRulesForm({ initial }: { initial: BookingRules }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveBookingRules, {});
   const fe = state.fieldErrors ?? {};
+  const hours = initial.pickup_hours;
   return (
-    <Section title="Booking rules" caption="Buffer between bookings, hold expiry and daily SMS quota.">
-      <form action={action} className="flex flex-col gap-4">
+    <Section
+      title="Booking rules"
+      caption="How long a request holds its dates, when customers can cancel, and when they can collect."
+    >
+      <form action={action} className="flex flex-col gap-6">
         <div className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <label htmlFor="buffer_days" className={labelCls}>
-              Buffer days
-            </label>
-            <input
-              id="buffer_days"
-              name="buffer_days"
-              inputMode="numeric"
-              defaultValue={initial.buffer_days}
-              className={field}
-            />
-            <FieldError msg={fe.buffer_days} />
-          </div>
-          <div>
-            <label htmlFor="booking_expiry_minutes" className={labelCls}>
-              Hold expiry (min)
-            </label>
-            <input
-              id="booking_expiry_minutes"
-              name="booking_expiry_minutes"
-              inputMode="numeric"
-              defaultValue={initial.booking_expiry_minutes}
-              className={field}
-            />
-            <FieldError msg={fe.booking_expiry_minutes} />
-          </div>
-          <div>
-            <label htmlFor="sms_daily_quota" className={labelCls}>
-              SMS daily quota
-            </label>
-            <input
-              id="sms_daily_quota"
-              name="sms_daily_quota"
-              inputMode="numeric"
-              defaultValue={initial.sms_daily_quota}
-              className={field}
-            />
-            <FieldError msg={fe.sms_daily_quota} />
-          </div>
+          <NumberField
+            name="buffer_days"
+            label="Buffer days"
+            hint="Free days after each return, 0 to 14."
+            value={initial.buffer_days}
+            error={fe.buffer_days}
+          />
+          <NumberField
+            name="confirm_within_hours"
+            label="Confirm within (hours)"
+            hint="An unconfirmed request lapses after this, or at its pickup time if sooner."
+            value={initial.confirm_within_hours}
+            error={fe.confirm_within_hours}
+          />
+          <NumberField
+            name="cancel_cutoff_hours"
+            label="Cancel cutoff (hours)"
+            hint="Customers can cancel online until this long before pickup, 0 to 72."
+            value={initial.cancel_cutoff_hours}
+            error={fe.cancel_cutoff_hours}
+          />
         </div>
+
+        <fieldset className="flex flex-col gap-4 border-t border-ink-900/10 pt-5">
+          <legend className="float-left mb-1 w-full font-display text-body text-ink-900">Pickup hours</legend>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div>
+              <label htmlFor="open" className={labelCls}>
+                Opens
+              </label>
+              <input id="open" name="open" type="time" defaultValue={hours.open} className={field} />
+              <FieldError msg={fe.open} />
+            </div>
+            <div>
+              <label htmlFor="close" className={labelCls}>
+                Closes
+              </label>
+              <input id="close" name="close" type="time" defaultValue={hours.close} className={field} />
+              <FieldError msg={fe.close} />
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <label htmlFor="step_minutes" className={labelCls}>
+                Slot length
+              </label>
+              <select
+                id="step_minutes"
+                name="step_minutes"
+                defaultValue={String(hours.step_minutes)}
+                className={field}
+              >
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+              </select>
+              <FieldError msg={fe.step_minutes} />
+            </div>
+          </div>
+          <div>
+            <p className={labelCls}>Closed on</p>
+            <div className="flex flex-wrap gap-2">
+              {WEEKDAYS.map((day, i) => (
+                <label
+                  key={day}
+                  className="flex cursor-pointer items-center gap-2 rounded-control border border-ink-900/20 bg-porcelain-50 px-3 py-2 text-body text-ink-900 has-[:checked]:border-violet-700 has-[:checked]:bg-violet-100"
+                >
+                  <input
+                    type="checkbox"
+                    name="closed_weekdays"
+                    value={i}
+                    defaultChecked={hours.closed_weekdays.includes(i)}
+                    className="accent-violet-800"
+                  />
+                  {day}
+                </label>
+              ))}
+            </div>
+            <p className="mt-1 text-caption text-ink-400">
+              The last pickup slot starts before closing time. Customers cannot pick up on closed days.
+            </p>
+            <FieldError msg={fe.closed_weekdays} />
+          </div>
+        </fieldset>
+
+        <div className="grid gap-4 border-t border-ink-900/10 pt-5 sm:grid-cols-3">
+          <NumberField
+            name="sms_daily_quota"
+            label="SMS daily quota"
+            hint="Messages the shop phone may send per day."
+            value={initial.sms_daily_quota}
+            error={fe.sms_daily_quota}
+          />
+        </div>
+
         <div className="flex items-center gap-4">
           <SaveButton pending={pending} />
           <Feedback state={state} />
@@ -171,43 +260,6 @@ export function ShopForm({ initial }: { initial: ShopInfo }) {
           </label>
           <input id="maps_url" name="maps_url" defaultValue={initial.maps_url} className={field} />
           <p className="mt-1 text-caption text-ink-400">Map pin coordinates are preserved as saved.</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <SaveButton pending={pending} />
-          <Feedback state={state} />
-        </div>
-      </form>
-    </Section>
-  );
-}
-
-export function PaymentsForm({ initial }: { initial: Upi }) {
-  const [state, action, pending] = useActionState<SettingsState, FormData>(savePayments, {});
-  return (
-    <Section title="Payments" caption="UPI details customers use to pay the advance.">
-      <form action={action} className="flex flex-col gap-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="id" className={labelCls}>
-              UPI ID
-            </label>
-            <input id="id" name="id" defaultValue={initial.id} className={field} />
-          </div>
-          <div>
-            <label htmlFor="number" className={labelCls}>
-              UPI number
-            </label>
-            <input id="number" name="number" defaultValue={initial.number} className={field} />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="qr_path" className={labelCls}>
-            QR image path
-          </label>
-          <input id="qr_path" name="qr_path" defaultValue={initial.qr_path} className={field} />
-          <p className="mt-1 text-caption text-ink-400">
-            Resolves under /public for now (e.g. /brand/upi-qr.png); moves to cloud storage later.
-          </p>
         </div>
         <div className="flex items-center gap-4">
           <SaveButton pending={pending} />
