@@ -1,0 +1,227 @@
+/**
+ * Booking engine gate — the invariants of specs/BOOKING_ENGINE_SPEC.md §5 and
+ * BOOKING_ENGINE_SPEC_V2.md §7, proved against the live Neon database.
+ *
+ *   cd site && npx tsx --env-file=.env.local scripts/verify-booking.mts
+ *
+ * WRITES to the database: it creates three throwaway products (slugs starting
+ * `zz-verify-`) and bookings on them, far in the future, and deletes all of it in
+ * `finally`, including after a failure. The products are active for the seconds
+ * the run takes, because the engine refuses to book an inactive piece.
+ *
+ * Exits non-zero if any check fails.
+ */
+import { neon } from "@neondatabase/serverless";
+import {
+  cancelByCustomer,
+  createBooking,
+  getBookingByPhone,
+  getBookingByToken,
+  getBookingSettings,
+  lapseExpired,
+  type CreateResult,
+} from "../lib/booking.ts";
+import { addDays, todayIST, weekday } from "../lib/bookingRules.ts";
+
+const sql = neon(process.env.DATABASE_URL!);
+const results: { ok: boolean; label: string; detail: string }[] = [];
+const check = (ok: boolean, label: string, detail = "") => {
+  results.push({ ok, label, detail });
+  console.log(`${ok ? "PASS" : "FAIL"}  ${label}${detail ? `\n      ${detail}` : ""}`);
+};
+
+const run = Math.random().toString(36).slice(2, 7);
+const slug = (s: string) => `zz-verify-${s}-${run}`;
+const A = slug("a");
+const B = slug("b");
+const J = slug("j");
+const R = slug("r"); // retail
+
+// A Monday about ten weeks out, so no real booking and no closed day interferes.
+let base = addDays(todayIST(), 70);
+while (weekday(base) !== 1) base = addDays(base, 1);
+const day = (n: number) => addDays(base, n);
+
+let phoneSeq = 0;
+// Distinct numbers per booking keep the per-phone rate limit out of the checks
+// that are not about it.
+const nextPhone = () => `9${String(800000000 + run.charCodeAt(0) * 1000 + phoneSeq++).padStart(9, "0")}`;
+
+const book = (items: string[], pickup: string, ret: string, extra: Partial<Record<string, unknown>> = {}) =>
+  createBooking({
+    items,
+    pickup,
+    ret,
+    time: "11:00",
+    name: "Verify Script",
+    phone: nextPhone(),
+    email: null,
+    note: null,
+    ...extra,
+  });
+
+const ok = (r: CreateResult): r is Extract<CreateResult, { ok: true }> => r.ok;
+const describe = (r: CreateResult) => (r.ok ? `ok ${r.code}` : JSON.stringify(r));
+
+async function setup() {
+  await sql`
+    insert into products (type, name, slug, rental_price, prebook_charge, is_active)
+    values ('rental', 'Verify A', ${A}, 1000, 0, true),
+           ('rental', 'Verify B', ${B}, 1000, 0, true),
+           ('jewellery', 'Verify J', ${J}, 300, 0, true)`;
+  await sql`insert into products (type, name, slug, price, is_active) values ('retail', 'Verify R', ${R}, 500, true)`;
+}
+
+async function cleanup() {
+  const slugs = [A, B, J, R];
+  await sql`
+    delete from bookings where id in (
+      select bi.booking_id from booking_items bi join products p on p.id = bi.product_id
+       where p.slug = any(${slugs}::text[]))`;
+  await sql`delete from bookings where customer_name = 'Verify Script'`;
+  await sql`delete from products where slug = any(${slugs}::text[])`;
+}
+
+async function main() {
+  const settings = await getBookingSettings();
+  console.log(`Booking engine gate. buffer=${settings.bufferDays}d, window=${settings.expiryMinutes}min, cutoff=${settings.cancelCutoffHours}h, base=${base}\n`);
+  await setup();
+
+  // 1. basic create
+  const first = await book([A, J], day(0), day(2));
+  check(ok(first), "create: rental + jewellery in one booking", describe(first));
+  if (!ok(first)) return;
+
+  // 2. concurrent creates for the same dates: exactly one wins
+  const race = await Promise.all([book([B], day(0), day(1)), book([B], day(1), day(3)), book([B], day(0), day(4))]);
+  const winners = race.filter(ok).length;
+  const losers = race.filter((r) => !r.ok && r.error === "dates_taken").length;
+  check(winners === 1 && losers === 2, "race: three overlapping creates, exactly one succeeds", race.map(describe).join(" | "));
+
+  // 3. buffer honoured. A returns day(2); blocked through day(2)+buffer.
+  const insideBuffer = await book([A], day(2 + settings.bufferDays), day(2 + settings.bufferDays + 1));
+  check(!insideBuffer.ok && insideBuffer.error === "dates_taken", `buffer: start on return+${settings.bufferDays} refused`, describe(insideBuffer));
+  const afterBuffer = await book([A], day(3 + settings.bufferDays), day(3 + settings.bufferDays));
+  check(ok(afterBuffer), `buffer: start on return+${settings.bufferDays + 1} accepted`, describe(afterBuffer));
+
+  // jewellery in a booking is exclusive too
+  const jewelTaken = await book([J], day(1), day(1));
+  check(!jewelTaken.ok && jewelTaken.error === "dates_taken", "jewellery booked with an outfit is refused to others for those dates", describe(jewelTaken));
+
+  // 4. every expires_at is no later than pickup_at
+  const late = await sql`
+    select count(*)::int as n from bookings
+     where customer_name = 'Verify Script' and status = 'pending'
+       and expires_at > (lower(booked_range) + pickup_time) at time zone 'Asia/Kolkata'`;
+  check(late[0].n === 0, "expires_at never later than pickup", `violations: ${late[0].n}`);
+
+  // 5. lapse frees dates without the cron
+  await sql`update bookings set expires_at = now() - interval '1 minute' where code = ${first.code}`;
+  const afterLapse = await book([A], day(0), day(1));
+  const lapsed = await sql`select status, cancelled_by from bookings where code = ${first.code}`;
+  check(
+    ok(afterLapse) && lapsed[0].status === "cancelled" && lapsed[0].cancelled_by === "lapsed",
+    "lapse: a passed window frees the dates on the next create",
+    `${describe(afterLapse)}; old booking ${JSON.stringify(lapsed[0])}`,
+  );
+
+  // 6. revive after a competing booking fails at the database
+  let reviveErr = "";
+  try {
+    await sql`update bookings set status = 'confirmed', expires_at = null, cancelled_by = null where code = ${first.code}`;
+  } catch (e) {
+    reviveErr = (e as { code?: string }).code ?? String(e);
+  }
+  check(reviveErr === "23P01", "revive: refused by the exclusion constraint once dates are taken", `error ${reviveErr || "none"}`);
+
+  // 7. access: token and phone open the booking; wrong proofs do not
+  if (ok(afterLapse)) {
+    const byToken = await getBookingByToken(afterLapse.code, afterLapse.token);
+    const wrongToken = await getBookingByToken(afterLapse.code, "A".repeat(43));
+    const row = await sql`select phone from bookings where code = ${afterLapse.code}`;
+    const byPhone = await getBookingByPhone(afterLapse.code, row[0].phone);
+    const wrongPhone = await getBookingByPhone(afterLapse.code, "9000000000");
+    check(byToken?.code === afterLapse.code && wrongToken === null, "access: right token opens, wrong token does not");
+    check(byPhone?.code === afterLapse.code && wrongPhone === null, "access: code + right phone opens, wrong phone does not");
+    check(!("access_hash" in (byToken ?? {})) && byToken?.items.length === 1, "access: response carries items and no hash");
+
+    // 8. customer cancel before cutoff frees dates
+    const cancelled = byToken ? await cancelByCustomer(byToken.id) : false;
+    const again = await book([A], day(0), day(1));
+    check(cancelled && ok(again), "cancel: before the cutoff succeeds and frees the dates", describe(again));
+  }
+
+  // 9. cancel inside the cutoff is refused, row unchanged
+  const soon = await book([B], day(19), day(19));
+  if (ok(soon)) {
+    // Move it to pickup one hour from now, IST, well inside any cutoff >= 2h.
+    await sql`
+      update bookings
+         set booked_range = daterange((now() at time zone 'Asia/Kolkata')::date, (now() at time zone 'Asia/Kolkata')::date + 1, '[)'),
+             pickup_time = ((now() + interval '1 hour') at time zone 'Asia/Kolkata')::time,
+             expires_at = now() + interval '30 minutes'
+       where code = ${soon.code}`;
+    const b = await getBookingByToken(soon.code, soon.token);
+    const refused = b ? !(await cancelByCustomer(b.id)) : false;
+    const still = await sql`select status from bookings where code = ${soon.code}`;
+    check(
+      refused && still[0].status === "pending" && b?.canCancel === false,
+      "cancel: inside the cutoff is refused and the page agrees",
+      `status ${still[0].status}, canCancel ${b?.canCancel}`,
+    );
+  } else {
+    check(false, "cancel: inside the cutoff (setup booking)", describe(soon));
+  }
+
+  // 10. bad input writes nothing
+  const before = await sql`select count(*)::int as n from bookings where customer_name = 'Verify Script'`;
+  const retail = await book([R], day(30), day(30));
+  const dup = await book([A, A], day(30), day(30));
+  const offGrid = await book([A], day(30), day(30), { time: "11:10" });
+  const sunday = await book([A], day(6), day(6));
+  const tooLong = await book([A], day(30), day(70));
+  const badPhone = await book([A], day(30), day(30), { phone: "12345" });
+  const after = await sql`select count(*)::int as n from bookings where customer_name = 'Verify Script'`;
+  check(!retail.ok && retail.error === "invalid", "reject: retail piece", describe(retail));
+  check(!dup.ok && dup.error === "invalid", "reject: same piece twice", describe(dup));
+  check(!offGrid.ok && offGrid.error === "range" && offGrid.problem === "bad_time", "reject: pickup time off the grid", describe(offGrid));
+  check(!sunday.ok && sunday.error === "range" && sunday.problem === "closed_day", "reject: pickup on a closed day", describe(sunday));
+  check(!tooLong.ok && tooLong.error === "range" && tooLong.problem === "too_long", "reject: longer than the maximum", describe(tooLong));
+  check(!badPhone.ok && badPhone.error === "invalid", "reject: not a mobile number", describe(badPhone));
+  check(before[0].n === after[0].n, "reject: nothing written for any refused request", `${before[0].n} -> ${after[0].n}`);
+
+  // 11. rate limit: the fourth booking from one phone inside an hour is refused
+  const phone = nextPhone();
+  const limited: CreateResult[] = [];
+  for (let i = 0; i < 4; i++) limited.push(await book([B], day(40 + i * 7), day(40 + i * 7), { phone }));
+  check(
+    limited.slice(0, 3).every(ok) && !limited[3].ok && limited[3].error === "rate_limited",
+    "rate limit: fourth booking from one phone in an hour refused",
+    limited.map(describe).join(" | "),
+  );
+
+  // 12. items mirror the parent: status + range follow a booking update
+  const mirror = await sql`
+    select bool_and(bi.status = b.status) as same_status,
+           bool_and(lower(bi.blocked_range) = lower(b.booked_range)
+                    and upper(bi.blocked_range) = upper(b.booked_range) + bi.buffer_days) as same_range
+      from bookings b join booking_items bi on bi.booking_id = b.id
+     where b.customer_name = 'Verify Script'`;
+  check(mirror[0].same_status && mirror[0].same_range, "items mirror their booking's status and range", JSON.stringify(mirror[0]));
+
+  await lapseExpired();
+}
+
+try {
+  await main();
+} catch (e) {
+  check(false, "gate errored", (e as Error).stack ?? String(e));
+} finally {
+  await cleanup();
+  const left = await sql`select count(*)::int as n from products where slug like 'zz-verify-%'`;
+  check(left[0].n === 0, "cleanup: no verify products left behind", `remaining: ${left[0].n}`);
+}
+
+const failed = results.filter((r) => !r.ok);
+console.log(`\n${results.length - failed.length}/${results.length} checks passed${failed.length ? `\nFAILED: ${failed.map((f) => f.label).join("; ")}` : ""}`);
+process.exit(failed.length ? 1 : 0);
