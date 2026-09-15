@@ -7,7 +7,9 @@ import { NavratriBand } from "@/components/site/NavratriBand";
 import { CategoryTiles } from "@/components/site/CategoryTiles";
 import { Ornament } from "@/components/site/Ornament";
 import { CuratedMoment } from "@/components/site/CuratedMoment";
-import { Threshold } from "@/components/site/Threshold";
+import { Arcade } from "@/components/site/Arcade";
+import { MograGarland } from "@/components/site/MograGarland";
+import { RippleHeading } from "@/components/site/RippleHeading";
 import { RoomIndex } from "@/components/site/RoomIndex";
 import { PatternSeam } from "@/components/site/PatternSeam";
 import { CountFigure } from "@/components/site/CountFigure";
@@ -18,10 +20,12 @@ import { SectionEdge } from "@/components/site/SectionEdge";
 import { RequestButton } from "@/components/site/RequestButton";
 import { GoldFrame } from "@/components/site/GoldFrame";
 import { SHOP } from "@/lib/site";
+import { navratriState } from "@/lib/navratri";
 import { getRentals, getRentalCategories } from "@/lib/rentals";
 
 /**
- * Rentals — grammar: "Threshold and rooms" (specs/DESIGN_SPEC_V3.md §2).
+ * Rentals — grammar: "Head and rooms" (was "Threshold and rooms",
+ * specs/DESIGN_SPEC_V3.md §2).
  *
  * The grammar moved here from the home page on the owner's decision, 9 Sep 2026:
  * its argument (the week she is dressing for, what owning costs, how the piece
@@ -29,7 +33,7 @@ import { getRentals, getRentalCategories } from "@/lib/rentals";
  * and not the front door's. The home page is being rebuilt separately.
  *
  *   Room           Ground          Material              Device
- *   Threshold      violet-950      film                  scrub  (the only one)
+ *   Head           stage           three-plane arcade    ripple + parallax, turnover
  *   I  The week    porcelain-50    silk, photographed    flow + in
  *   II arithmetic  porcelain-100   figures, type         count
  *   III The craft  stage           thread, macro         signature move + parallax
@@ -39,6 +43,12 @@ import { getRentals, getRentalCategories } from "@/lib/rentals";
  * A category filter (`?category=`) skips the argument entirely: someone who has
  * already chosen a silhouette is browsing, not being persuaded, so the page
  * opens on CuratedMoment and goes straight to the catalogue.
+ *
+ * 15 Sep 2026, owner: the scrubbed threshold film made this page read "odd"
+ * beside /retail and /jewellery, so the head is now theirs: type left, the
+ * category arcade right (violet doorway on the stage ground, between retail's
+ * porcelain and jewellery's violet), with a mogra and rose garland drawn
+ * behind it as retail has its sakura and jewellery its pearls.
  */
 
 export const metadata: Metadata = {
@@ -54,7 +64,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const ROOMS = [
-  { id: "threshold", label: "Threshold" },
+  { id: "head", label: "Rentals" },
   { id: "collection", label: "The collection" },
   { id: "week", label: "The week" },
   { id: "arithmetic", label: "The arithmetic" },
@@ -79,6 +89,13 @@ export default async function RentalsPage({
   // Nothing photographed yet in these; they stand in so the collection shows all
   // eight silhouettes rather than the three that happen to have pictures.
   const pendingCategories = categories.filter((c) => c.count === 0);
+
+  // The arcade walks the categories that have their own photograph.
+  const arcade = categories.flatMap((c) =>
+    c.image ? [{ slug: c.slug, name: c.name, image: c.image, href: `/rentals?category=${c.slug}` }] : []
+  );
+  // The band is violet; once it retires the collection tears from the head.
+  const bandShown = navratriState().phase !== "over";
 
   const rentFrom = items
     .map((p) => p.pricePerDay)
@@ -220,16 +237,60 @@ export default async function RentalsPage({
   return (
     <>
       <RoomIndex rooms={ROOMS} />
-      <Threshold
-        line={
-          <>
-            Worn for the days <em className="italic">it is needed</em>
-          </>
-        }
-      />
+      {/* ============ HEAD ============
+          stage · the categories in the arcade · ripple + turnover. The same
+          head as /retail and /jewellery (see Arcade). */}
+      <section
+        id="head"
+        data-room="head"
+        className="relative overflow-x-clip bg-stage pt-14 pb-14 md:flex md:min-h-[calc(100svh_-_4rem)] md:flex-col md:pt-12 md:pb-12"
+      >
+        <div className="shell-wide md:flex md:flex-1 md:flex-col">
+          <div className="grid items-center gap-14 md:flex-1 md:grid-cols-[minmax(0,32rem)_auto] md:justify-between md:gap-10 lg:justify-center lg:gap-[clamp(4rem,9vw,11rem)]">
+            {/* Above the arcade's layer, so the garland passes under the
+                heading and the buttons, never over them. */}
+            <div className="relative z-10">
+              <p className="eyebrow">Rentals</p>
 
-      {/* Navratri sits between the threshold and the first room, on the
-          threshold's own violet, so someone who came for the festival is not
+              <RippleHeading
+                as="h1"
+                italic="needed"
+                className="mt-6 max-w-[16ch] text-h1 text-ink-900"
+              >
+                Worn for the days it is needed.
+              </RippleHeading>
+
+              <div className="mt-10 flex flex-wrap gap-3">
+                <a
+                  href="#collection"
+                  className="press rounded-control bg-violet-800 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:bg-violet-700"
+                >
+                  See the collection
+                </a>
+                <Link
+                  href="/visit"
+                  className="press rounded-control border border-ink-900/20 px-6 py-3 font-medium text-ink-900 transition-colors duration-[180ms] hover:border-ink-900/40"
+                >
+                  Plan a visit
+                </Link>
+              </div>
+            </div>
+
+            {arcade.length > 0 && (
+              <Arcade
+                items={arcade}
+                backdrop={
+                  /* The garland behind every plane, drawn against the arcade
+                     (see MograGarland's header), hence the offsets. */
+                  <MograGarland className="absolute -z-10 left-[-60%] top-[-19.26%] w-[220%] max-w-none" />
+                }
+              />
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Navratri sits between the head and the first room, as a violet band, so someone who came for the festival is not
           asked to read the rent-versus-buy argument first. It is a rule across
           the page, not a room, so it takes no `id` and the room index does not
           count it. Retires itself after 20 Oct 2026. Not shown on a filtered
@@ -239,11 +300,15 @@ export default async function RentalsPage({
 
       {/* ============ THE COLLECTION ============
           porcelain-50 · the catalogue · reveal per object. Straight after the
-          threshold (owner, 14 Sep): a shopper who has already decided reaches
+          head (owner, 14 Sep): a shopper who has already decided reaches
           the rack without crossing the argument, and the rooms below are there
           for anyone who has not. */}
       <section id="collection" data-room="collection" className="relative bg-porcelain-50 py-16 md:py-24">
-        <SectionEdge seed={4} paper="var(--color-violet-950)" reveal="var(--color-porcelain-50)" />
+        <SectionEdge
+          seed={4}
+          paper={bandShown ? "var(--color-violet-950)" : "var(--color-stage)"}
+          reveal="var(--color-porcelain-50)"
+        />
         <div className="shell shell-rooms relative">
           <Reveal>
             <div data-reveal className="mx-auto max-w-3xl text-center">
@@ -364,7 +429,7 @@ export default async function RentalsPage({
       </section>
 
       {/* ============ VISIT ============
-          violet-950 · still · flow. The threshold's ground, no longer moving. */}
+          violet-950 · still · flow. */}
       <section
         id="visit"
         data-room="visit"

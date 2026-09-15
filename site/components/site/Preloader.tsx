@@ -91,8 +91,9 @@ export function Preloader() {
 
     // The release waits for the name to be drawn and filled (the CSS
     // animations' own `finished`, which already accounts for however much of
-    // the draw the loading screen did) and for the fonts and the hero poster,
-    // whichever is later; the cap ends it either way. The stitch loops forever,
+    // the draw the loading screen did) and for the fonts, whichever is later;
+    // the cap ends it either way. (It also waited on the /rentals threshold
+    // film's poster until that film was retired, 15 Sep 2026.) The stitch loops forever,
     // so it is not waited on.
     const drawn = Promise.all(
       mark
@@ -100,12 +101,7 @@ export function Preloader() {
         .filter((a) => a.effect?.getTiming().iterations !== Infinity)
         .map((a) => a.finished.catch(() => undefined)),
     );
-    const poster = new Image();
-    poster.src = "/threshold/threshold-poster.jpg";
-    const assets = Promise.all([
-      document.fonts?.ready ?? Promise.resolve(),
-      poster.decode().catch(() => undefined),
-    ]);
+    const assets = document.fonts?.ready ?? Promise.resolve();
     const capped = new Promise((r) => setTimeout(r, CAP));
 
     let tl: gsap.core.Timeline | null = null;

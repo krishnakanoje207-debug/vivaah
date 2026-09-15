@@ -8,6 +8,7 @@ import { WipeIn } from "@/components/site/WipeIn";
 import { Parallax } from "@/components/site/Parallax";
 import { Arcade } from "@/components/site/Arcade";
 import { JewelleryCard } from "@/components/site/JewelleryCard";
+import { PearlStrands } from "@/components/site/PearlStrands";
 import { getJewellery, getJewelleryCategories } from "@/lib/jewellery";
 import { jewelleryImages } from "./images";
 import { SHOP } from "@/lib/site";
@@ -36,7 +37,7 @@ import { SHOP } from "@/lib/site";
  *   Close     violet-950    invitation against the hours       reveal
  *
  * The head's parallax plates rise into the transparent nav as it scrolls, which
- * put them behind "Book a trial". `data-dark-hero="scrim"` gives the nav a
+ * put them behind the nav's button. `data-dark-hero="scrim"` gives the nav a
  * violet ground as soon as the head moves.
  */
 
@@ -53,7 +54,7 @@ const STEPS = [
   {
     n: "01",
     title: "On its own, or with an outfit",
-    body: "Ask for a set by itself, or for the same dates as an outfit you are renting from us.",
+    body: "Reserve a set by itself online, or for the same dates as an outfit you are renting from us.",
   },
   {
     n: "02",
@@ -126,7 +127,18 @@ export default async function JewelleryPage({
               </div>
             </div>
 
-            {arcade.length > 0 && <Arcade items={arcade} tone="dark" />}
+            {arcade.length > 0 && (
+              <Arcade
+                items={arcade}
+                tone="dark"
+                backdrop={
+                  /* Pearl strands behind every plane. Their box is drawn
+                     against the arcade (see PearlStrands' header), hence the
+                     offsets. */
+                  <PearlStrands className="absolute -z-10 left-[-50%] top-[-40%] w-[200%] md:top-[-52.5%] max-w-none" />
+                }
+              />
+            )}
           </div>
         </div>
       </section>

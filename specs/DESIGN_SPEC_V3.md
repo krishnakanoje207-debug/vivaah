@@ -654,10 +654,11 @@ against that grammar. Where a row is not ratified, **v2 governs**, and the
 
 | Route | Grammar in force | Ratified by | Built |
 |---|---|---|---|
-| `/rentals` | Threshold and rooms (§2, amended by §8.1) | v3 | Yes, 9 Sep |
+| `/rentals` | Arcade head and rooms (§2 and §8.1, amended by §8.4) | v3 + owner, 15 Sep | Yes, 15 Sep |
 | `/` (home) | Open, see §8.2 | — | Interim only |
 | `/retail` | Category-first gallery (v2 §5c) | v2 | Yes |
-| `/jewellery` | Category-first gallery, dark ground (v2 §5c) | v2 | Yes (W2, `d34c52b`) |
+| `/jewellery` | Arcade head, then catalogue by category (§8.4) | owner, 14-15 Sep | Yes, 15 Sep |
+| `/jewellery/[slug]` | Still plate, detail, close (§8.4) | owner, 14 Sep | Yes, 15 Sep |
 | `/rentals/[slug]` | Two-act stage, then details (v2 §5b) | v2 | Stub |
 | `/visit`, `/policies` | v2 | v2 | Yes |
 | 404 | v3 §4.2 | v3 | Yes |
@@ -722,3 +723,22 @@ seam "the whole spine of the rental product page". Both cannot be true. A device
 that carries two pages is not a peak on either. Either the product page uses a
 different device, or the seam moves off `/rentals` Room III and that room is
 rescored. Do not build a second draggable seam before that is decided.
+
+### 8.4 Amendment (15 September 2026): one head for the three trades
+
+Owner's decisions, 14-15 Sep. `/retail`, `/jewellery` and `/rentals` now open on
+the same head: type left, the category arcade right (`components/site/Arcade`,
+three planes, categories turning over, pause control), each with a drawn
+backdrop behind the planes. They differ by ground and by what is drawn:
+
+| Route | Ground | Doorway | Backdrop |
+|---|---|---|---|
+| `/retail` | porcelain-50 | violet-950 | sakura branch (`SakuraTree`) |
+| `/rentals` | stage | violet-950 | mogra and rose garland (`MograGarland`) |
+| `/jewellery` | violet-950 | porcelain-100 | pearl strands (`PearlStrands`) |
+
+On `/rentals` this **retires §2.2's threshold film and §3.1's scrub**: the owner
+found the film made the page read "odd" beside the other two. The rooms after it
+stand as §2.6 scores them; the room index's first entry is the head. §7.4's
+threshold scrim values and §7.5 no longer describe anything on the site.
+
