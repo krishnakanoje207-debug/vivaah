@@ -162,6 +162,55 @@ export async function getRentals(categorySlug?: string): Promise<Rental[]> {
   return rows.map((r) => toRental(r, []));
 }
 
+/** A just-arrived piece, cut down to what the new-stock notice shows. */
+export type NewArrival = {
+  slug: string;
+  name: string;
+  pricePerDay: number | null;
+  /** Front turntable frame, or the category picture when `sample` is true. */
+  image: string | null;
+  sample: boolean;
+  createdAt: string;
+};
+
+// The newest active rentals inside the same "Just in" window productBadges
+// uses, newest first. Deliberately its own tiny query rather than a filter over
+// getRentals(): it runs from the root layout, so it is on every storefront
+// request and must not pull the whole catalogue to find three rows.
+export async function getNewArrivals(limit = 3): Promise<NewArrival[]> {
+  const rows = await sqlPublic<{
+    slug: string;
+    name: string;
+    spin: DbSpin | null;
+    rental_price: string | null;
+    category_slug: string | null;
+    created_at: string | Date;
+  }>`
+    select p.slug, p.name, p.spin, p.rental_price, p.created_at,
+           c.slug as category_slug
+      from products p
+      left join categories c on c.id = p.category_id
+     where p.type = 'rental' and p.is_active
+       and p.created_at >= now() - make_interval(days => ${JUST_IN_DAYS})
+     order by p.created_at desc
+     limit ${limit}`;
+  return rows.map((r) => {
+    const spin = toSpinConfig(r.spin);
+    const sample = spin
+      ? null
+      : RENTAL_CATEGORIES.find((c) => c.slug === r.category_slug)?.image ?? null;
+    return {
+      slug: r.slug,
+      name: r.name,
+      pricePerDay: numOrNull(r.rental_price),
+      image: spin ? `${spin.basePath}/000.${spin.ext}` : sample,
+      sample: !spin && sample !== null,
+      createdAt:
+        r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
+    };
+  });
+}
+
 export async function getFeaturedRentals(): Promise<Rental[]> {
   return (await getRentals()).slice(0, 3);
 }
