@@ -123,14 +123,16 @@ export default function RetailPage() {
           The standfirst and the caption under the buttons are gone: one
           repeated the heading, the other repeated the standfirst, and the
           arcade now names the categories the standfirst listed. */}
-      <section className="relative bg-porcelain-50 pt-14 pb-12 md:flex md:min-h-[calc(100svh_-_4rem)] md:flex-col md:pt-12 md:pb-10">
+      <section className="relative overflow-x-clip bg-porcelain-50 pt-14 pb-12 md:flex md:min-h-[calc(100svh_-_4rem)] md:flex-col md:pt-12 md:pb-10">
         <div className="shell-wide md:flex md:flex-1 md:flex-col">
           {/* The type and the arcade are one composition, centred as a pair
               the way the jewellery head is: in two stretched columns the
               heading hugged the left edge and the arcade the right, with
               ~600px of paper between them at 1920. */}
           <div className="grid items-center gap-14 md:flex-1 md:grid-cols-[minmax(0,32rem)_auto] md:justify-between md:gap-10 lg:justify-center lg:gap-[clamp(4rem,9vw,11rem)]">
-            <div>
+            {/* Above the arcade's layer, so the sakura reaching left from it
+                passes under the heading and the buttons, never over them. */}
+            <div className="relative z-10">
               <p className="eyebrow">Retail</p>
 
               <RippleHeading

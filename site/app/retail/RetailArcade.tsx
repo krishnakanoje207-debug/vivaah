@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FocusEvent } from "react";
 import { gsap } from "gsap";
 import { Parallax } from "@/components/site/Parallax";
+import { SakuraTree } from "@/components/site/SakuraTree";
 import { RETAIL_CATEGORIES } from "@/lib/categories";
 
 /**
@@ -130,8 +131,12 @@ export function RetailArcade() {
          the height directly would narrow the box from an unknown side. From md
          the width is explicit: the column is `auto`, and a percentage width
          inside an auto track has nothing to resolve against. */
-      className="relative mx-auto aspect-[7/8] w-full max-w-[26rem] md:mx-0 md:w-[min(calc(min(66svh,48rem)*7/8),48vw)] md:max-w-none"
+      className="relative isolate mx-auto aspect-[7/8] w-full max-w-[26rem] md:mx-0 md:w-[min(calc(min(66svh,48rem)*7/8),48vw)] md:max-w-none"
     >
+      {/* The sakura branch behind every plane. Its box is drawn against the
+          arcade (see SakuraTree's header), hence the offsets. */}
+      <SakuraTree className="absolute -z-10 left-[-60%] top-[-19.26%] w-[220%] max-w-none" />
+
       {/* ---- back: the doorway ------------------------------------------ */}
       <Parallax distance={14} className="absolute right-0 top-0 h-[84%] w-[68%]">
         <div
