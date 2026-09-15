@@ -19,6 +19,9 @@ import {
   getBookingByToken,
   getBookingSettings,
   lapseExpired,
+  quoteExtension,
+  requestExtension,
+  approveExtension,
   type CreateResult,
 } from "../lib/booking.ts";
 import { addDays, todayIST, weekday } from "../lib/bookingRules.ts";
@@ -208,6 +211,46 @@ async function main() {
       from bookings b join booking_items bi on bi.booking_id = b.id
      where b.customer_name = 'Verify Script'`;
   check(mirror[0].same_status && mirror[0].same_range, "items mirror their booking's status and range", JSON.stringify(mirror[0]));
+
+  // 13. extensions: non-colliding approve widens; colliding approve is rejected by the DB
+  const ext = await book([J], day(56), day(57));
+  const next = await book([J], day(63), day(63)); // blocked from day(63); ext may reach day(60) with buffer 2
+  if (ok(ext) && ok(next)) {
+    const extRow = await sql`update bookings set status = 'confirmed', expires_at = null where code = ${ext.code} returning id`;
+    const id = extRow[0].id as string;
+    const pendingRefused = await quoteExtension((await sql`select id from bookings where code = ${next.code}`)[0].id, day(64));
+    check(!pendingRefused.ok && pendingRefused.error === "not_extendable", "extension: a pending booking cannot be extended", JSON.stringify(pendingRefused));
+
+    const clashQuote = await quoteExtension(id, day(61));
+    check(!clashQuote.ok && clashQuote.error === "dates_taken", "extension: quote sees the next booking's hold", JSON.stringify(clashQuote));
+
+    const good = await requestExtension(id, day(60));
+    const dupe = await requestExtension(id, day(59));
+    check(good.ok && good.extraDays === 3 && !dupe.ok && dupe.error === "open_request", "extension: request recorded, second open request refused", `${JSON.stringify(good)} | ${JSON.stringify(dupe)}`);
+    const reqId = (await sql`select id from extension_requests where booking_id = ${id} and status = 'pending'`)[0].id as string;
+    const approved = await approveExtension(reqId);
+    const widened = await sql`select to_char(upper(booked_range) - 1, 'YYYY-MM-DD') as ret from bookings where id = ${id}`;
+    const items = await sql`select to_char(upper(blocked_range), 'YYYY-MM-DD') as e from booking_items where booking_id = ${id}`;
+    check(
+      approved.ok && widened[0].ret === day(60) && items[0].e === day(61 + settings.bufferDays),
+      "extension: approval widens the booking and its items",
+      `${JSON.stringify(approved)} ret=${widened[0].ret} itemEnd=${items[0].e}`,
+    );
+
+    // Bypass the quote, as a race would: a request straight into the table.
+    await sql`insert into extension_requests (booking_id, requested_return) values (${id}, ${day(62)}::date)`;
+    const raceReq = (await sql`select id from extension_requests where booking_id = ${id} and status = 'pending'`)[0].id as string;
+    const raced = await approveExtension(raceReq);
+    const unchanged = await sql`select to_char(upper(booked_range) - 1, 'YYYY-MM-DD') as ret from bookings where id = ${id}`;
+    const reqState = await sql`select status from extension_requests where id = ${raceReq}`;
+    check(
+      !raced.ok && raced.error === "dates_taken" && unchanged[0].ret === day(60) && reqState[0].status === "rejected",
+      "extension: colliding approval refused by the constraint, booking unchanged, request rejected",
+      `${JSON.stringify(raced)} ret=${unchanged[0].ret} request=${reqState[0].status}`,
+    );
+  } else {
+    check(false, "extension: setup bookings", `${describe(ext)} | ${describe(next)}`);
+  }
 
   await lapseExpired();
 }

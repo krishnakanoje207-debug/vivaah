@@ -467,3 +467,120 @@ export async function cancelByCustomer(bookingId: string): Promise<boolean> {
     returning id`;
   return rows.length === 1;
 }
+
+// ---------------------------------------------------------------------------
+// extensions (v1.0 §2.5; charge recorded, paid at the shop per V2 §2.5)
+
+export type ExtensionQuote =
+  | { ok: true; extraDays: number; charge: number; newReturn: string }
+  | { ok: false; error: "not_extendable" | "bad_date" | "too_long" | "open_request" | "dates_taken"; message: string };
+
+const EXT_MESSAGES = {
+  not_extendable: "Only a confirmed booking, or one already picked up, can be extended.",
+  bad_date: "Choose a return date after the current one.",
+  too_long: "That would take the booking past the longest we allow. Please call the shop.",
+  open_request: "There is already a request to extend this booking. The shop will reply to it first.",
+  dates_taken: "One of your pieces is booked by someone else soon after your dates, so it cannot be kept longer.",
+} as const;
+
+const extFail = (error: keyof typeof EXT_MESSAGES): ExtensionQuote => ({ ok: false, error, message: EXT_MESSAGES[error] });
+
+/**
+ * What an extension to `newReturn` would cost and whether it looks possible.
+ * A pre-check for the customer's benefit only: approval re-runs the range change
+ * through the exclusion constraint, which is the authority.
+ */
+export async function quoteExtension(bookingId: string, newReturn: string): Promise<ExtensionQuote> {
+  const rows = await sql<{ status: string; pickup: string; ret: string; open: number }>`
+    select b.status,
+           to_char(lower(b.booked_range), 'YYYY-MM-DD') as pickup,
+           to_char(upper(b.booked_range) - 1, 'YYYY-MM-DD') as ret,
+           (select count(*)::int from extension_requests e where e.booking_id = b.id and e.status = 'pending') as open
+      from bookings b where b.id = ${bookingId}`;
+  const b = rows[0];
+  if (!b || !["confirmed", "picked_up"].includes(b.status)) return extFail("not_extendable");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newReturn) || newReturn <= b.ret) return extFail("bad_date");
+  const days = (a: string, z: string) => Math.round((Date.parse(`${z}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
+  if (days(b.pickup, newReturn) + 1 > 30) return extFail("too_long");
+  if (b.open > 0) return extFail("open_request");
+
+  // Another booking's hold overlapping this booking's widened block, per item.
+  const clash = await sql<{ n: number }>`
+    select count(*)::int as n
+      from booking_items mine
+      join booking_items other
+        on other.product_id = mine.product_id
+       and other.booking_id <> mine.booking_id
+       and other.status not in ('cancelled','returned')
+       and other.blocked_range && daterange(upper(mine.blocked_range)::date,
+                                            ${newReturn}::date + 1 + mine.buffer_days, '[)')
+     where mine.booking_id = ${bookingId}`;
+  if ((clash[0]?.n ?? 0) > 0) return extFail("dates_taken");
+
+  const rate = await sql<{ total: string }>`
+    select coalesce(sum(p.extension_rate), 0)::text as total
+      from booking_items bi join products p on p.id = bi.product_id
+     where bi.booking_id = ${bookingId}`;
+  const extraDays = days(b.ret, newReturn);
+  return { ok: true, extraDays, charge: Number(rate[0].total) * extraDays, newReturn };
+}
+
+/** Records a pending extension request after a successful quote. */
+export async function requestExtension(bookingId: string, newReturn: string): Promise<ExtensionQuote> {
+  const q = await quoteExtension(bookingId, newReturn);
+  if (!q.ok) return q;
+  // The NOT EXISTS keeps "one open request per booking" true under a double submit.
+  const rows = await sql`
+    insert into extension_requests (booking_id, requested_return, charge_amount)
+    select ${bookingId}, ${newReturn}::date, ${q.charge}
+     where not exists (select 1 from extension_requests where booking_id = ${bookingId} and status = 'pending')
+    returning id`;
+  return rows.length === 1 ? q : extFail("open_request");
+}
+
+export type ExtensionDecision = { ok: true } | { ok: false; error: "stale" | "dates_taken" };
+
+/**
+ * Admin approval. Widening booked_range re-fires the exclusion constraint through
+ * the item sync trigger; a collision (23P01) rolls the whole transaction back and
+ * the request is marked rejected (v1.0 §2.5 step 3). Callers must requireAdmin().
+ */
+export async function approveExtension(requestId: string): Promise<ExtensionDecision> {
+  const req = await sql<{ booking_id: string; requested_return: string; charge_amount: string }>`
+    select booking_id, to_char(requested_return, 'YYYY-MM-DD') as requested_return, charge_amount
+      from extension_requests where id = ${requestId} and status = 'pending'`;
+  const r = req[0];
+  if (!r) return { ok: false, error: "stale" };
+  try {
+    const [widened] = await transaction((tx) => [
+      tx`
+        update bookings
+           set booked_range = daterange(lower(booked_range), ${r.requested_return}::date + 1, '[)'),
+               amount_due = amount_due + ${r.charge_amount}::numeric
+         where id = ${r.booking_id} and status in ('confirmed','picked_up')
+           and upper(booked_range) <= ${r.requested_return}::date
+        returning id`,
+      tx`
+        update extension_requests set status = 'approved', decided_at = now()
+         where id = ${requestId} and status = 'pending'
+           and exists (select 1 from bookings where id = ${r.booking_id} and status in ('confirmed','picked_up'))
+        returning id`,
+    ]);
+    if ((widened as unknown[]).length === 0) return { ok: false, error: "stale" };
+    return { ok: true };
+  } catch (err) {
+    if ((err as { code?: string }).code === "23P01") {
+      await sql`update extension_requests set status = 'rejected', decided_at = now() where id = ${requestId} and status = 'pending'`;
+      return { ok: false, error: "dates_taken" };
+    }
+    throw err;
+  }
+}
+
+/** Admin rejection. Callers must requireAdmin(). */
+export async function rejectExtension(requestId: string): Promise<ExtensionDecision> {
+  const rows = await sql`
+    update extension_requests set status = 'rejected', decided_at = now()
+     where id = ${requestId} and status = 'pending' returning id`;
+  return rows.length === 1 ? { ok: true } : { ok: false, error: "stale" };
+}
