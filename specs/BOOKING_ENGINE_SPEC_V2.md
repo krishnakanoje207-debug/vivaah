@@ -90,10 +90,14 @@ transition. **Decline** = pending → cancelled, `cancelled_by = 'shop'`.
 update bookings set status = 'cancelled', cancelled_by = 'lapsed'
  where status = 'pending' and expires_at < now();
 ```
-Run lazily at the head of: booking creation, the availability route, the admin
-inbox, and the status page. A Cloudflare cron (every 15 min) runs it as well so the
-calendar is honest when nobody is using the site. Lazy is the guarantee; cron is
-tidiness.
+Run lazily at the head of every path that reads or writes a hold: booking creation,
+the availability route, the admin inbox/detail/dashboard, and the status page.
+
+**No cron** (decided while building, 15 Sep). Every reader sweeps first, so a cron
+would change nothing anyone can see, and it would cost real free-tier budget: Neon
+suspends compute after 5 idle minutes, and a 15-minute schedule keeps it awake around
+the clock (~180 CU-hours a month against the free 100). If comms (Phase 5) ever needs
+to act on a lapse the moment it happens, add the schedule then, with that cost in view.
 
 ### 2.5 Extension — v1.0 unchanged, except
 The charge is quoted and recorded; it is paid at the shop (v1.0 already said
