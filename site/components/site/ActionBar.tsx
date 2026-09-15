@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SHOP } from "@/lib/site";
-import { enquiryHref, hasRealPhone } from "@/lib/enquiry";
+import { hasRealPhone } from "@/lib/enquiry";
 import { useCookiePanelOpen } from "@/components/site/CookieConsent";
 
 /**
@@ -93,27 +93,28 @@ export function ActionBar() {
             >
               Call the shop
             </a>
-            <a
-              href={enquiryHref({})}
-              target="_blank"
-              rel="noreferrer"
-              tabIndex={open ? undefined : -1}
-              className="flex min-h-[44px] flex-[1.2] items-center justify-center rounded-control bg-porcelain-50 px-4 text-caption font-medium text-violet-950"
-            >
-              Reserve online
-            </a>
           </>
         ) : (
-          // No number yet, so there is one honest action rather than two dead
-          // ones. Mirrors enquiryHref's own degrade.
+          // No number yet, so the second action is directions rather than a
+          // dead call link.
           <Link
             href="/visit"
             tabIndex={open ? undefined : -1}
-            className="flex min-h-[44px] flex-1 items-center justify-center rounded-control bg-porcelain-50 px-4 text-caption font-medium text-violet-950"
+            className="flex min-h-[44px] flex-1 items-center justify-center rounded-control border border-porcelain-50/30 px-4 text-caption font-medium text-porcelain-50"
           >
             Plan a visit
           </Link>
         )}
+        {/* Booking is online since Phase 2 (15 Sep 2026) and needs no phone
+            number, so this goes where the desktop nav's "Reserve online" goes:
+            the collection, where every piece has its own Reserve. */}
+        <Link
+          href="/rentals#collection"
+          tabIndex={open ? undefined : -1}
+          className="flex min-h-[44px] flex-[1.2] items-center justify-center rounded-control bg-porcelain-50 px-4 text-caption font-medium text-violet-950"
+        >
+          Reserve online
+        </Link>
       </div>
     </div>
   );
