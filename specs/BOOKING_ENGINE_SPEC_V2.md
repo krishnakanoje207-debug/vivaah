@@ -47,13 +47,13 @@ pending ──confirm (shop)──▶ confirmed ──pickup──▶ picked_up 
 
 ### 2.1 Create booking
 Input: `items` (1–12 product slugs, active, `type in ('rental','jewellery')`, no
-duplicates), `pickup` (date), `return` (date), `pickupTime` (HH:MM), `name`, `phone`,
+duplicates), `pickup` (date), `return` (date), `time` (HH:MM, the pickup time), `name`, `phone`,
 `email?`, `note?` (≤ 500 chars), Turnstile token.
 
 Validation (server, all of it; client checks are UX only):
 - Dates are Asia/Kolkata calendar dates. `pickup ≥ today`, `return ≥ pickup`,
   inclusive length ≤ 30 days, `pickup ≤ today + 180 days`.
-- `pickupTime` lies on the configured grid inside `pickup_hours` (§4) and the pickup
+- `time` lies on the configured grid inside `pickup_hours` (§4) and the pickup
   weekday is not in `closed_weekdays`.
 - `pickup_at` (pickup date + time, IST) is at least **2 hours** ahead of now, so the
   shop has a chance to confirm before she arrives.
@@ -71,9 +71,9 @@ Then, in order:
 4. Code `VVH-` + 4 Crockford base32 chars (unchanged; it is for reading aloud over
    the phone). Access token: 32 random bytes, base64url; only its SHA-256 is stored
    (`bookings.access_hash`).
-5. **One statement** (CTE: insert booking, insert items from the booking's id).
-   A single statement is atomic on the Neon HTTP driver without an interactive
-   transaction. `23P01` → 409 `dates_taken` with the product(s) that collided.
+5. **One transaction** of two statements (insert booking, insert items), with the
+   booking id generated in the app so the second needs no round-trip; the Neon HTTP
+   driver's non-interactive `transaction()`. `23P01` → 409 `dates_taken` with the product(s) that collided.
    `23505` on `code` → regenerate, retry ≤ 5.
 6. Response: `{ code, token }`. The client goes to `/booking/<code>?k=<token>`.
 
@@ -129,7 +129,8 @@ else's booking. So:
 - A customer who has lost the link can open the booking with **code + the phone
   number it was made with** (rate-limited, §5). That exchange returns the page, not
   the token.
-- Without either, the route returns the same 404 whether or not the code exists.
+- Without either, the page shows the code + phone form, identical whether or not the
+  code exists.
 - Responses expose code, pieces, dates, pickup time, status, shop info, and the
   customer's own phone masked (`98•••••210`). Never an email, never a note.
 
