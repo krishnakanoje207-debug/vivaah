@@ -17,7 +17,11 @@ export function SiteChrome({
   footer: ReactNode;
   children: ReactNode;
 }) {
-  const isAdmin = usePathname()?.startsWith("/admin") ?? false;
+  const path = usePathname() ?? "";
+  const isAdmin = path.startsWith("/admin");
+  // Mid-booking she already has the one action that matters on screen; a
+  // floating bar would cover the form's foot and a popup would interrupt it.
+  const isBooking = path.startsWith("/reserve") || path.startsWith("/booking");
   return (
     <>
       {!isAdmin && nav}
@@ -25,8 +29,8 @@ export function SiteChrome({
       {!isAdmin && footer}
       {/* Phone-only, and it decides for itself when to appear. Mounted here so
           it follows the same /admin rule as the rest of the storefront chrome. */}
-      {!isAdmin && <ActionBar />}
-      {!isAdmin && <NewStockPopup />}
+      {!isAdmin && !isBooking && <ActionBar />}
+      {!isAdmin && !isBooking && <NewStockPopup />}
     </>
   );
 }
