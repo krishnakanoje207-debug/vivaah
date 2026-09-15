@@ -243,12 +243,18 @@ export default async function RentalsPage({
       <section
         id="head"
         data-room="head"
-        className="relative overflow-x-clip bg-stage pt-14 pb-14 md:flex md:min-h-[calc(100svh_-_4rem)] md:flex-col md:pt-12 md:pb-12"
+        className="relative isolate overflow-x-clip bg-stage pt-14 pb-14 md:flex md:min-h-[calc(100svh_-_4rem)] md:flex-col md:pt-12 md:pb-12"
       >
+        {/* The garland across the whole head, behind the type and the
+            arcade (see MograGarland's header for the two compositions). */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <MograGarland />
+        </div>
+
         <div className="shell-wide md:flex md:flex-1 md:flex-col">
           <div className="grid items-center gap-14 md:flex-1 md:grid-cols-[minmax(0,32rem)_auto] md:justify-between md:gap-10 lg:justify-center lg:gap-[clamp(4rem,9vw,11rem)]">
-            {/* Above the arcade's layer, so the garland passes under the
-                heading and the buttons, never over them. */}
+            {/* Above the garland, so it passes under the heading and the
+                buttons, never over them. */}
             <div className="relative z-10">
               <p className="eyebrow">Rentals</p>
 
@@ -277,14 +283,7 @@ export default async function RentalsPage({
             </div>
 
             {arcade.length > 0 && (
-              <Arcade
-                items={arcade}
-                backdrop={
-                  /* The garland behind every plane, drawn against the arcade
-                     (see MograGarland's header), hence the offsets. */
-                  <MograGarland className="absolute -z-10 left-[-60%] top-[-19.26%] w-[220%] max-w-none" />
-                }
-              />
+              <Arcade items={arcade} />
             )}
           </div>
         </div>

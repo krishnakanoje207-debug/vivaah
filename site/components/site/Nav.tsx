@@ -62,7 +62,7 @@ export function Nav() {
       <nav className="shell flex h-16 items-center justify-between gap-6">
         <Brand tone={overDark ? "light-on-dark" : "dark-on-light"} />
 
-        <ul className={`hidden md:flex items-center gap-8 text-[0.9375rem] ${linkColor}`}>
+        <ul className={`hidden md:flex items-center gap-5 lg:gap-8 whitespace-nowrap text-[0.9375rem] ${linkColor}`}>
           {NAV_LINKS.map((l) => (
             <li key={l.href}>
               <Link href={l.href} className={`${linkHover} transition-colors duration-[180ms]`}>
@@ -78,8 +78,12 @@ export function Nav() {
             hidden one could win that registration and send every piece to a
             display:none target. One element, always mounted. */}
         <div className={`flex items-center gap-1 md:gap-4 ${linkColor}`}>
-          <div className="hidden md:flex items-center gap-4">
-            <LangToggle overDark={overDark} />
+          {/* Between md and lg the bar is too narrow for the dormant language
+              toggle as well: "Reserve online" wrapped onto two lines at 768. */}
+          <div className="hidden md:flex items-center gap-4 whitespace-nowrap">
+            <span className="hidden lg:inline-flex">
+              <LangToggle overDark={overDark} />
+            </span>
             <Button href="/rentals#collection" variant={overDark ? "ghost-dark" : "ghost"}>
               Reserve online
             </Button>

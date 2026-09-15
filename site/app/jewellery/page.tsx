@@ -96,8 +96,13 @@ export default async function JewelleryPage({
           head's height and takes a violet ground once the page moves. */}
       <section
         data-dark-hero="scrim"
-        className="on-dark grain relative -mt-16 overflow-x-clip bg-violet-950 pt-28 pb-16 md:flex md:min-h-[100svh] md:flex-col md:pt-24 md:pb-12"
+        className="on-dark grain relative isolate -mt-16 overflow-x-clip bg-violet-950 pt-28 pb-16 md:flex md:min-h-[100svh] md:flex-col md:pt-24 md:pb-12"
       >
+        {/* The pearl strands fill the whole head (owner, 15 Sep), under the
+            type column and the arcade. See PearlStrands for the composition. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <PearlStrands />
+        </div>
         <div className="shell-wide relative z-[1] md:flex md:flex-1 md:flex-col">
           <div className="grid items-center gap-14 md:flex-1 md:grid-cols-[minmax(0,32rem)_auto] md:justify-between md:gap-10 lg:justify-center lg:gap-[clamp(4rem,9vw,11rem)]">
             <div className="relative z-10">
@@ -128,16 +133,7 @@ export default async function JewelleryPage({
             </div>
 
             {arcade.length > 0 && (
-              <Arcade
-                items={arcade}
-                tone="dark"
-                backdrop={
-                  /* Pearl strands behind every plane. Their box is drawn
-                     against the arcade (see PearlStrands' header), hence the
-                     offsets. */
-                  <PearlStrands className="absolute -z-10 left-[-50%] top-[-40%] w-[200%] md:top-[-52.5%] max-w-none" />
-                }
-              />
+              <Arcade items={arcade} tone="dark" />
             )}
           </div>
         </div>

@@ -129,15 +129,22 @@ export default function RetailPage() {
           The standfirst and the caption under the buttons are gone: one
           repeated the heading, the other repeated the standfirst, and the
           arcade now names the categories the standfirst listed. */}
-      <section className="relative overflow-x-clip bg-porcelain-50 pt-14 pb-12 md:flex md:min-h-[calc(100svh_-_4rem)] md:flex-col md:pt-12 md:pb-10">
+      <section className="relative isolate bg-porcelain-50 pt-14 pb-12 md:flex md:min-h-[calc(100svh_-_4rem)] md:flex-col md:pt-12 md:pb-10">
+        {/* The sakura across the whole head, under the type and the arcade
+            (see SakuraTree). Clipped here, not on the section, so the arcade's
+            parallax and the next section's torn edge are untouched. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <SakuraTree />
+        </div>
+
         <div className="shell-wide md:flex md:flex-1 md:flex-col">
           {/* The type and the arcade are one composition, centred as a pair
               the way the jewellery head is: in two stretched columns the
               heading hugged the left edge and the arcade the right, with
               ~600px of paper between them at 1920. */}
           <div className="grid items-center gap-14 md:flex-1 md:grid-cols-[minmax(0,32rem)_auto] md:justify-between md:gap-10 lg:justify-center lg:gap-[clamp(4rem,9vw,11rem)]">
-            {/* Above the arcade's layer, so the sakura reaching left from it
-                passes under the heading and the buttons, never over them. */}
+            {/* Above the sakura's layer, so a branch or a petal passes under
+                the heading and the buttons, never over them. */}
             <div className="relative z-10">
               <p className="eyebrow">Retail</p>
 
@@ -165,15 +172,7 @@ export default function RetailPage() {
               </div>
             </div>
 
-            <Arcade
-              items={ARCADE}
-              backdrop={
-                /* The sakura branch behind every plane. Its box is drawn
-                   against the arcade (see SakuraTree's header), hence the
-                   offsets. */
-                <SakuraTree className="absolute -z-10 left-[-60%] top-[-19.26%] w-[220%] max-w-none" />
-              }
-            />
+            <Arcade items={ARCADE} />
           </div>
 
           {/* The rail. It runs the full width of the wide shell on purpose: it

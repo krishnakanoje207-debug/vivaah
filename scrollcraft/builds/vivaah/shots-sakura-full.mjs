@@ -1,0 +1,30 @@
+// /retail head with the full-bleed sakura (15 Sep 2026).
+import { chromium } from "playwright-core";
+import { mkdirSync } from "node:fs";
+const OUT = "lab/sakura-full"; mkdirSync(OUT, { recursive: true });
+const b = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe" });
+const errors = [];
+const shot = async (w, h, { rm = false, tag = "", wait = 3500, scroll = 0 } = {}) => {
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: rm ? "reduce" : "no-preference", isMobile: w < 500, hasTouch: w < 500 });
+  await ctx.addInitScript(() => localStorage.setItem("vivaah:consent", JSON.stringify({ analytics: false, at: "x" })));
+  const p = await ctx.newPage();
+  p.on("console", (m) => m.type() === "error" && errors.push(`${w}: ${m.text()}`));
+  p.on("pageerror", (e) => errors.push(`${w}: ${e.message}`));
+  await p.goto("http://localhost:3000/retail", { waitUntil: "networkidle" });
+  if (scroll) await p.evaluate((y) => scrollTo(0, y), scroll);
+  await p.waitForTimeout(wait);
+  const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+  const name = `${w}x${h}${rm ? "-rm" : ""}${tag}`;
+  await p.screenshot({ path: `${OUT}/${name}.png` });
+  console.log(name, "overflowX", ov);
+  await ctx.close();
+};
+for (const [w, h] of [[2560, 1440], [1920, 1080], [1440, 900], [1280, 720], [1024, 768], [768, 1024], [390, 844]]) await shot(w, h);
+await shot(1440, 900, { tag: "-mid", wait: 9000 });
+await shot(1440, 900, { rm: true });
+await shot(390, 844, { rm: true });
+await shot(390, 844, { tag: "-arcade", scroll: 300 });
+await shot(360, 740, { tag: "-arcade", scroll: 280 });
+await shot(600, 960);
+console.log("errors:", errors.length ? errors : "none");
+await b.close();
