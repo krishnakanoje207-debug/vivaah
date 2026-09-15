@@ -6,9 +6,11 @@ import { useSyncExternalStore } from "react";
  * The selection — the pieces a visitor is gathering, before she asks for them.
  *
  * Built 14 Sep 2026 on the owner's request for a way to gather several pieces
- * rather than ask about them one at a time. Today a customer who wants three
- * garments sends three separate WhatsApp messages, or sends one and describes
- * the rest from memory.
+ * rather than ask about them one at a time. Before it, a customer who wanted
+ * three garments sent three separate WhatsApp messages, or sent one and
+ * described the rest from memory. Since Phase 2 the tray hands its rental and
+ * jewellery pieces to /reserve as one booking, and its retail pieces to one
+ * WhatsApp message, until retail is bookable too (Phase 3).
  *
  * NOT a cart, and not only as a matter of wording. `DESIGN_SPEC_V3` and
  * `KOMBAI_SHARED_CONTRACT` both ban cart/checkout/delivery vocabulary, and
@@ -19,14 +21,13 @@ import { useSyncExternalStore } from "react";
  *
  * Consequences of that, which shape the whole module:
  *
- *   - It holds ONE date, not a date per piece. A customer is dressing for a
- *     day, and the shop's own question is "what day are you dressing for".
- *     Per-item ranges belong to Phase 2's booking engine, which owns the
- *     exclusion constraint that makes them safe; inventing them here would
- *     imply availability nobody has checked.
+ *   - It holds no dates. It held one free-text "what day" until 15 Sep 2026;
+ *     dates are now chosen on /reserve, against the exclusion constraint that
+ *     makes them safe, and a second, looser answer here would only disagree
+ *     with it.
  *   - Nothing is reserved, held, or priced as a total. A sum would read as an
- *     amount owed, and no amount is owed until the owner confirms and takes the
- *     advance by UPI.
+ *     amount owed, and nothing is paid through the site at all
+ *     (BOOKING_ENGINE_SPEC_V2 D1): the shop settles everything at the counter.
  *   - It lives in localStorage only. There is no account, no server state, and
  *     no order. It survives a reload on one device and reaches nothing else,
  *     which is exactly what a private shortlist should do.
@@ -54,14 +55,9 @@ export type SelectionItem = {
 
 export type Selection = {
   items: SelectionItem[];
-  /** The day she is dressing for, as the visitor typed it. Free text on
-      purpose: "14 November", "next Saturday" and "Diwali" are all answers the
-      shop can work with, and a date picker would demand a precision the
-      request does not have. */
-  date: string | null;
 };
 
-const EMPTY: Selection = { items: [], date: null };
+const EMPTY: Selection = { items: [] };
 
 let cached: Selection | null = null;
 let loaded = false;
@@ -75,10 +71,7 @@ function read(): Selection {
       const parsed = raw ? JSON.parse(raw) : null;
       cached =
         parsed && Array.isArray(parsed.items)
-          ? {
-              items: parsed.items.slice(0, MAX),
-              date: typeof parsed.date === "string" ? parsed.date : null,
-            }
+          ? { items: parsed.items.slice(0, MAX) }
           : EMPTY;
     } catch {
       cached = EMPTY; // storage blocked, or someone hand-edited it
@@ -137,10 +130,6 @@ export function toggle(item: SelectionItem): "added" | "removed" | "full" {
 export function remove(slug: string) {
   const cur = read();
   write({ ...cur, items: cur.items.filter((i) => i.slug !== slug) });
-}
-
-export function setDate(date: string | null) {
-  write({ ...read(), date: date && date.trim() ? date.trim() : null });
 }
 
 export function clear() {

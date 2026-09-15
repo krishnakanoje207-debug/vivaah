@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { NIGHTS, navratriState } from "@/lib/navratri";
-import { REQUEST_NOTICE, enquiryHref } from "@/lib/enquiry";
+import { ENQUIRY_NOTICE, enquiryHref } from "@/lib/enquiry";
 
 /**
  * The Navratri band — the festival's one entry point on a page.
@@ -101,7 +101,7 @@ export function NavratriBand({ ground = true }: { ground?: boolean }) {
             {/* The owner's rule, printed where the request is made and not only
                 in the policies page: nothing is held until she confirms it. */}
             <p className="mt-1 max-w-[34ch] text-caption text-violet-300">
-              {REQUEST_NOTICE}
+              {ENQUIRY_NOTICE}
             </p>
           </div>
         </Reveal>

@@ -61,7 +61,6 @@ export default async function JewelleryPiecePage({
   const lead = p.images[0] ?? null;
   const sample = lead ? null : jewelleryImage(p.category);
   const rest = p.images.slice(1).map((i) => i.path);
-  const occasion = p.occasions[0] ?? p.categoryName;
   const hasDetail = !!p.description || p.occasions.length > 0 || rest.length > 0;
   const categoryHref = p.category ? `/jewellery?category=${p.category}#pieces` : "/jewellery#pieces";
 
@@ -141,15 +140,23 @@ export default async function JewelleryPiecePage({
                   <span className="text-porcelain-50/70"> / day</span>
                 </p>
               )}
+              {/* Paid over the counter: nothing is taken online
+                  (BOOKING_ENGINE_SPEC_V2 D1). */}
               {p.prebook !== null && p.prebook > 0 && (
                 <p className="mt-2 text-caption text-violet-300">
-                  Advance to hold it:{" "}
+                  Advance, paid at the shop:{" "}
                   <span className="tabular text-porcelain-50">₹{formatINR(p.prebook)}</span>
                 </p>
               )}
 
               <div className="mt-10 space-y-4">
-                <RequestButton piece={p.name} night={occasion} tone="dark" />
+                <RequestButton
+                  piece={p.name}
+                  slug={p.slug}
+                  kind="jewellery"
+                  tone="dark"
+                  ask
+                />
                 <SelectionButton
                   tone="dark"
                   item={{

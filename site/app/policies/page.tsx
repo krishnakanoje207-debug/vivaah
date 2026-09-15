@@ -18,11 +18,17 @@ import { SHOP } from "@/lib/site";
  * what it covers in their own columns. The index is CSS `position: sticky` in a
  * grid column, so there is no scroll library and it cannot overlap the clauses.
  *
- * REDESIGN, NOT REWRITE. Every term below is the previous page's, word for word.
- * Nothing was deleted, softened, added or renumbered. Two typographic changes
- * only, neither of which touches meaning: `&` is set as "and" in the term names,
- * and the em dash in the pickup clause is a colon, because visible copy on this
- * site carries no em dashes (shared contract §G.3).
+ * REDESIGN, NOT REWRITE. Every term below was the previous page's, word for
+ * word. Nothing was deleted, softened, added or renumbered. Two typographic
+ * changes only, neither of which touches meaning: `&` is set as "and" in the
+ * term names, and the em dash in the pickup clause is a colon, because visible
+ * copy on this site carries no em dashes (shared contract §G.3).
+ *
+ * One exception since 15 Sep 2026: clause 01 is rewritten, because the owner
+ * decided how booking works (BOOKING_ENGINE_SPEC_V2 §0). It promised UPI
+ * details and an amount up front; nothing is paid through the site now, so it
+ * states the booking rules themselves, and the column head says "covers"
+ * rather than "will cover" for the same reason.
  *
  * The honest framing of the old page is also preserved and is the point of the
  * ledger's third column heading: these describe what each term WILL COVER once
@@ -41,18 +47,20 @@ import { SHOP } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Rental terms",
   description:
-    "How booking, pre-payment, extensions, damage and returns work at Vivaah Dresses and Suits.",
+    "How booking, extensions, damage and returns work at Vivaah Dresses and Suits.",
 };
 
-// The four terms, carried over unchanged from the previous page. `covers` is the
-// old `d` string verbatim; `title` is the old `t` with "&" set as "and".
+// The four terms. 02-04 are carried over unchanged from the previous page:
+// `covers` is the old `d` string verbatim, `title` the old `t` with "&" set as
+// "and". 01 states the booking rules (15 Sep 2026). Its "6 hours" mirrors the
+// `cancel_cutoff_hours` setting; this page is prerendered, so change both.
 const TERMS = [
   {
     id: "booking",
     n: "01",
-    title: "Booking and pre-payment",
+    title: "Booking and payment",
     covers:
-      "How much to pay up front to secure your dates, the UPI details we accept, and how the balance is settled.",
+      "A booking made online holds your dates straight away while we call or message you to confirm it. If we have not confirmed it in time, the request lapses and the dates are released. You can cancel online until 6 hours before pickup; after that, call the shop. Nothing is paid online: everything is settled at the shop.",
   },
   {
     id: "extensions",
@@ -118,8 +126,8 @@ export default function PoliciesPage() {
                 </RippleHeading>
               </div>
               <p className="mt-8 max-w-[58ch] text-ink-600 2xl:mt-0">
-                The details behind every booking, kept plain and fair. Here is what each
-                part will cover once the shop confirms its terms.
+                The details behind every booking, kept plain and fair. How booking works
+                is set; the other parts will be filled in once the shop confirms them.
               </p>
             </div>
 
@@ -183,7 +191,7 @@ export default function PoliciesPage() {
               >
                 <span className="eyebrow">No.</span>
                 <span className="eyebrow">Term</span>
-                <span className="eyebrow">What it will cover</span>
+                <span className="eyebrow">What it covers</span>
               </div>
 
               {/* Two clauses per row past 2xl. Four short clauses stacked down a

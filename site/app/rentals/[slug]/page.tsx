@@ -6,6 +6,7 @@ import { SwipeGallery } from "@/components/site/SwipeGallery";
 import { ReviewStars } from "@/components/site/ReviewStars";
 import { Button } from "@/components/ui/Button";
 import { RequestButton } from "@/components/site/RequestButton";
+import { REQUEST_NOTICE } from "@/lib/enquiry";
 import { SelectionButton } from "@/components/site/SelectionButton";
 import { Ornament } from "@/components/site/Ornament";
 import { Reveal } from "@/components/site/Reveal";
@@ -263,7 +264,8 @@ export default async function RentalProductPage({
                     of small print over a photograph. */}
                 <RequestButton
                   piece={p.name}
-                  night={p.occasion}
+                  slug={p.slug}
+                  kind="rental"
                   tone="dark"
                   notice={false}
                 />
@@ -434,32 +436,36 @@ export default async function RentalProductPage({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <DateField label="Event Pickup" />
-                        <DateField label="Event Return" />
-                      </div>
-
                       <div className="border-t border-porcelain-200 pt-8">
-                        <div className="mb-8 flex flex-wrap items-center justify-between gap-2 text-body">
-                          <span className="font-medium text-ink-600">
-                            Reservation Advance
-                          </span>
-                          <span className="tabular font-semibold text-ink-900">
-                            ₹{formatINR(p.prebook || 0)}
-                          </span>
-                        </div>
-                        {/* Was a hardcoded /visit link reading "Reserve this
-                            silhouette", under "Secure your dates with a small
-                            advance." No dates were secured, no advance taken,
-                            and it went to a directions page — it spent the
-                            visitor's intent and returned nothing. The advance
-                            figure above it is real and stays; what it buys is
-                            Phase 2's job to promise. */}
-                        <RequestButton piece={p.name} night={p.occasion} />
+                        {/* The advance is the shop's figure and stays, but it
+                            is paid over the counter: nothing is taken online
+                            (BOOKING_ENGINE_SPEC_V2 D1). A piece with no advance
+                            set shows no row, where it used to show "₹0". */}
+                        {p.prebook !== null && p.prebook > 0 && (
+                          <div className="mb-8 flex flex-wrap items-center justify-between gap-2 text-body">
+                            <span className="font-medium text-ink-600">
+                              Advance, paid at the shop
+                            </span>
+                            <span className="tabular font-semibold text-ink-900">
+                              ₹{formatINR(p.prebook)}
+                            </span>
+                          </div>
+                        )}
+                        {/* Dates, pickup time and her details are taken on
+                            /reserve. Two date inputs used to sit here that went
+                            nowhere: she could fill them in and the button beside
+                            them forgot them. */}
+                        <RequestButton
+                          piece={p.name}
+                          slug={p.slug}
+                          kind="rental"
+                          notice={false}
+                          ask
+                        />
 
-                        {/* Gathering is the quieter of the two: asking about
-                            this one piece now is the primary act, and setting
-                            it aside to ask about several later is the
+                        {/* Gathering is the quieter of the two: reserving this
+                            one piece now is the primary act, and setting it
+                            aside to reserve several together is the
                             alternative, so it takes the outline. */}
                         <SelectionButton
                           className="mt-4 w-full justify-center"
@@ -473,8 +479,7 @@ export default async function RentalProductPage({
                           }}
                         />
                         <p className="mt-6 text-caption italic leading-relaxed text-ink-600">
-                          Dates are confirmed by message, and the advance is
-                          taken once a piece is held.
+                          {REQUEST_NOTICE}
                         </p>
                       </div>
                     </div>
@@ -540,17 +545,5 @@ export default async function RentalProductPage({
         </Reveal>
       </section>
     </div>
-  );
-}
-
-function DateField({ label }: { label: string }) {
-  return (
-    <label className="block min-w-0">
-      <span className="eyebrow mb-3 block">{label}</span>
-      <input
-        type="date"
-        className="tabular w-full min-w-0 rounded-control border border-porcelain-200 bg-porcelain-50 px-4 py-3.5 text-body text-ink-900 transition-colors duration-[180ms] focus:border-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-500/20"
-      />
-    </label>
   );
 }

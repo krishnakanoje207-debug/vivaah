@@ -3,19 +3,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { clear, remove, useSelection, SELECTION_MAX } from "@/lib/selection";
 import {
-  clear,
-  remove,
-  setDate,
-  useSelection,
-  SELECTION_MAX,
-} from "@/lib/selection";
-import { selectionHref, hasRealPhone, REQUEST_NOTICE } from "@/lib/enquiry";
+  ENQUIRY_NOTICE,
+  hasRealPhone,
+  REQUEST_NOTICE,
+  reserveHref,
+  selectionHref,
+} from "@/lib/enquiry";
 import { registerFlightTarget, useAirborne } from "@/components/site/GarmentFlight";
 import { formatINR } from "@/lib/rentals";
 
 /**
- * The tray: what has been gathered, and the one message that asks for it.
+ * The tray: what has been gathered, and where it goes to be reserved.
+ *
+ * Rental and jewellery pieces go to /reserve together, as one booking
+ * (BOOKING_ENGINE_SPEC_V2 D5). Retail pieces cannot be booked online until
+ * Phase 3, so they go by the WhatsApp message instead, which names only them:
+ * the secondary action when the tray holds both, the only one when it holds
+ * nothing else.
  *
  * The header mark is always rendered, even at zero. Two reasons, and the second
  * is the load-bearing one: a control that appears only once it has contents
@@ -25,12 +31,12 @@ import { formatINR } from "@/lib/rentals";
  *
  * The panel deliberately shows no total. Prices are listed per piece because
  * she should be able to see what each one costs, but summing them would read as
- * an amount owed, and nothing is owed: the shop confirms by message and takes
- * an advance by UPI afterwards. Rentals are also priced per DAY, so a sum
- * across a rental and a retail piece would not even be a coherent number.
+ * an amount owed, and nothing is paid through the site: everything is settled
+ * at the shop. Rentals are also priced per DAY, so a sum across a rental and a
+ * retail piece would not even be a coherent number.
  *
- * The date is one free-text field for the whole selection, not one per piece.
- * See lib/selection for why.
+ * There is no date field. It asked "what day are you dressing for" in free text
+ * until 15 Sep 2026; dates are chosen on /reserve now. See lib/selection.
  *
  * The panel is PORTALLED to the body, and that is not tidiness. It is rendered
  * from inside the sticky header, and the header carries `backdrop-blur` — which,
@@ -77,7 +83,9 @@ export function SelectionTray() {
   }, [open, close]);
 
   const real = hasRealPhone();
-  const href = selectionHref(sel);
+  const bookable = sel.items.filter((i) => i.kind !== "retail");
+  const retail = sel.items.filter((i) => i.kind === "retail");
+  const retailHref = selectionHref(retail);
 
   return (
     <>
@@ -181,7 +189,7 @@ export function SelectionTray() {
               {count === 0 ? (
                 <p className="mt-8 text-caption text-porcelain-50/70">
                   Add a piece from anywhere on the site and it will wait here,
-                  so you can ask about everything at once instead of one at a
+                  so you can reserve everything at once instead of one at a
                   time.
                 </p>
               ) : (
@@ -258,36 +266,55 @@ export function SelectionTray() {
                     </p>
                   )}
 
-                  <div className="mt-8 border-t border-porcelain-50/15 pt-6">
-                    <label
-                      htmlFor="sel-date"
-                      className="block text-caption text-porcelain-50/70"
-                    >
-                      What day are you dressing for?
-                    </label>
-                    <input
-                      id="sel-date"
-                      type="text"
-                      defaultValue={sel.date ?? ""}
-                      onChange={(e) => setDate(e.target.value)}
-                      placeholder="14 November, or Diwali"
-                      className="mt-2 w-full rounded-control border border-porcelain-50/25 bg-transparent px-3 py-2.5 text-body text-porcelain-50 outline-none placeholder:text-porcelain-50/40 focus:border-gold-500"
-                    />
-                  </div>
+                  {bookable.length > 0 && (
+                    <>
+                      <Link
+                        href={reserveHref(bookable.map((i) => i.slug))}
+                        onClick={close}
+                        className="press mt-8 flex min-h-[48px] items-center justify-center rounded-control bg-porcelain-50 px-6 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
+                      >
+                        {bookable.length === 1
+                          ? "Reserve this piece"
+                          : "Reserve these pieces"}
+                      </Link>
+                      <p className="mt-3 text-caption text-porcelain-50/70">
+                        {REQUEST_NOTICE}
+                      </p>
+                    </>
+                  )}
 
-                  <a
-                    href={href}
-                    {...(real ? { target: "_blank", rel: "noreferrer" } : {})}
-                    onClick={close}
-                    className="press mt-6 flex min-h-[48px] items-center justify-center rounded-control bg-porcelain-50 px-6 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
-                  >
-                    {real ? (sel.items.length === 1 ? "Reserve this piece" : "Reserve these pieces") : "Plan a visit"}
-                  </a>
-
-                  {real && (
-                    <p className="mt-3 text-caption text-porcelain-50/70">
-                      {REQUEST_NOTICE}
-                    </p>
+                  {/* Retail waits for Phase 3, so its pieces still go by
+                      WhatsApp. Beside a booking it takes the outline and names
+                      what it is for, so she does not read it as a second way
+                      to reserve the same pieces. */}
+                  {retail.length > 0 && (
+                    <>
+                      <a
+                        href={retailHref}
+                        {...(real ? { target: "_blank", rel: "noreferrer" } : {})}
+                        onClick={close}
+                        className={`press flex min-h-[48px] items-center justify-center rounded-control px-6 text-center font-medium transition-colors duration-[180ms] ${
+                          bookable.length > 0
+                            ? "mt-6 border border-porcelain-50/40 text-porcelain-50 hover:bg-porcelain-50/10"
+                            : "mt-8 bg-porcelain-50 text-violet-950 hover:bg-gold-100"
+                        }`}
+                      >
+                        {!real
+                          ? "Plan a visit"
+                          : bookable.length > 0
+                            ? retail.length === 1
+                              ? "Reserve the piece to buy on WhatsApp"
+                              : "Reserve the pieces to buy on WhatsApp"
+                            : retail.length === 1
+                              ? "Reserve this piece"
+                              : "Reserve these pieces"}
+                      </a>
+                      {real && bookable.length === 0 && (
+                        <p className="mt-3 text-caption text-porcelain-50/70">
+                          {ENQUIRY_NOTICE}
+                        </p>
+                      )}
+                    </>
                   )}
 
                   <button

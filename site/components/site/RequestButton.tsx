@@ -1,8 +1,14 @@
 import Link from "next/link";
-import { enquiryHref, hasRealPhone, REQUEST_NOTICE } from "@/lib/enquiry";
+import {
+  enquiryHref,
+  ENQUIRY_NOTICE,
+  hasRealPhone,
+  REQUEST_NOTICE,
+  reserveHref,
+} from "@/lib/enquiry";
 
 /**
- * The one action this shop can honour today.
+ * The one action a page about a piece ends in.
  *
  * Built 14 Sep 2026 against specs/ACTION_ROADMAP.md. The audit that prompted it
  * found that not a single `wa.me` link rendered anywhere on the site and that
@@ -12,30 +18,41 @@ import { enquiryHref, hasRealPhone, REQUEST_NOTICE } from "@/lib/enquiry";
  * funnel and was being asked of everyone equally.
  *
  * Labelled "reserve" on the owner's decision (15 Sep 2026: "reserve online,
- * and collect at shop everywhere"). Until Phase 2's booking engine lands the
- * act is the one she already performs by hand — a WhatsApp message naming a
- * garment, which she confirms herself. `REQUEST_NOTICE` says a piece is held
- * once she has confirmed, and travels with the button by default rather than
+ * and collect at shop everywhere"). Since Phase 2 a rental or jewellery piece
+ * (`slug` plus a non-retail `kind`) goes to `/reserve`, same tab, where the
+ * request holds her dates while the shop confirms (BOOKING_ENGINE_SPEC_V2 D5,
+ * D6). That needs no phone number, so it never degrades. Retail pieces and
+ * page-level uses still compose the WhatsApp message she answers by hand, and
+ * say so in their notice, which travels with the button by default rather than
  * being left to each caller to remember.
  *
- * Degrades with `enquiryHref`: while `SHOP.phone` is the placeholder the href is
- * `/visit` and the label drops the WhatsApp promise, because a button that says
- * "message us" and opens WhatsApp to nobody is worse than one that offers
- * directions. Everything here switches on by itself the moment the real number
- * lands in lib/site.
+ * The WhatsApp form degrades with `enquiryHref`: while `SHOP.phone` is a
+ * placeholder the href is `/visit` and the label drops the promise, because a
+ * button that says "reserve" and opens WhatsApp to nobody is worse than one
+ * that offers directions.
  *
- * Not a client component: it renders one anchor and reads one constant.
+ * `ask` adds the quieter "Ask on WhatsApp" under a booking button, for
+ * questions rather than requests, and only when there is a number to ask.
+ *
+ * Not a client component: it renders anchors and reads constants.
  */
 export function RequestButton({
   piece,
+  slug,
+  kind,
   night,
   tone = "light",
   size = "md",
   notice = true,
+  ask = false,
   className = "",
 }: {
   /** The garment being asked about. Omitted on a page that is not about one. */
   piece?: string;
+  /** The piece's slug, which is what /reserve takes. */
+  slug?: string;
+  /** Rental and jewellery pieces are booked online; retail is not yet. */
+  kind?: "rental" | "jewellery" | "retail";
   /** The occasion, when the page knows it — "Navratri", "Sangeet". */
   night?: string;
   /** `light` sits on paper, `dark` on the violet ground. */
@@ -43,32 +60,41 @@ export function RequestButton({
   size?: "sm" | "md";
   /** Set false only where the notice is already stated within a line or two. */
   notice?: boolean;
+  /** Offer "Ask on WhatsApp" under a booking button. */
+  ask?: boolean;
   className?: string;
 }) {
   const real = hasRealPhone();
-  const href = enquiryHref({ piece, night });
+  const bookable = !!slug && !!kind && kind !== "retail";
 
   // Name the action, not the mechanism — except while the mechanism is the
   // reason the label is different, in which case say where it actually goes.
-  const label = !real
-    ? piece
-      ? "Come and see it"
-      : "Plan a visit"
-    : piece
-      ? `Reserve ${piece}`
-      : "Reserve online";
+  const label = bookable
+    ? `Reserve ${piece ?? "this piece"}`
+    : !real
+      ? piece
+        ? "Come and see it"
+        : "Plan a visit"
+      : piece
+        ? `Reserve ${piece}`
+        : "Reserve online";
+
+  const href = bookable ? reserveHref([slug]) : enquiryHref({ piece, night });
+  const external = !bookable && real;
+  const showNotice = notice && (bookable || real);
 
   const pad = size === "sm" ? "px-5 py-2.5 text-caption" : "px-6 py-3";
   const skin =
     tone === "dark"
       ? "bg-porcelain-50 text-violet-950 hover:bg-gold-100"
       : "bg-violet-950 text-porcelain-50 hover:bg-violet-900";
+  const quiet = tone === "dark" ? "text-porcelain-50/70" : "text-ink-600";
 
   return (
     <div className={className}>
       <Link
         href={href}
-        {...(real ? { target: "_blank", rel: "noreferrer" } : {})}
+        {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
         className={`press inline-flex items-center gap-3 rounded-control font-medium transition-colors duration-[180ms] ${pad} ${skin}`}
       >
         {label}
@@ -77,13 +103,24 @@ export function RequestButton({
         </span>
       </Link>
 
-      {notice && real && (
-        <p
-          className={`mt-3 max-w-[42ch] text-caption ${
-            tone === "dark" ? "text-porcelain-50/70" : "text-ink-600"
+      {ask && bookable && real && (
+        <a
+          href={enquiryHref({ piece, ask: true })}
+          target="_blank"
+          rel="noreferrer"
+          className={`mt-3 flex min-h-[44px] w-fit items-center text-caption underline underline-offset-4 ${
+            tone === "dark"
+              ? "text-porcelain-50 decoration-porcelain-50/40 hover:decoration-porcelain-50"
+              : "text-ink-900 decoration-ink-900/30 hover:decoration-ink-900"
           }`}
         >
-          {REQUEST_NOTICE}
+          Ask on WhatsApp
+        </a>
+      )}
+
+      {showNotice && (
+        <p className={`mt-3 max-w-[42ch] text-caption ${quiet}`}>
+          {bookable ? REQUEST_NOTICE : ENQUIRY_NOTICE}
         </p>
       )}
     </div>
