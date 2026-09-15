@@ -164,7 +164,7 @@ export default async function JewelleryPiecePage({
               </div>
 
               <p className="mt-10 border-l border-gold-500/40 pl-5 text-caption text-violet-300">
-                Renting an outfit too? Ask for this set on the same dates.{" "}
+                Renting an outfit too? Reserve this set for the same dates.{" "}
                 <Link href="/rentals" className="text-gold-500 underline-offset-4 hover:underline">
                   See what is in for rent
                 </Link>

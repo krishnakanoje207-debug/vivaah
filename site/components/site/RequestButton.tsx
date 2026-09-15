@@ -11,12 +11,12 @@ import { enquiryHref, hasRealPhone, REQUEST_NOTICE } from "@/lib/enquiry";
  * verb was *travel to a shop*, which is the highest-friction action in the
  * funnel and was being asked of everyone equally.
  *
- * It is deliberately NOT called "reserve" or "book". Phase 2 owns reservations
- * and the exclusion constraint that makes them safe; until then the honest act
- * is the one the owner already performs by hand — a WhatsApp message naming a
- * garment, which she confirms herself. `REQUEST_NOTICE` says exactly that, and
- * travels with the button by default rather than being left to each caller to
- * remember.
+ * Labelled "reserve" on the owner's decision (15 Sep 2026: "reserve online,
+ * and collect at shop everywhere"). Until Phase 2's booking engine lands the
+ * act is the one she already performs by hand — a WhatsApp message naming a
+ * garment, which she confirms herself. `REQUEST_NOTICE` says a piece is held
+ * once she has confirmed, and travels with the button by default rather than
+ * being left to each caller to remember.
  *
  * Degrades with `enquiryHref`: while `SHOP.phone` is the placeholder the href is
  * `/visit` and the label drops the WhatsApp promise, because a button that says
@@ -55,8 +55,8 @@ export function RequestButton({
       ? "Come and see it"
       : "Plan a visit"
     : piece
-      ? `Ask us to hold ${piece}`
-      : "Ask us about a piece";
+      ? `Reserve ${piece}`
+      : "Reserve online";
 
   const pad = size === "sm" ? "px-5 py-2.5 text-caption" : "px-6 py-3";
   const skin =

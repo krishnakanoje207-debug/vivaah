@@ -80,8 +80,8 @@ export function Nav() {
         <div className={`flex items-center gap-1 md:gap-4 ${linkColor}`}>
           <div className="hidden md:flex items-center gap-4">
             <LangToggle overDark={overDark} />
-            <Button href="/visit" variant={overDark ? "ghost-dark" : "ghost"}>
-              Book a trial
+            <Button href="/rentals#collection" variant={overDark ? "ghost-dark" : "ghost"}>
+              Reserve online
             </Button>
           </div>
 
@@ -115,8 +115,8 @@ export function Nav() {
             ))}
             <li className="pt-3 flex items-center justify-between">
               <LangToggle overDark={false} />
-              <Button href="/visit" variant="ghost">
-                Book a trial
+              <Button href="/rentals#collection" variant="ghost">
+                Reserve online
               </Button>
             </li>
           </ul>

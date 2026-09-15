@@ -22,19 +22,19 @@ export function hasRealPhone(): boolean {
 }
 
 /**
- * Always states that this is a request rather than a reservation, because the
- * owner's rule is that nothing is held until she confirms it (12 Sep 2026), and
- * the customer should read that in the message she is sending, not only on the
- * page she sent it from.
+ * The owner's word for this is "reserve online, collect at the shop"
+ * (15 Sep 2026: "everywhere"). The message still says a piece is held once she
+ * confirms it, because that is her rule (12 Sep 2026) and the customer should
+ * read it in the message she is sending, not only on the page.
  */
 export function enquiryHref(opts: { piece?: string; night?: string }): string {
   if (!hasRealPhone()) return "/visit";
   const lines = [
     opts.piece
-      ? `Hello, I would like to request ${opts.piece}.`
-      : "Hello, I would like to ask about a piece.",
+      ? `Hello, I would like to reserve ${opts.piece}.`
+      : "Hello, I would like to reserve a piece.",
     opts.night ? `For: ${opts.night}.` : null,
-    "I understand this is a request and is not held until you confirm.",
+    "I understand it is held once you confirm.",
   ].filter(Boolean);
   const digits = SHOP.phone.replace(/[^\d]/g, "");
   return `https://wa.me/${digits}?text=${encodeURIComponent(lines.join(" "))}`;
@@ -42,7 +42,7 @@ export function enquiryHref(opts: { piece?: string; night?: string }): string {
 
 /** The sentence that must appear wherever a request can be made. */
 export const REQUEST_NOTICE =
-  "A request, not a reservation. We will message you to confirm, and a piece is only held once we have.";
+  "Reserve online, collect at the shop. We message you to confirm, and the piece is held once we have.";
 
 /**
  * The same request, for several pieces at once.
@@ -67,11 +67,11 @@ export function selectionHref(sel: {
   if (!hasRealPhone() || sel.items.length === 0) return "/visit";
   const lines = [
     sel.items.length === 1
-      ? "Hello, I would like to request this piece:"
-      : `Hello, I would like to request these ${sel.items.length} pieces:`,
+      ? "Hello, I would like to reserve this piece:"
+      : `Hello, I would like to reserve these ${sel.items.length} pieces:`,
     ...sel.items.map((i) => `- ${i.name}`),
     sel.date ? `For: ${sel.date}.` : null,
-    "I understand this is a request and nothing is held until you confirm.",
+    "I understand they are held once you confirm.",
   ].filter(Boolean);
   const digits = SHOP.phone.replace(/[^\d]/g, "");
   return `https://wa.me/${digits}?text=${encodeURIComponent(lines.join("\n"))}`;

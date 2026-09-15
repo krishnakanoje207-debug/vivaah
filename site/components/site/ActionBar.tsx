@@ -10,7 +10,7 @@ import { useCookiePanelOpen } from "@/components/site/CookieConsent";
  * The phone's persistent way to reach the shop.
  *
  * Built 14 Sep 2026 (specs/ACTION_ROADMAP.md, Stage 2). Below `md` the nav
- * collapses to a hamburger and takes "Book a trial" in with it, so the only
+ * collapses to a hamburger and takes "Reserve online" in with it, so the only
  * contact affordance on the entire site was behind a tap that nothing invited.
  * A visitor scrolling the front door passed 8,211px of page — and /rentals
  * 12,262px — with no way to call, message or ask about anything at any point.
@@ -100,7 +100,7 @@ export function ActionBar() {
               tabIndex={open ? undefined : -1}
               className="flex min-h-[44px] flex-[1.2] items-center justify-center rounded-control bg-porcelain-50 px-4 text-caption font-medium text-violet-950"
             >
-              Ask about a piece
+              Reserve online
             </a>
           </>
         ) : (

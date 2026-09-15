@@ -281,7 +281,7 @@ export function SelectionTray() {
                     onClick={close}
                     className="press mt-6 flex min-h-[48px] items-center justify-center rounded-control bg-porcelain-50 px-6 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
                   >
-                    {real ? "Send this request" : "Plan a visit"}
+                    {real ? (sel.items.length === 1 ? "Reserve this piece" : "Reserve these pieces") : "Plan a visit"}
                   </a>
 
                   {real && (
