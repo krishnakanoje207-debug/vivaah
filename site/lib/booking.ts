@@ -563,7 +563,11 @@ export async function approveExtension(requestId: string): Promise<ExtensionDeci
       tx`
         update extension_requests set status = 'approved', decided_at = now()
          where id = ${requestId} and status = 'pending'
-           and exists (select 1 from bookings where id = ${r.booking_id} and status in ('confirmed','picked_up'))
+           -- Same transaction, so this sees the widened range: the request is
+           -- approved only if the booking really now ends on the requested day.
+           and exists (select 1 from bookings where id = ${r.booking_id}
+                         and status in ('confirmed','picked_up')
+                         and upper(booked_range) = ${r.requested_return}::date + 1)
         returning id`,
     ]);
     if ((widened as unknown[]).length === 0) return { ok: false, error: "stale" };

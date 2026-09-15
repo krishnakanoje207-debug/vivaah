@@ -237,6 +237,18 @@ async function main() {
       `${JSON.stringify(approved)} ret=${widened[0].ret} itemEnd=${items[0].e}`,
     );
 
+    // A request for a date the booking already ends after: stale, and NOT approved.
+    await sql`insert into extension_requests (booking_id, requested_return) values (${id}, ${day(58)}::date)`;
+    const staleReq = (await sql`select id from extension_requests where booking_id = ${id} and status = 'pending'`)[0].id as string;
+    const staleRes = await approveExtension(staleReq);
+    const staleState = await sql`select status from extension_requests where id = ${staleReq}`;
+    check(
+      !staleRes.ok && staleRes.error === "stale" && staleState[0].status === "pending",
+      "extension: approval that cannot widen the booking leaves the request pending",
+      `${JSON.stringify(staleRes)} request=${staleState[0].status}`,
+    );
+    await sql`update extension_requests set status = 'rejected' where id = ${staleReq}`;
+
     // Bypass the quote, as a race would: a request straight into the table.
     await sql`insert into extension_requests (booking_id, requested_return) values (${id}, ${day(62)}::date)`;
     const raceReq = (await sql`select id from extension_requests where booking_id = ${id} and status = 'pending'`)[0].id as string;
