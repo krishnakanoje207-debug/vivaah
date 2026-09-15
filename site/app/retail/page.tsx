@@ -6,7 +6,8 @@ import { GoldFrame } from "@/components/site/GoldFrame";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
-import { RetailArcade } from "./RetailArcade";
+import { Arcade } from "@/components/site/Arcade";
+import { SakuraTree } from "@/components/site/SakuraTree";
 import { RETAIL_CATEGORIES } from "@/lib/categories";
 import { SHOP } from "@/lib/site";
 
@@ -90,6 +91,11 @@ const TILE: Record<string, Tile> = {
 };
 const TILE_DEFAULT: Tile = { span: "md:col-span-4", media: "aspect-[3/4]" };
 
+// The arcade walks the categories that have their own photograph.
+const ARCADE = RETAIL_CATEGORIES.flatMap((c) =>
+  c.image ? [{ slug: c.slug, name: c.name, image: c.image, href: `/retail?category=${c.slug}` }] : []
+);
+
 // Four steps, honestly told. No payment word beyond the counter, no delivery,
 // no basket: the verb is reserve and the place is the shop.
 const STEPS = [
@@ -115,7 +121,7 @@ export default function RetailPage() {
   return (
     <>
       {/* ---------- Head: the model, and the rail turning over -------------
-          Type left, the arcade right (see RetailArcade for why it exists and
+          Type left, the arcade right (see Arcade for why it exists and
           how it moves). The head takes the first screen from md up, with the
           fact rail as its floor, so the page opens on a composition rather
           than on a strip of small pictures with paper around them.
@@ -159,7 +165,15 @@ export default function RetailPage() {
               </div>
             </div>
 
-            <RetailArcade />
+            <Arcade
+              items={ARCADE}
+              backdrop={
+                /* The sakura branch behind every plane. Its box is drawn
+                   against the arcade (see SakuraTree's header), hence the
+                   offsets. */
+                <SakuraTree className="absolute -z-10 left-[-60%] top-[-19.26%] w-[220%] max-w-none" />
+              }
+            />
           </div>
 
           {/* The rail. It runs the full width of the wide shell on purpose: it

@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type FocusEvent } from "react";
+import { useEffect, useRef, useState, type FocusEvent, type ReactNode } from "react";
 import { gsap } from "gsap";
 import { Parallax } from "@/components/site/Parallax";
-import { SakuraTree } from "@/components/site/SakuraTree";
-import { RETAIL_CATEGORIES } from "@/lib/categories";
 
 /**
- * The retail head's picture: an arcade of three planes, and the rail turning
- * over inside it.
+ * A head's picture: an arcade of three planes, and the categories turning
+ * over inside it. Built for /retail; /jewellery uses it too (owner, 14 Sep
+ * 2026: "hero like the retail arcade"), inverted, a porcelain doorway on the
+ * violet ground, via `tone="dark"`.
  *
  * Why (owner, 14 Sep 2026: the head "looks plain and damped"). Every other
  * page opens on depth — the garden behind the name on `/`, the film on
@@ -38,11 +38,24 @@ import { RETAIL_CATEGORIES } from "@/lib/categories";
 
 // How long each category holds the plate. Long enough to read a two-line name
 // and reach it with a pointer; short enough that the rail visibly moves.
+// Mirrored by `.retail-hold`'s duration in globals.css.
 const HOLD_MS = 3400;
 
-const CATS = RETAIL_CATEGORIES.filter((c) => c.image);
+export type ArcadeItem = { slug: string; name: string; image: string; href: string };
 
-export function RetailArcade() {
+export function Arcade({
+  items: CATS,
+  tone = "light",
+  backdrop,
+}: {
+  /** At least one; each needs its own photograph. */
+  items: ArcadeItem[];
+  /** The ground the arcade stands on: `light` porcelain, `dark` violet. */
+  tone?: "light" | "dark";
+  /** Drawn behind every plane, inside the arcade's isolated layer. */
+  backdrop?: ReactNode;
+}) {
+  const dark = tone === "dark";
   const ref = useRef<HTMLDivElement>(null);
   const [i, setI] = useState(0);
   // Only the plates that have been on show, plus the one coming up, are in the
@@ -133,21 +146,23 @@ export function RetailArcade() {
          inside an auto track has nothing to resolve against. */
       className="relative isolate mx-auto aspect-[7/8] w-full max-w-[26rem] md:mx-0 md:w-[min(calc(min(66svh,48rem)*7/8),48vw)] md:max-w-none"
     >
-      {/* The sakura branch behind every plane. Its box is drawn against the
-          arcade (see SakuraTree's header), hence the offsets. */}
-      <SakuraTree className="absolute -z-10 left-[-60%] top-[-19.26%] w-[220%] max-w-none" />
+      {backdrop}
 
       {/* ---- back: the doorway ------------------------------------------ */}
       <Parallax distance={14} className="absolute right-0 top-0 h-[84%] w-[68%]">
         <div
           data-plane
-          className="on-dark grain arch relative h-full w-full overflow-hidden bg-violet-950"
+          className={`arch relative h-full w-full overflow-hidden ${
+            dark ? "bg-porcelain-100" : "on-dark grain bg-violet-950"
+          }`}
         >
           {/* The drawn keyline, GoldFrame's hairline turned to follow the arch
               rather than a rectangle laid over it. */}
           <div
             aria-hidden="true"
-            className="arch pointer-events-none absolute inset-3 border border-gold-500/35 md:inset-4"
+            className={`arch pointer-events-none absolute inset-3 border md:inset-4 ${
+              dark ? "border-gold-600/40" : "border-gold-500/35"
+            }`}
           />
 
           {/* The readout sits in the part of the doorway the two photographs
@@ -160,7 +175,9 @@ export function RetailArcade() {
                   type="button"
                   onClick={() => setPaused((p) => !p)}
                   aria-label={paused ? "Play the rail" : "Pause the rail"}
-                  className="press -ml-1.5 flex h-6 w-6 shrink-0 items-center justify-center text-gold-500"
+                  className={`press -ml-1.5 flex h-6 w-6 shrink-0 items-center justify-center ${
+                    dark ? "text-gold-700" : "text-gold-500"
+                  }`}
                 >
                   <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
                     {paused ? (
@@ -171,12 +188,16 @@ export function RetailArcade() {
                   </svg>
                 </button>
               )}
-              <span className="relative h-px flex-1 overflow-hidden bg-gold-500/25">
+              <span
+                className={`relative h-px flex-1 overflow-hidden ${
+                  dark ? "bg-gold-700/25" : "bg-gold-500/25"
+                }`}
+              >
                 {!still && (
                   <span
                     key={i}
                     onAnimationEnd={advance}
-                    className="retail-hold absolute inset-0 bg-gold-500"
+                    className={`retail-hold absolute inset-0 ${dark ? "bg-gold-700" : "bg-gold-500"}`}
                     style={{ animationPlayState: playing ? "running" : "paused" }}
                   />
                 )}
@@ -185,13 +206,17 @@ export function RetailArcade() {
 
             <Link
               key={cat.slug}
-              href={`/retail?category=${cat.slug}`}
-              className="retail-name group mt-3 block font-display text-[1.0625rem] leading-tight text-porcelain-50 sm:text-h3"
+              href={cat.href}
+              className={`retail-name group mt-3 block font-display text-[1.0625rem] leading-tight sm:text-h3 ${
+                dark ? "text-ink-900" : "text-porcelain-50"
+              }`}
             >
               {cat.name}
               <span
                 aria-hidden="true"
-                className="ml-2 hidden text-gold-500 sm:inline-block transition-transform duration-[180ms] ease-out-strong group-hover:translate-x-1"
+                className={`ml-2 hidden sm:inline-block transition-transform duration-[180ms] ease-out-strong group-hover:translate-x-1 ${
+                  dark ? "text-gold-700" : "text-gold-500"
+                }`}
               >
                 &#8594;
               </span>

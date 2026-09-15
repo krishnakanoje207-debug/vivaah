@@ -456,7 +456,7 @@ html:not([data-preloader="skip"]):has(.vv-preloader:not([data-released])) header
 }
 
 /* =============================================================================
-   /retail head: the arcade (app/retail/RetailArcade.tsx), 14 Sep 2026
+   /retail head: the arcade (components/site/Arcade.tsx), 14 Sep 2026
    ============================================================================= */
 /* The hold on each category. The duration is the component's HOLD_MS; the
    plate advances on this animation's end, so the two cannot drift apart. */

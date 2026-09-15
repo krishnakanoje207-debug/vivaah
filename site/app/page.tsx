@@ -62,8 +62,8 @@ const DOORS = [
   {
     href: "/jewellery",
     eyebrow: "Jewellery",
-    heading: "Rented alongside an outfit, never sold.",
-    body: "Matched to the outfit you are taking, on the same dates, so nothing has to be hunted for separately.",
+    heading: "Rent it with an outfit, or on its own.",
+    body: "Matched to the outfit you are taking and held for its dates, or rented by itself.",
     cta: "Match to your outfit",
     image: "/categories/rajasthani-poshak.webp",
   },
@@ -397,7 +397,7 @@ export default async function HomePage() {
                 {DOORS[2].eyebrow}, to match
               </p>
               <span className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-4 bg-porcelain-50 px-5 py-4 text-caption text-ink-900">
-                Rented alongside an outfit, never sold.
+                Rent it with an outfit, or on its own.
                 <span
                   aria-hidden="true"
                   className="text-gold-700 transition-transform duration-[180ms] group-hover:translate-x-1"
@@ -418,7 +418,7 @@ export default async function HomePage() {
         <div className="shell-wide">
           <Reveal className="flex flex-wrap items-center justify-between gap-6">
             <p data-reveal className="font-display text-h3 font-medium text-porcelain-50">
-              Rented alongside an outfit, never sold.
+              Rent it with an outfit, or on its own.
             </p>
 
             <Link

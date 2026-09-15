@@ -13,6 +13,7 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   // tone: "dark" (violet-950) | "light" (stage/porcelain) | null (not transparent)
   const [navTone, setNavTone] = useState<"dark" | "light" | null>(null);
+  const [scrim, setScrim] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -23,6 +24,10 @@ export function Nav() {
       
       if (darkHero && scrollY < darkHero.offsetHeight - NAV_H) {
         setNavTone("dark");
+        // `data-dark-hero="scrim"`: a head whose parallax plates rise into the
+        // bar as it scrolls (/jewellery) gets a violet ground behind the links
+        // as soon as it moves, so the plates pass under the bar, not the words.
+        setScrim(darkHero.dataset.darkHero === "scrim" && scrollY > 4);
       } else if (stageHero && scrollY < stageHero.offsetHeight - NAV_H) {
         setNavTone("light");
       } else {
@@ -43,7 +48,7 @@ export function Nav() {
   const overDark = navTone === "dark";
   
   const shellBar = isTransparent
-    ? `bg-transparent border-transparent ${overDark ? "on-dark" : ""}`
+    ? `${overDark && scrim ? "bg-violet-950/90 backdrop-blur border-porcelain-50/10" : "bg-transparent border-transparent"} ${overDark ? "on-dark" : ""}`
     : "bg-porcelain-50/85 backdrop-blur border-porcelain-200";
     
   const linkColor = overDark ? "text-violet-300" : "text-ink-600";

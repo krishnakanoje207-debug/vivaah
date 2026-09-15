@@ -219,7 +219,7 @@ export function SelectionTray() {
                                 <span className="tabular">
                                   ₹{formatINR(i.price)}
                                 </span>
-                                {i.kind === "rental" ? " / day" : ""}
+                                {i.kind === "retail" ? "" : " / day"}
                               </>
                             ) : (
                               "Ask us"
