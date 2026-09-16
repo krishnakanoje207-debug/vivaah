@@ -94,7 +94,12 @@ function onDisk() {
     .sort()
     .map((name) => {
       const body = readFileSync(path.join(MIGRATIONS_DIR, name), "utf8");
-      return { name, version: name.split("_")[0], body, checksum: sha(body) };
+      // Checksum the content, not the line endings. Git rewrites these files to
+      // CRLF on checkout on Windows, which made every migration report CHANGED
+      // after a branch switch — a guard that cries wolf on all six hides the one
+      // that was really edited. Recorded checksums are of the LF form, so
+      // normalising here keeps them valid.
+      return { name, version: name.split("_")[0], body, checksum: sha(body.replace(/\r\n/g, "\n")) };
     });
 }
 
