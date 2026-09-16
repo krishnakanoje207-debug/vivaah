@@ -4,8 +4,9 @@
  *   cd site && npx tsx --env-file=.env.local scripts/verify-booking-e2e.mts
  *
  * verify-booking.mts proves the library against Neon. This proves the layer above
- * it that the library gate cannot see: the form, the API routes, the redirect that
- * carries the access token, the status page, and the cancel control.
+ * it that the library gate cannot see, by living one booking's whole life: she
+ * fills the form, the site writes it and hands back a link, she reads her status
+ * page, the shop confirms it in the admin panel, and she cancels it.
  *
  * Requires the dev server on :3000.
  *
@@ -16,6 +17,7 @@
  */
 import { chromium } from "@playwright/test";
 import { neon } from "@neondatabase/serverless";
+import { SESSION_COOKIE, createSession } from "../lib/adminAuth.ts";
 
 const sql = neon(process.env.DATABASE_URL!);
 const BASE = "http://localhost:3000";
@@ -128,6 +130,44 @@ try {
   const guarded = await fresh.locator("body").innerText();
   check(!guarded.includes("Verify Run"), "without the token the page withholds the booking");
   await fresh.close();
+
+  // --- the shop's half: the request has to be confirmable ---
+  // A session is minted from SESSION_SECRET rather than typed into the login
+  // form: only the password's hash is configured locally, and what is under test
+  // here is the panel, not the login.
+  const shop = await browser.newContext();
+  await shop.addCookies([
+    { name: SESSION_COOKIE, value: await createSession(), url: BASE, httpOnly: true, sameSite: "Lax" },
+  ]);
+  const admin = await shop.newPage();
+  await admin.goto(`${BASE}/admin/bookings`, { waitUntil: "load" });
+  check(!admin.url().includes("/admin/login"), "the panel opens for a signed-in shop", admin.url());
+  const inbox = await admin.locator("body").innerText();
+  check(inbox.includes(code), "the new request is in the inbox", code);
+  check(/Verify Run/.test(inbox), "named, so she knows who to call");
+
+  // The inbox links on her name, with the code beside it.
+  await admin.getByRole("link", { name: "Verify Run" }).first().click();
+  await admin.waitForURL(/\/admin\/bookings\/[0-9a-f-]{36}/, { timeout: 15000 });
+  const detail = await admin.locator("body").innerText();
+  check(/9876543210|98765 43210/.test(detail), "the detail page carries the number to call her on");
+  check(detail.includes("Automated end-to-end check"), "and the note she left");
+
+  await admin.getByRole("button", { name: "Confirm booking" }).click();
+  await admin.waitForTimeout(3000);
+  const [confirmed] = (await sql`
+    select status, verified_at is not null as stamped, expires_at
+      from bookings where code = ${code}`) as
+    { status: string; stamped: boolean; expires_at: string | null }[];
+  check(confirmed?.status === "confirmed", "one tap confirms the request", JSON.stringify(confirmed));
+  check(confirmed?.stamped, "and records when the shop did it");
+  check(confirmed?.expires_at === null, "a confirmed booking no longer lapses", String(confirmed?.expires_at));
+  await shop.close();
+
+  // She sees the answer on her own page.
+  await page.reload({ waitUntil: "load" });
+  await page.getByText(code, { exact: false }).first().waitFor({ timeout: 15000 });
+  check(/Confirmed/.test(await page.locator("body").innerText()), "her page says it is confirmed");
 
   // --- cancel, from the page, as a customer would: ask, then confirm ---
   const ask = page.getByRole("button", { name: "Cancel this booking" });
