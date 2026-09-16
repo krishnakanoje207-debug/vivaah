@@ -40,9 +40,11 @@ reservation of the kurti in **S** would block one in **M**.
 So:
 
 - **Retail rows are excluded from `no_double_booking`.** Migration `0007` drops and
-  recreates it with `and is_rental` in the `WHERE`, where `is_rental` is a new
-  generated/stored boolean on `booking_items`. (A new migration; `0001` is applied
-  and must never be edited.)
+  recreates it with `and holds_dates` in the `WHERE`, where `holds_dates` is a new
+  boolean on `booking_items`, set by the existing derive trigger from the product's
+  type. It is true for rentals and jewellery — both are single pieces whose dates
+  must not overlap — and false for retail, which is counted instead. (A new
+  migration; `0001` is applied and must never be edited.)
 - **Retail is guarded by stock instead, and that guard is also DB-level.** The locked
   decision that double-booking is never enforced in application code applies here for
   the same reason: two customers reserving the last M at the same moment is the same
