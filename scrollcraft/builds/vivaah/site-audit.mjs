@@ -19,7 +19,7 @@ const OUT = "lab/site-audit";
 
 const ROUTES = process.argv[2]
   ? [process.argv[2]]
-  : ["/", "/rentals", "/retail", "/jewellery", "/visit", "/policies", "/nope-404"];
+  : ["/", "/rentals", "/retail", "/jewellery", "/visit", "/policies", "/reserve?items=sage-rose,midnight-gown", "/booking/VVH-0000", "/nope-404"];
 
 const WIDTHS = [
   { name: "1920", viewport: { width: 1920, height: 1080 } },
@@ -59,6 +59,28 @@ function ratio(rgb1, rgb2) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+/**
+ * A route as a path on disk. Query strings are part of the route (a /reserve with
+ * no items is a different page) but `?` and `,` cannot appear in a Windows
+ * filename, so they collapse to a single safe segment name.
+ */
+function outDir(route) {
+  if (route === "/") return `${OUT}/home`;
+  return `${OUT}/${route.replace(/^\//, "").replace(/[^a-zA-Z0-9/_-]+/g, "_")}`;
+}
+
+/**
+ * Settle the page. Turnstile holds one `blob:` request to challenges.cloudflare.com
+ * open for the life of the widget, so `waitUntil: "networkidle"` never resolves on
+ * the booking routes: wait for it, but do not let it decide whether the route can
+ * be audited at all. The 1800ms and the full scroll pass below do the real settling.
+ */
+async function gotoSettled(page, route) {
+  const resp = await page.goto(BASE + route, { waitUntil: "load" });
+  await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+  return resp;
+}
+
 async function auditRoute(browser, route) {
   console.log(`\n=== ${route} ===`);
   for (const w of WIDTHS) {
@@ -77,7 +99,7 @@ async function auditRoute(browser, route) {
       if (r.status() >= 400 && new URL(r.url()).origin === BASE) bad404.push(`${r.status()} ${r.url()}`);
     });
 
-    const resp = await page.goto(BASE + route, { waitUntil: "networkidle" });
+    const resp = await gotoSettled(page, route);
     const status = resp?.status() ?? 0;
     await page.waitForTimeout(1800);
 
@@ -295,14 +317,13 @@ async function auditRoute(browser, route) {
     }
 
     // ---- screenshot slices for the eye ----
-    mkdirSync(`${OUT}${route === "/" ? "/home" : route}`, { recursive: true });
+    const dir = outDir(route);
+    mkdirSync(dir, { recursive: true });
     const slices = Math.min(8, Math.ceil(h / (w.viewport?.height ?? 800)));
     for (let i = 0; i < slices; i++) {
       await page.evaluate((y) => window.scrollTo(0, y), i * (w.viewport?.height ?? 800));
       await page.waitForTimeout(450);
-      await page.screenshot({
-        path: `${OUT}${route === "/" ? "/home" : route}/${w.name}-${String(i).padStart(2, "0")}.png`,
-      });
+      await page.screenshot({ path: `${dir}/${w.name}-${String(i).padStart(2, "0")}.png` });
     }
 
     console.log(`  [${w.name}] height ${h}, ${slices} slices`);
@@ -326,7 +347,7 @@ const rm = await chromium.launch({ executablePath: CHROME });
 for (const r of ROUTES.filter((x) => x !== "/nope-404")) {
   const ctx = await rm.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
   const p = await ctx.newPage();
-  await p.goto(BASE + r, { waitUntil: "networkidle" });
+  await gotoSettled(p, r);
   await p.waitForTimeout(1500);
   // Nothing may be left invisible when animation is switched off.
   const hidden = await p.evaluate(() =>
@@ -336,7 +357,7 @@ for (const r of ROUTES.filter((x) => x !== "/nope-404")) {
   );
   rec(hidden === 0, r, "reduced", "reveals render at full opacity", hidden ? `${hidden} still faded` : "");
   mkdirSync(`${OUT}/reduced`, { recursive: true });
-  await p.screenshot({ path: `${OUT}/reduced/${r.replace(/\//g, "_") || "home"}.png`, fullPage: false });
+  await p.screenshot({ path: `${OUT}/reduced/${outDir(r).slice(OUT.length + 1).replace(/\//g, "_")}.png`, fullPage: false });
   await ctx.close();
 }
 await rm.close();

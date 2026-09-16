@@ -340,9 +340,10 @@ export function AvailabilityCalendar({ today, blocked, bufferDays, hours, pickup
                                 ? "text-porcelain-50"
                                 : ok
                                   ? "cursor-pointer text-ink-900"
-                                  : held
-                                    ? "cursor-not-allowed text-ink-600"
-                                    : "cursor-not-allowed text-ink-400"
+                                  : // One weight for every unavailable day: ink-400 is decoration
+                                    // only (3.31:1 on porcelain). The hatch alone marks a day held
+                                    // by another booking, which is what the legend promises.
+                                    "cursor-not-allowed text-ink-600"
                             }`}
                           >
                             {(isPickup || d === ret) && (
