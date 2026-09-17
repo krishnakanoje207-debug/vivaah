@@ -7,9 +7,11 @@
 // BOOKING_ENGINE_SPEC_V2 §1; the DB triggers cascade status to booking_items,
 // so we never touch that table here.
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { sql } from "@/lib/db";
 import { approveExtension, rejectExtension } from "@/lib/booking";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { notify } from "@/lib/comms";
 
 export type ActionState = { ok?: boolean; error?: string };
 
@@ -43,6 +45,7 @@ export async function confirmBooking(_prev: ActionState, formData: FormData): Pr
     where id = ${id} and status = 'pending'
     returning id`;
   if (rows.length === 0) return { error: STALE };
+  after(() => notify("booking.confirmed", id));
   refresh(id);
   return { ok: true };
 }
@@ -56,6 +59,7 @@ export async function declineBooking(_prev: ActionState, formData: FormData): Pr
     where id = ${id} and status = 'pending'
     returning id`;
   if (rows.length === 0) return { error: STALE };
+  after(() => notify("booking.declined", id));
   refresh(id);
   return { ok: true };
 }
@@ -69,6 +73,7 @@ export async function cancelConfirmed(_prev: ActionState, formData: FormData): P
     where id = ${id} and status = 'confirmed'
     returning id`;
   if (rows.length === 0) return { error: STALE };
+  after(() => notify("booking.cancelled_shop", id));
   refresh(id);
   return { ok: true };
 }
@@ -88,6 +93,7 @@ export async function cancelNoAnswer(_prev: ActionState, formData: FormData): Pr
      where id = ${id} and status = 'confirmed'
     returning id`;
   if (rows.length === 0) return { error: STALE };
+  after(() => notify("booking.cancelled_no_answer", id));
   revalidatePath("/admin");
   refresh(id);
   return { ok: true };
@@ -154,7 +160,11 @@ export async function approveExtensionRequest(_prev: ActionState, formData: Form
   // Not refreshed on failure: a collision marks the request rejected, and a
   // re-render would unmount these buttons and the message with them.
   if (!result.ok) return { error: result.error === "dates_taken" ? EXTENSION_DATES_TAKEN : EXTENSION_STALE };
-  refresh(String(formData.get("id")));
+  const id = String(formData.get("id"));
+  // The booking row now carries the new return day, so the message reads it off
+  // the booking rather than being told it twice.
+  after(() => notify("extension.approved", id));
+  refresh(id);
   return { ok: true };
 }
 
@@ -162,6 +172,8 @@ export async function rejectExtensionRequest(_prev: ActionState, formData: FormD
   await requireAdmin();
   const result = await rejectExtension(String(formData.get("request")));
   if (!result.ok) return { error: EXTENSION_STALE };
-  refresh(String(formData.get("id")));
+  const id = String(formData.get("id"));
+  after(() => notify("extension.rejected", id));
+  refresh(id);
   return { ok: true };
 }

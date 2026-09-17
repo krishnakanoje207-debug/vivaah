@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { getBookingForVisitor, quoteExtension, requestExtension } from "@/lib/booking";
+import { notify } from "@/lib/comms";
 import { accessCookieName } from "@/lib/bookingAccess";
 
 /**
@@ -23,6 +25,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
   if (!booking) return Response.json({ error: "not_found" }, { status: 404 });
 
   const newReturn = typeof body?.newReturn === "string" ? body.newReturn : "";
-  const result = body?.quote === true ? await quoteExtension(booking.id, newReturn) : await requestExtension(booking.id, newReturn);
+  const quoting = body?.quote === true;
+  const result = quoting ? await quoteExtension(booking.id, newReturn) : await requestExtension(booking.id, newReturn);
+  // Only a recorded request is news. A quote is her looking at a price.
+  if (!quoting && result.ok) after(() => notify("extension.requested", booking.id, { newReturn }));
   return Response.json(result, { status: result.ok ? 200 : 409 });
 }

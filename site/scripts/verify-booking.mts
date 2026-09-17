@@ -25,6 +25,7 @@ import {
   type CreateResult,
 } from "../lib/booking.ts";
 import { addDays, todayIST, weekday } from "../lib/bookingRules.ts";
+import { notify } from "../lib/comms/index.ts";
 
 const sql = neon(process.env.DATABASE_URL!);
 const results: { ok: boolean; label: string; detail: string }[] = [];
@@ -346,6 +347,42 @@ async function main() {
     );
   } else {
     check(false, "retail: collection takes it off the rail (setup booking)", describe(m2));
+  }
+
+  // 19-21. comms (specs/COMMS_FLOW_SPEC_V2.md §5). No RESEND_API_KEY on this
+  // machine, so the honest expectation is a logged skip on both legs and a
+  // booking that is completely unaffected by it.
+  if (ok(alone)) {
+    const id = (await sql<{ id: string }>`select id from bookings where code = ${alone.code}`)[0].id;
+    const sent = await notify("booking.created", id, { token: alone.token });
+    const rows = await sql<{ channel: string; recipient: string; status: string; detail: string | null }>`
+      select channel, recipient, status, detail from comms_log where booking_id = ${id} order by recipient`;
+    const owner = rows.find((r) => r.recipient === "owner");
+    const customer = rows.find((r) => r.recipient === "customer");
+    check(
+      rows.length === 2 && !!owner && !!customer && rows.every((r) => r.status === "skipped" || r.status === "sent"),
+      "comms: a new request logs one owner row and one customer row",
+      rows.map((r) => `${r.recipient}/${r.channel}: ${r.status}${r.detail ? ` (${r.detail})` : ""}`).join(" | "),
+    );
+    check(
+      sent.length === rows.length,
+      "comms: notify reports exactly what it logged",
+      `returned ${sent.length}, logged ${rows.length}`,
+    );
+
+    // An id that is not a booking must be a no-op, not a throw: a notification
+    // can never be allowed to break the transition that raised it.
+    let threw = false;
+    let logged = 0;
+    try {
+      const none = await notify("booking.confirmed", "00000000-0000-4000-8000-000000000000");
+      logged = none.length;
+    } catch {
+      threw = true;
+    }
+    check(!threw && logged === 0, "comms: notifying a booking that does not exist is a no-op", `threw ${threw}, logged ${logged}`);
+  } else {
+    check(false, "comms: a new request logs both legs (setup booking)", describe(alone));
   }
 
   await lapseExpired();

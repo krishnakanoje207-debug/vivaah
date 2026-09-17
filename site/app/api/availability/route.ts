@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { getBlockedRanges, getBookables, getPublicBookingSettings, lapseExpired } from "@/lib/booking";
+import { notifyLapsed } from "@/lib/comms";
 import { MAX_ITEMS, isDate, todayIST, wouldBlock } from "@/lib/bookingRules";
 import { sqlPublic } from "@/lib/dbPublic";
 
@@ -25,7 +27,10 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const slugs = [...new Set((url.searchParams.get("items") ?? "").split(",").filter((s) => SLUG_RE.test(s)))].slice(0, MAX_ITEMS);
 
-  await lapseExpired();
+  // The sweep is lazy, so this fires wherever a reader happened to be. `after`
+  // keeps it off the render's critical path (COMMS_FLOW_SPEC_V2 E4).
+  const lapsed = await lapseExpired();
+  if (lapsed.length) after(() => notifyLapsed(lapsed));
   const [settings, products] = await Promise.all([getPublicBookingSettings(), getBookables(slugs)]);
   const blocked = await getBlockedRanges(products.map((p) => p.id));
 

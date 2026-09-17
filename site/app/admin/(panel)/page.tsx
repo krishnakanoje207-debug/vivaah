@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { sql } from "@/lib/db";
 import { CallList, type DueSoon } from "./CallList";
+import { after } from "next/server";
 import { lapseExpired } from "@/lib/booking";
+import { notifyLapsed } from "@/lib/comms";
 import { formatDay, formatTime } from "@/lib/bookingRules";
 import {
   STATUS_META,
@@ -133,7 +135,10 @@ function StatCard({ label, value, href, hint, accent }: StatCard) {
 
 export default async function AdminDashboardPage() {
   // Lapse first, so the request count never includes one whose window has passed.
-  await lapseExpired();
+  // The sweep is lazy, so this fires wherever a reader happened to be. `after`
+  // keeps it off the render's critical path (COMMS_FLOW_SPEC_V2 E4).
+  const lapsed = await lapseExpired();
+  if (lapsed.length) after(() => notifyLapsed(lapsed));
   const [stats, recent, dueSoon] = await Promise.all([loadStats(), loadRecent(), loadDueSoon()]);
 
   const cards: StatCard[] = [

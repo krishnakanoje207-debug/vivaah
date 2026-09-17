@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { createBooking } from "@/lib/booking";
+import { notify } from "@/lib/comms";
 import { RANGE_MESSAGES } from "@/lib/bookingRules";
 import { clientIp, verifyTurnstile } from "@/lib/turnstile";
 
@@ -39,6 +41,11 @@ export async function POST(req: Request) {
   });
 
   if (result.ok) {
+    // After the response, never in front of it: she should not wait on a mail
+    // server to see her own booking (specs/COMMS_FLOW_SPEC_V2.md §4 rule 3).
+    // The raw token only exists here, so this is the one message that can
+    // deep-link her straight into the booking.
+    after(() => notify("booking.created", result.id, { token: result.token }));
     return Response.json({ code: result.code, token: result.token }, { status: 201 });
   }
   switch (result.error) {

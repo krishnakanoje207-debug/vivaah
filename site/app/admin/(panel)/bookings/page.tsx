@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { sql } from "@/lib/db";
+import { after } from "next/server";
 import { lapseExpired } from "@/lib/booking";
+import { notifyLapsed } from "@/lib/comms";
 import { formatDay, formatTime } from "@/lib/bookingRules";
 import {
   TABS,
@@ -186,7 +188,10 @@ export default async function AdminBookingsPage({
   const { tab } = await searchParams;
   const active = resolveTab(tab);
   // Lapse first, so a request whose window has passed reads as lapsed here.
-  await lapseExpired();
+  // The sweep is lazy, so this fires wherever a reader happened to be. `after`
+  // keeps it off the render's critical path (COMMS_FLOW_SPEC_V2 E4).
+  const lapsed = await lapseExpired();
+  if (lapsed.length) after(() => notifyLapsed(lapsed));
   const rows = await loadRows(active.status, active.extensions);
 
   return (

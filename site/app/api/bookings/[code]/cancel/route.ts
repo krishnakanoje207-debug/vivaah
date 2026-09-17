@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { cancelByCustomer, getBookingForVisitor } from "@/lib/booking";
+import { notify } from "@/lib/comms";
 import { accessCookieName } from "@/lib/bookingAccess";
 
 /**
@@ -31,5 +33,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
       { status: 409 },
     );
   }
+  // The shop needs to know the dates are free again; she gets an acknowledgement.
+  after(() => notify("booking.cancelled_customer", booking.id));
   return Response.json({ ok: true });
 }

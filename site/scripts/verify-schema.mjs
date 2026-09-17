@@ -53,8 +53,8 @@ const record = (ok, label, detail = "") => {
   console.log(`${tag}  ${label}${detail ? `\n      ${detail}` : ""}`);
 };
 
-// Tables the spec creates. Retail's own tables land in 0002 (Phase 3), so they
-// are not expected here.
+// Tables the spec creates, plus comms_log from 0010 (Phase 5). Retail's own
+// tables land in 0002 (Phase 3), so they are not expected here.
 const EXPECTED_TABLES = [
   "categories",
   "products",
@@ -67,6 +67,7 @@ const EXPECTED_TABLES = [
   "settings",
   "sms_queue",
   "wa_contacts",
+  "comms_log",
 ];
 
 // Reachable on the storefront connection. Everything else must not be.
@@ -77,6 +78,7 @@ const MUST_BE_UNREACHABLE = [
   "extension_requests",
   "sms_queue",
   "wa_contacts",
+  "comms_log",
 ];
 
 async function main() {

@@ -77,12 +77,15 @@ export async function getPublicBookingSettings(): Promise<Omit<BookingSettings, 
 // lapse (V2 §2.4)
 
 /** Cancels every pending booking whose confirm-within window has passed. */
-export async function lapseExpired(): Promise<number> {
-  const rows = await sql`
+export async function lapseExpired(): Promise<string[]> {
+  const rows = await sql<{ id: string }>`
     update bookings set status = 'cancelled', cancelled_by = 'lapsed'
      where status = 'pending' and expires_at < now()
     returning id`;
-  return rows.length;
+  // The ids, not the count: a request that died of silence is the one event the
+  // customer never hears about on her own, so the callers pass these to
+  // `notifyLapsed` (specs/COMMS_FLOW_SPEC_V2.md E4).
+  return rows.map((r) => r.id);
 }
 
 // ---------------------------------------------------------------------------
@@ -215,7 +218,7 @@ export type CreateInput = {
 };
 
 export type CreateResult =
-  | { ok: true; code: string; token: string }
+  | { ok: true; id: string; code: string; token: string }
   | { ok: false; status: 400; error: "invalid"; field: string; message: string }
   | { ok: false; status: 400; error: "range"; problem: RangeProblem }
   | { ok: false; status: 409; error: "dates_taken"; slugs: string[] }
@@ -331,7 +334,7 @@ export async function createBooking(input: CreateInput): Promise<CreateResult> {
                     ${settings.bufferDays})`;
         }),
       ]);
-      return { ok: true, code, token };
+      return { ok: true, id, code, token };
     } catch (err) {
       const e = err as { code?: string; constraint?: string };
       if (e.code === "23505" && /code/.test(e.constraint ?? "")) continue; // code collision

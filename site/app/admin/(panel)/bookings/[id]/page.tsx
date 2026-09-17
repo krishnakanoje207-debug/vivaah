@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
+import { after } from "next/server";
 import { lapseExpired } from "@/lib/booking";
+import { notifyLapsed } from "@/lib/comms";
 import { daysBetween, formatDay, formatTime } from "@/lib/bookingRules";
 import { BookingActions, ExtensionDecision } from "../BookingActions";
 import {
@@ -154,7 +156,10 @@ export default async function BookingDetailPage({
   if (!UUID_RE.test(id)) notFound();
 
   // Lapse first, so a request whose window has passed reads as lapsed here.
-  await lapseExpired();
+  // The sweep is lazy, so this fires wherever a reader happened to be. `after`
+  // keeps it off the render's critical path (COMMS_FLOW_SPEC_V2 E4).
+  const lapsed = await lapseExpired();
+  if (lapsed.length) after(() => notifyLapsed(lapsed));
   const booking = await loadBooking(id);
   if (!booking) notFound();
   const [items, extensions] = await Promise.all([loadItems(id), loadExtensions(id)]);
