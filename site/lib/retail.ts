@@ -12,7 +12,7 @@
 // could render a count even by mistake.
 import { cache } from "react";
 import { sqlPublic } from "@/lib/dbPublic";
-import { RETAIL_CATEGORIES, type Category } from "@/lib/categories";
+import { RETAIL_CATEGORIES } from "@/lib/categories";
 import type { Review } from "@/lib/rentals";
 
 export type RetailImage = { path: string; alt: string };
@@ -140,24 +140,6 @@ export async function getRetailCards(categorySlug?: string): Promise<RetailCard[
       createdAt: iso(r.created_at),
     };
   });
-}
-
-/** Active retail categories with a live count, for the mosaic tiles. */
-export async function getRetailCategories(): Promise<Category[]> {
-  const rows = await sqlPublic<{ slug: string; name: string; count: number }>`
-    select c.slug, c.name, count(p.id)::int as count
-      from categories c
-      left join products p
-        on p.category_id = c.id and p.type = 'retail' and p.is_active
-     where c.section = 'retail' and c.is_active
-     group by c.id, c.slug, c.name, c.sort_order
-     order by c.sort_order`;
-  return rows.map((r) => ({
-    slug: r.slug,
-    name: r.name,
-    count: r.count,
-    image: categoryImage(r.slug) ?? undefined,
-  }));
 }
 
 // ---------------------------------------------------------------------------
