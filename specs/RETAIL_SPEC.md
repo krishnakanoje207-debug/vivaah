@@ -154,3 +154,60 @@ two carry different promises and one of them she keeps.
 Swatch photography per colour (one image set per product until the owner's
 photographs land), shipping of any kind, and stock movements the shop makes in the
 room — `quantity` is edited in admin, not derived from sales the site never saw.
+
+---
+
+## 7. Build record (17 September 2026)
+
+What was built against this spec, and the decisions taken while building that the
+spec did not already settle.
+
+### 7.1 Migrations
+- **`0007_retail_stock.sql`** (written 16 Sep, applied): `holds_dates`, the
+  narrowed exclusion constraint, `variant_stock`, the jsonb backfill, RLS.
+- **`0008_retail_holds.sql`**: the half §1.1 left unanswered. A reservation has
+  to name WHICH (variant, size) it took or nothing can give it back, so
+  `booking_items` gains `size` and the check `retail_names_its_size`. The take
+  and the release are triggers on `booking_items`, not application code: a hold
+  exists while the item is `pending` or `confirmed`, and every path into and out
+  of that — create, admin decline, customer cancel, the lazy lapse sweep, an
+  admin revive — moves the count without knowing it has. Running out raises
+  **SQLSTATE `VV001`**, which `lib/booking` maps to a 409 the way it maps 23P01
+  for dates. `picked_up` takes `quantity` down with `held`: the piece has left.
+- **`0009_retail_availability.sql`**: `product_unavailable_ranges()` learns
+  `holds_dates`. It is the only sanctioned public read of a product's calendar
+  and the calendar greys out whatever it returns; without this, one kurti being
+  collected on Tuesday would grey out Tuesday for all three of them. Plus
+  `bookings.cancel_reason`, one value (`no_answer`), for R2.
+
+### 7.2 Decisions taken while building
+- **The tray carries no sizes, so /reserve asks.** The spec's
+  `/reserve?items=<slug>&variant=<id>&size=M` fits one piece, which is the only
+  case that can have made the choice — a product page. A basket assembled in the
+  tray has answered nothing, so /reserve grew a fieldset that asks for the
+  colour and size of each piece being bought, and the URL form is a prefill for
+  the single-piece case. It is validated against that piece's real colours and
+  sizes on the way in, and again on the server.
+- **A mixed basket keeps the rental's range.** §2 allows mixed baskets but does
+  not say what the dates mean. They are the rental's, and she collects
+  everything on the pickup day: she comes in once. Only a basket of nothing but
+  retail is one day, and there the calendar draws no return leg (`single`).
+- **The admin edits `quantity`, never `held`.** `held` belongs to the triggers.
+  `held_within_stock` refuses a count set below what is already spoken for, and
+  the product form names that rather than saying "could not save". The form now
+  reads its counts from `variant_stock` too: the `stock` jsonb it used to read
+  is the pre-0007 copy and nothing renders it any more.
+- **A size with a live hold is not deleted.** Removing a size in the admin
+  deletes its row only where `held = 0`, because the row is what a collection is
+  released against.
+
+### 7.3 Gates
+All green on the final state, run from `site/` with the dev server up:
+`verify-booking.mts` **35/35** (invariants 14–18 added, and test 10 now checks
+that a retail line with no size is refused rather than that retail is refused),
+`verify-schema.mjs` **17/17**, `site-audit.mjs` **396/396** (`/retail/[slug]`
+added to the routes), `hero-scrim-verify.mjs` **8/8**, `tsc` clean.
+
+### 7.4 Not built
+Nothing in §6, as intended. `npm run lint` was not run: it exhausts V8's heap on
+this machine while the dev server holds memory. It is not one of the gates.

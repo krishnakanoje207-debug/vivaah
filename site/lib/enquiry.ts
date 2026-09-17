@@ -3,12 +3,12 @@ import { SHOP } from "@/lib/site";
 /**
  * Where a request goes when it cannot go to the booking page.
  *
- * Rental and jewellery pieces are reserved on `/reserve` since Phase 2
- * (BOOKING_ENGINE_SPEC_V2 §0, D5). What is left here is the WhatsApp hand-off
- * for everything the booking page does not take: retail pieces, which wait for
- * Phase 3, page-level asks that name no piece, and the quieter "Ask on
- * WhatsApp" beside a Reserve button, which is for questions (D6). The owner
- * answers these by hand.
+ * Every named piece is reserved on `/reserve` — rentals and jewellery since
+ * Phase 2 (BOOKING_ENGINE_SPEC_V2 §0, D5), retail since Phase 3. What is left
+ * here is the WhatsApp hand-off for what the booking page does not take:
+ * page-level asks that name no piece, and the quieter "Ask on WhatsApp" beside
+ * a Reserve button, which is for questions (D6). The owner answers these by
+ * hand.
  *
  * The number is checked before any wa.me link is built, so this DEGRADES rather
  * than shipping a dead link: while `SHOP.phone` is a placeholder every enquiry
@@ -53,9 +53,22 @@ export function enquiryHref(opts: {
   return `https://wa.me/${digits}?text=${encodeURIComponent(lines.join(" "))}`;
 }
 
-/** Where a rental or jewellery piece, or several, are reserved (spec V2 D5). */
-export function reserveHref(slugs: string[]): string {
-  return `/reserve?items=${slugs.map(encodeURIComponent).join(",")}`;
+/**
+ * Where a piece, or several, are reserved (spec V2 D5; retail since Phase 3).
+ *
+ * `pick` carries a retail page's chosen colour and size through to /reserve, so
+ * a visitor who has already answered those two questions is not asked them
+ * again. It only fits one piece, which is the only case that can have made the
+ * choice: the tray gathers slugs and nothing else, so a basket assembled there
+ * answers them on /reserve itself.
+ */
+export function reserveHref(
+  slugs: string[],
+  pick?: { variant: string; size: string },
+): string {
+  const items = `items=${slugs.map(encodeURIComponent).join(",")}`;
+  if (!pick || slugs.length !== 1) return `/reserve?${items}`;
+  return `/reserve?${items}&variant=${encodeURIComponent(pick.variant)}&size=${encodeURIComponent(pick.size)}`;
 }
 
 /**
@@ -72,31 +85,3 @@ export const REQUEST_NOTICE =
  */
 export const ENQUIRY_NOTICE =
   "Reserve online, collect at the shop. We message you to confirm, and nothing is paid online.";
-
-/**
- * The retail pieces in a selection, as one WhatsApp message.
- *
- * Kept beside `enquiryHref` rather than folded into it because the two messages
- * are shaped differently: one names a garment, this one lists them. Only retail
- * pieces reach it; rentals and jewellery in the same tray go to /reserve.
- *
- * The pieces are listed by name only, with no prices and no total. The shop
- * knows its own prices, the visitor may have gathered a piece whose price is
- * not published, and a number in this message would read as an amount agreed
- * when nothing has been agreed at all.
- *
- * `items` is typed structurally so this module does not import from
- * lib/selection, which is a client module.
- */
-export function selectionHref(items: { name: string }[]): string {
-  if (!hasRealPhone() || items.length === 0) return "/visit";
-  const lines = [
-    items.length === 1
-      ? "Hello, I would like to reserve this piece:"
-      : `Hello, I would like to reserve these ${items.length} pieces:`,
-    ...items.map((i) => `- ${i.name}`),
-    "I understand they are held once you confirm.",
-  ];
-  const digits = SHOP.phone.replace(/[^\d]/g, "");
-  return `https://wa.me/${digits}?text=${encodeURIComponent(lines.join("\n"))}`;
-}

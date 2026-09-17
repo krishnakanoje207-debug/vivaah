@@ -8,6 +8,10 @@ import { sqlPublic } from "@/lib/dbPublic";
  *   GET /api/availability?items=a,b                      blocked ranges per piece
  *   GET /api/availability?items=a,b&from=D&to=D          + jewellery free for D..D
  *
+ * A retail piece carries its colours and their sizes instead of blocked days:
+ * it is guarded by a count, not by a calendar. /reserve re-reads this after a
+ * lost race so a size that has just gone stops being offered.
+ *
  * Dates only: product_unavailable_ranges() on the storefront connection is the
  * one sanctioned public view of the calendar, and it carries nothing about who
  * holds a date. The lapse sweep runs first on the owner connection so a hold
@@ -59,6 +63,10 @@ export async function GET(req: Request) {
         type: p.type,
         pricePerDay: p.pricePerDay,
         blocked: blocked.get(p.id) ?? [],
+        // Retail is not held by its dates but by a count, so what this route
+        // reports for it is which sizes are still to be had. No quantity
+        // crosses the wire — `RetailVariant` carries none (RETAIL_SPEC R3).
+        ...(p.type === "retail" ? { variants: p.variants } : {}),
       })),
       ...(jewellery ? { jewellery } : {}),
     },

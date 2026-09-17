@@ -19,7 +19,7 @@ const OUT = "lab/site-audit";
 
 const ROUTES = process.argv[2]
   ? [process.argv[2]]
-  : ["/", "/rentals", "/retail", "/jewellery", "/visit", "/policies", "/reserve?items=sage-rose,midnight-gown", "/booking/VVH-0000", "/nope-404"];
+  : ["/", "/rentals", "/retail", "/retail/lilac-short-kurti", "/jewellery", "/visit", "/policies", "/reserve?items=sage-rose,midnight-gown", "/booking/VVH-0000", "/nope-404"];
 
 const WIDTHS = [
   { name: "1920", viewport: { width: 1920, height: 1080 } },

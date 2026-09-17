@@ -18,13 +18,14 @@ import {
  * funnel and was being asked of everyone equally.
  *
  * Labelled "reserve" on the owner's decision (15 Sep 2026: "reserve online,
- * and collect at shop everywhere"). Since Phase 2 a rental or jewellery piece
- * (`slug` plus a non-retail `kind`) goes to `/reserve`, same tab, where the
- * request holds her dates while the shop confirms (BOOKING_ENGINE_SPEC_V2 D5,
- * D6). That needs no phone number, so it never degrades. Retail pieces and
- * page-level uses still compose the WhatsApp message she answers by hand, and
- * say so in their notice, which travels with the button by default rather than
- * being left to each caller to remember.
+ * and collect at shop everywhere"). Any named piece (`slug` plus a `kind`) goes
+ * to `/reserve`, same tab, where the request holds what it can while the shop
+ * confirms (BOOKING_ENGINE_SPEC_V2 D5, D6) — rentals and jewellery since Phase
+ * 2, retail since Phase 3, where /reserve asks for the colour and size if the
+ * page has not already. That needs no phone number, so it never degrades.
+ * Page-level uses, which name no piece, still compose the WhatsApp message she
+ * answers by hand, and say so in their notice, which travels with the button by
+ * default rather than being left to each caller to remember.
  *
  * The WhatsApp form degrades with `enquiryHref`: while `SHOP.phone` is a
  * placeholder the href is `/visit` and the label drops the promise, because a
@@ -51,7 +52,7 @@ export function RequestButton({
   piece?: string;
   /** The piece's slug, which is what /reserve takes. */
   slug?: string;
-  /** Rental and jewellery pieces are booked online; retail is not yet. */
+  /** Which trade the piece belongs to. All three are booked online. */
   kind?: "rental" | "jewellery" | "retail";
   /** The occasion, when the page knows it — "Navratri", "Sangeet". */
   night?: string;
@@ -65,7 +66,7 @@ export function RequestButton({
   className?: string;
 }) {
   const real = hasRealPhone();
-  const bookable = !!slug && !!kind && kind !== "retail";
+  const bookable = !!slug && !!kind;
 
   // Name the action, not the mechanism — except while the mechanism is the
   // reason the label is different, in which case say where it actually goes.

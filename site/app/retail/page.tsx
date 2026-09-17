@@ -8,7 +8,9 @@ import { Reveal } from "@/components/site/Reveal";
 import { WipeIn } from "@/components/site/WipeIn";
 import { Arcade } from "@/components/site/Arcade";
 import { SakuraTree } from "@/components/site/SakuraTree";
+import { PieceCard } from "@/components/retail/PieceCard";
 import { RETAIL_CATEGORIES } from "@/lib/categories";
+import { getRetailCards } from "@/lib/retail";
 import { SHOP } from "@/lib/site";
 
 /**
@@ -40,8 +42,18 @@ import { SHOP } from "@/lib/site";
  * Boundaries are torn, never blended: `SectionEdge` at each seam, the two grounds
  * still meeting along one hard edge.
  *
- * No data layer. Tiles link to `/retail?category=<slug>` as the prompt specifies;
- * the filtered view is Phase 1 work and this file reads no search params.
+ * Phase 3 (17 Sep 2026) gave the page its catalogue. Two things changed and
+ * nothing else did:
+ *
+ *   - **The rail comes before the argument.** The pieces that are in sit
+ *     between the head and the category mosaic, in the order `/rentals` settled
+ *     on for the same reason (owner, 14 Sep: the catalogue above the argument).
+ *     Before this the page's tiles were the only thing to press, and every one
+ *     of them led to a filter over nothing.
+ *   - **The tiles filter in place.** `?category=<slug>` narrows the rail and
+ *     the page loses its editorial: someone who has already chosen a category
+ *     has read the argument, and making her scroll past it to reach the
+ *     garments is the complaint in specs/ACTION_ROADMAP.md.
  */
 
 export const metadata: Metadata = {
@@ -117,7 +129,17 @@ const STEPS = [
   },
 ];
 
-export default function RetailPage() {
+export default async function RetailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category: slug } = await searchParams;
+  // A slug that matches nothing is treated as no filter rather than as an empty
+  // shop: a stale link should show the rail, not a void.
+  const category = RETAIL_CATEGORIES.find((c) => c.slug === slug);
+  const items = await getRetailCards(category?.slug);
+
   return (
     <>
       {/* ---------- Head: the model, and the rail turning over -------------
@@ -157,11 +179,14 @@ export default function RetailPage() {
               </RippleHeading>
 
               <div className="mt-10 flex flex-wrap gap-3">
+                {/* Points at whatever is actually below it: the rail either
+                    way, and under a filter there is no category mosaic left to
+                    send anyone to. */}
                 <a
-                  href="#categories"
+                  href="#collection"
                   className="press rounded-control bg-violet-800 px-6 py-3 font-medium text-porcelain-50 transition-colors duration-[180ms] hover:bg-violet-700"
                 >
-                  See the categories
+                  {category ? `See the ${category.name.toLowerCase()}` : "See what is in"}
                 </a>
                 <Link
                   href="/visit"
@@ -198,6 +223,80 @@ export default function RetailPage() {
         </div>
       </section>
 
+      {/* ---------- The rail: what is in ------------------------------------
+          The catalogue, above everything that argues for it. Unfiltered it is
+          the whole shop; under `?category=` it is that category and the page
+          ends soon after, because someone who picked a category has already
+          been persuaded.
+
+          The wipe is per object, as it is on the rental collection: each piece
+          comes off the rail on its own beat rather than the grid fading up as
+          one block. */}
+      <section
+        id="collection"
+        className="relative scroll-mt-20 bg-porcelain-50 pt-20 pb-24 md:pt-24 md:pb-28"
+      >
+        {/* No SectionEdge: the rail stands on the head's own paper, and the
+            mosaic below keeps the porcelain-50 → porcelain-100 tear it already
+            had. Tearing paper away to reveal the same paper draws a seam that
+            is not there. */}
+        <div className="shell-wide relative">
+          <div className="mb-14 flex flex-wrap items-end justify-between gap-6 md:mb-16">
+            <RippleHeading className="text-h2 text-ink-900">
+              {category ? category.name : "What is in the shop"}
+            </RippleHeading>
+            {category && (
+              <Link
+                href="/retail"
+                className="text-caption text-gold-700 underline-offset-4 hover:underline"
+              >
+                See everything in the shop
+              </Link>
+            )}
+          </div>
+
+          {items.length === 0 ? (
+            <Reveal>
+              <div
+                data-reveal
+                className="arch mx-auto max-w-xl border border-porcelain-200/60 bg-porcelain-50 px-8 py-12 text-center"
+              >
+                <span aria-hidden="true" className="mb-6 block text-2xl text-gold-600">
+                  ✦
+                </span>
+                <p className="font-display text-[1.35rem] italic leading-relaxed text-ink-600">
+                  &ldquo;
+                  {category
+                    ? `Our ${category.name.toLowerCase()} are being photographed for the site. The rail is already waiting at the shop.`
+                    : "The rail is being photographed for the site. It is already waiting at the shop."}{" "}
+                  <Link
+                    href="/visit"
+                    className="not-italic text-gold-700 underline decoration-gold-500/40 underline-offset-4 hover:decoration-gold-600"
+                  >
+                    Visit us
+                  </Link>{" "}
+                  to see it in person.&rdquo;
+                </p>
+              </div>
+            </Reveal>
+          ) : (
+            <WipeIn className="grid grid-cols-1 items-start gap-x-10 gap-y-14 sm:grid-cols-2 sm:gap-y-20 lg:grid-cols-3">
+              {items.map((p, i) => (
+                <div
+                  key={p.slug}
+                  data-wipe
+                  className={i % 3 === 1 ? "lg:mt-24" : i % 3 === 2 ? "lg:mt-12" : ""}
+                >
+                  <PieceCard p={p} />
+                </div>
+              ))}
+            </WipeIn>
+          )}
+        </div>
+      </section>
+
+      {!category && (
+        <>
       {/* ---------- The categories: the page's spine ------------------------
           Variant A's mosaic. Eight tiles, five widths, four aspect ratios, two
           arches, three tiles hung from the bottom of their row. It survives a
@@ -339,16 +438,24 @@ export default function RetailPage() {
         </Reveal>
       </section>
 
+        </>
+      )}
+
       {/* ---------- Close: come in -------------------------------------------
           A reading measure, not the wide shell: this is a two column text and
           image split, and a wide container with a capped plate leaves a dead
           band between them. The plate carries the page's only gold frame. */}
       <section className="relative bg-porcelain-50 pt-24 pb-24 md:pt-32 md:pb-32">
-        <SectionEdge
-          seed={24}
-          paper="var(--color-violet-950)"
-          reveal="var(--color-porcelain-50)"
-        />
+        {/* The tear pulls the doorway's violet away. Under a filter the
+            doorway is not there and the rail above stands on this same paper,
+            so there is no boundary to tear. */}
+        {!category && (
+          <SectionEdge
+            seed={24}
+            paper="var(--color-violet-950)"
+            reveal="var(--color-porcelain-50)"
+          />
+        )}
 
         <div className="shell">
           {/* Centred, not top-aligned: inside the reading shell the plate is

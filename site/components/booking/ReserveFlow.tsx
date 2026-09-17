@@ -22,6 +22,7 @@ import {
 } from "@/lib/bookingRules";
 import { remove as removeFromSelection } from "@/lib/selection";
 import { formatINR } from "@/lib/format";
+import type { RetailVariant } from "@/lib/retail";
 import { SHOP } from "@/lib/site";
 import { SectionEdge } from "@/components/site/SectionEdge";
 import { Button } from "@/components/ui/Button";
@@ -33,28 +34,36 @@ import { ReserveEmpty } from "@/components/booking/ReserveEmpty";
 export type ReservePiece = {
   slug: string;
   name: string;
-  type: "rental" | "jewellery";
+  type: "rental" | "jewellery" | "retail";
+  /** Per day, for a rental or a piece of jewellery. */
   pricePerDay: number | null;
+  /** Outright, for a retail piece. */
+  price: number | null;
   href: string;
   image: string | null;
   /** The picture is the category's, not this piece's. */
   sample: boolean;
+  /** Retail only: the colours she chooses between, each with its sizes. */
+  variants: RetailVariant[];
 };
+
+/** What a retail piece in the basket has been set to. */
+type Pick = { variant: string; size: string };
 
 type Availability = {
   today: string;
   bufferDays: number;
   cancelCutoffHours: number;
   pickupHours: PickupHours;
-  products: { slug: string; blocked: Blocked[] }[];
+  products: { slug: string; blocked: Blocked[]; variants?: RetailVariant[] }[];
   jewellery?: FreeJewel[];
 };
 
 /** Whatever POST /api/bookings answers, success or failure. */
 type Reply = { code?: string; token?: string; error?: string; field?: string; slugs?: string[]; message?: string };
 
-type Field = "dates" | "time" | "name" | "phone" | "email" | "note";
-const FIELD_ORDER: Field[] = ["dates", "time", "name", "phone", "email", "note"];
+type Field = "items" | "dates" | "time" | "name" | "phone" | "email" | "note";
+const FIELD_ORDER: Field[] = ["items", "dates", "time", "name", "phone", "email", "note"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/; // the server's own test
 
 /**
@@ -70,9 +79,33 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/; // the server's own test
  * are free: a 409 here is the normal way a race is lost, so it keeps everything
  * she typed, re-reads the calendar and says which piece went.
  */
-export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
+export function ReserveFlow({
+  initial,
+  prefill,
+}: {
+  initial: ReservePiece[];
+  /** The colour and size a product page already asked for, by slug. */
+  prefill?: Record<string, Pick>;
+}) {
   const router = useRouter();
   const [pieces, setPieces] = useState(initial);
+  // Which colour and size each retail piece is set to. A piece arriving from
+  // its own product page is already answered; one gathered in the tray is not,
+  // and the form asks below.
+  const [picks, setPicks] = useState<Record<string, Pick>>(() => {
+    const out: Record<string, Pick> = {};
+    for (const p of initial) {
+      if (p.type !== "retail") continue;
+      const given = prefill?.[p.slug];
+      const v = p.variants.find((x) => x.id === given?.variant);
+      if (v?.sizes.some((sz) => sz.size === given!.size && sz.inStock)) out[p.slug] = given!;
+      // Only one colour and only one size in it: there is nothing to ask.
+      else if (p.variants.length === 1 && p.variants[0].sizes.filter((sz) => sz.inStock).length === 1) {
+        out[p.slug] = { variant: p.variants[0].id, size: p.variants[0].sizes.find((sz) => sz.inStock)!.size };
+      }
+    }
+    return out;
+  });
   const [avail, setAvail] = useState<Availability | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -101,6 +134,13 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
   const hasRental = pieces.some((p) => p.type === "rental");
   const one = pieces.length === 1;
 
+  const toRent = pieces.filter((p) => p.type !== "retail");
+  const toKeep = pieces.filter((p) => p.type === "retail");
+  // Nothing comes back, so there is no return leg: one day, and the calendar
+  // draws it as one (RETAIL_SPEC §3.3). A mixed basket keeps the rental's range
+  // and she collects everything on the pickup day — she comes in once.
+  const collectOnly = toRent.length === 0 && toKeep.length > 0;
+
   // The calendar. Re-read whenever the pieces change (a piece added from the
   // drawer brings its own holds) and after a lost race.
   const datesRef = useRef({ pickup, ret });
@@ -115,6 +155,25 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
       .then((a: Availability) => {
         setAvail(a);
         setLoadFailed(false);
+        // The sizes come back with the calendar, so a size that went while she
+        // was on this page stops being offered after a lost race.
+        setPieces((ps) =>
+          ps.map((p) => {
+            const v = a.products.find((x) => x.slug === p.slug)?.variants;
+            return v ? { ...p, variants: v } : p;
+          }),
+        );
+        setPicks((cur) => {
+          const next: Record<string, Pick> = {};
+          for (const [slug, pick] of Object.entries(cur)) {
+            const v = a.products.find((x) => x.slug === slug)?.variants;
+            // Keep the choice unless this read says that size has gone.
+            if (!v || v.find((x) => x.id === pick.variant)?.sizes.some((sz) => sz.size === pick.size && sz.inStock)) {
+              next[slug] = pick;
+            }
+          }
+          return next;
+        });
         // Dates chosen against the old calendar may not survive the new one.
         const { pickup: p, ret: r } = datesRef.current;
         if (p && r && !fitsAll(a, p, r)) {
@@ -187,13 +246,30 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
   const removePiece = (slug: string) => {
     setPieces((ps) => ps.filter((p) => p.slug !== slug));
     setTaken((t) => t.filter((s) => s !== slug));
+    setPicks(({ [slug]: _gone, ...rest }) => rest);
+  };
+
+  // Choosing a colour keeps the size only if this colour has it in stock, the
+  // same rule the product page applies.
+  const chooseColour = (piece: ReservePiece, v: RetailVariant) => {
+    setPicks((cur) => {
+      const size = cur[piece.slug]?.size;
+      const keep = size && v.sizes.some((s) => s.size === size && s.inStock) ? size : "";
+      return { ...cur, [piece.slug]: { variant: v.id, size: keep } };
+    });
+    setErrors((e) => ({ ...e, items: undefined }));
+  };
+
+  const chooseSize = (piece: ReservePiece, variant: string, size: string) => {
+    setPicks((cur) => ({ ...cur, [piece.slug]: { variant, size } }));
+    setErrors((e) => ({ ...e, items: undefined }));
   };
 
   const addJewel = (j: FreeJewel) => {
     setPieces((ps) =>
       ps.length >= MAX_ITEMS || ps.some((p) => p.slug === j.slug)
         ? ps
-        : [...ps, { ...j, type: "jewellery", href: `/jewellery/${j.slug}`, sample: false }],
+        : [...ps, { ...j, type: "jewellery", price: null, variants: [], href: `/jewellery/${j.slug}`, sample: false }],
     );
   };
 
@@ -203,6 +279,15 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
     setFormError(null);
 
     const errs: Partial<Record<Field, string>> = {};
+    // Every retail piece has to have been answered. The server checks this too,
+    // and the database decides whether the size is still to be had.
+    const unanswered = toKeep.filter((p) => !picks[p.slug]?.size);
+    if (unanswered.length > 0) {
+      errs.items =
+        unanswered.length === 1
+          ? `Choose a size for the ${unanswered[0].name}.`
+          : "Choose a size for each piece you are buying.";
+    }
     if (!pickup || !ret) errs.dates = RANGE_MESSAGES.bad_date;
     else if (!time) errs.time = RANGE_MESSAGES.bad_time;
     else {
@@ -236,7 +321,11 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: pieces.map((p) => p.slug),
+          // A retail line names the colour and size its count is keyed on; the
+          // other two are one piece each, named by slug alone.
+          items: pieces.map((p) =>
+            p.type === "retail" ? { slug: p.slug, ...picks[p.slug] } : p.slug,
+          ),
           pickup,
           return: ret,
           time,
@@ -254,7 +343,16 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
         return;
       }
       const message: string = body.message ?? "Something went wrong sending your booking. Please try again, or call the shop.";
-      if (res.status === 409) {
+      if (res.status === 409 && body.error === "out_of_stock") {
+        // The last one in that size went while she was filling the form. The
+        // dates are not the problem, so this is said against the pieces and the
+        // calendar is left alone. The sizes are re-read so the one that went
+        // now shows as gone.
+        setRefresh((n) => n + 1);
+        setErrors({ items: message });
+        failed(message);
+        document.getElementById("rv-items")?.focus();
+      } else if (res.status === 409) {
         setTaken(Array.isArray(body.slugs) ? body.slugs : []);
         setRefresh((n) => n + 1);
         setErrors({ dates: message });
@@ -289,11 +387,20 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
           <div>
             <p className="eyebrow">Reserve online, collect at the shop</p>
             <h1 className="mt-4 text-h1 text-porcelain-50">
-              The days you <em className="italic">need {one ? "it" : "them"}</em>
+              {collectOnly ? (
+                <>
+                  The day you <em className="italic">come in</em>
+                </>
+              ) : (
+                <>
+                  The days you <em className="italic">need {one ? "it" : "them"}</em>
+                </>
+              )}
             </h1>
             <p className="mt-6 max-w-[44ch] text-body text-violet-300">
-              Choose a pickup day, a return day and a time to collect. The shop
-              calls or messages you to confirm, and nothing is paid online.
+              {collectOnly
+                ? "Choose the day and the time you will come in. The shop calls or messages you to confirm, and nothing is paid online."
+                : "Choose a pickup day, a return day and a time to collect. The shop calls or messages you to confirm, and nothing is paid online."}
             </p>
           </div>
 
@@ -356,7 +463,15 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
                       {p.name}
                     </Link>
                     <p className="mt-1 text-caption text-violet-300">
-                      {p.pricePerDay !== null ? (
+                      {p.type === "retail" ? (
+                        p.price !== null ? (
+                          <>
+                            <span className="tabular">₹{formatINR(p.price)}</span> to keep
+                          </>
+                        ) : (
+                          "Price at the shop"
+                        )
+                      ) : p.pricePerDay !== null ? (
                         <>
                           <span className="tabular">₹{formatINR(p.pricePerDay)}</span> / day
                         </>
@@ -377,7 +492,11 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
               </ul>
             </div>
             <p className="mt-3 text-caption text-violet-300">
-              Prices are per day, paid at the shop when you collect.
+              {collectOnly
+                ? "Paid at the shop when you collect."
+                : toKeep.length > 0
+                  ? "A rental is priced per day; a piece you keep is priced outright. Both are paid at the shop when you collect."
+                  : "Prices are per day, paid at the shop when you collect."}
             </p>
           </div>
         </div>
@@ -393,11 +512,89 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
           className="shell relative grid gap-16 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.8fr)] lg:gap-x-20 xl:gap-x-28"
         >
           <div className="min-w-0 space-y-20 lg:col-start-1 lg:row-start-1">
+            {/* Colours and sizes, for the pieces she is buying. First in the
+                form because it is about the pieces on the rail above it, and
+                because a piece that arrived from the tray has not been asked
+                yet — the product page asks whoever comes that way, and then
+                this fieldset is already answered. */}
+            {toKeep.length > 0 && (
+              <fieldset aria-describedby={errors.items ? "rv-items-error" : undefined}>
+                <legend className="sr-only">Colour and size for each piece you are buying</legend>
+                <h2 id="rv-items" tabIndex={-1} className="text-h2 outline-none">
+                  {toKeep.length === 1 ? "The piece you are buying" : "The pieces you are buying"}
+                </h2>
+                <div className="mt-10 space-y-12">
+                  {toKeep.map((p) => {
+                    const pick = picks[p.slug];
+                    const variant = p.variants.find((v) => v.id === pick?.variant) ?? p.variants[0];
+                    return (
+                      <div key={p.slug}>
+                        <p className="text-body font-medium text-ink-900">{p.name}</p>
+                        {p.variants.length > 1 && (
+                          <div className="mt-4 flex flex-wrap gap-3">
+                            {p.variants.map((v) => {
+                              const on = v.id === variant?.id && !!pick;
+                              return (
+                                <button
+                                  key={v.id}
+                                  type="button"
+                                  onClick={() => chooseColour(p, v)}
+                                  aria-pressed={on}
+                                  className={`press inline-flex min-h-[44px] items-center gap-3 rounded-control border px-4 text-caption transition-colors duration-[180ms] ${
+                                    on
+                                      ? "border-violet-700 bg-violet-100/60 text-ink-900"
+                                      : "border-porcelain-200 text-ink-600 hover:border-ink-900/30"
+                                  }`}
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className="h-5 w-5 shrink-0 rounded-full ring-1 ring-ink-900/20"
+                                    style={{ backgroundColor: v.colourHex }}
+                                  />
+                                  {v.colourName}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {variant && (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {variant.sizes.map((sz) => {
+                              const on = pick?.variant === variant.id && pick.size === sz.size;
+                              return (
+                                <button
+                                  key={sz.size}
+                                  type="button"
+                                  disabled={!sz.inStock}
+                                  onClick={() => chooseSize(p, variant.id, sz.size)}
+                                  aria-pressed={on}
+                                  className={`press inline-flex min-h-11 min-w-[3.5rem] items-center justify-center rounded-control border px-4 text-caption transition-colors duration-[180ms] ${
+                                    on
+                                      ? "border-violet-700 bg-violet-800 font-medium text-porcelain-50"
+                                      : sz.inStock
+                                        ? "border-porcelain-200 text-ink-600 hover:border-ink-900/30"
+                                        : "cursor-not-allowed border-dashed border-porcelain-200 text-ink-600 line-through"
+                                  }`}
+                                >
+                                  {sz.size}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <FieldError id="rv-items-error" message={errors.items} />
+              </fieldset>
+            )}
+
             {/* Dates */}
             <fieldset aria-describedby={errors.dates ? "rv-dates-error" : undefined}>
               <legend className="sr-only">Pickup and return dates</legend>
               <h2 id="rv-dates" tabIndex={-1} className="text-h2 outline-none">
-                When you need {one ? "it" : "them"}
+                {collectOnly ? "When you will come in" : `When you need ${one ? "it" : "them"}`}
               </h2>
               {loadFailed && !avail ? (
                 <p className="mt-10 text-body text-ink-600">
@@ -418,6 +615,7 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
                     onChange={onDates}
                     ready={avail !== null}
                     pronoun={one ? "it" : "them"}
+                    single={collectOnly}
                   />
                 </div>
               )}
@@ -563,34 +761,85 @@ export function ReserveFlow({ initial }: { initial: ReservePiece[] }) {
               <p className="mt-2 text-center font-display text-h3">
                 {pieces.length} {one ? "piece" : "pieces"}
               </p>
-              <p className="mx-auto mt-2 max-w-[30ch] text-center text-caption text-ink-600">
-                {pieces.map((p) => p.name).join(", ")}
-              </p>
+              {/* Listed under separate headings when the basket holds both:
+                  the two carry different promises, and one of them she keeps
+                  (RETAIL_SPEC §3.3). One trade alone needs no heading. */}
+              {toRent.length > 0 && toKeep.length > 0 ? (
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <p className="text-eyebrow font-medium uppercase tracking-[0.12em] text-ink-600">
+                      To rent
+                    </p>
+                    <p className="mt-1 text-caption text-ink-900">
+                      {toRent.map((p) => p.name).join(", ")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-eyebrow font-medium uppercase tracking-[0.12em] text-ink-600">
+                      To keep
+                    </p>
+                    <p className="mt-1 text-caption text-ink-900">
+                      {toKeep
+                        .map((p) => `${p.name}${picks[p.slug]?.size ? ` (${picks[p.slug].size})` : ""}`)
+                        .join(", ")}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="mx-auto mt-2 max-w-[30ch] text-center text-caption text-ink-600">
+                  {pieces
+                    .map((p) => `${p.name}${picks[p.slug]?.size ? ` (${picks[p.slug].size})` : ""}`)
+                    .join(", ")}
+                </p>
+              )}
 
               <Stitch />
               <dl className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-6 gap-y-3">
-                <dt className="text-eyebrow font-medium uppercase tracking-[0.12em] text-ink-600">Collect</dt>
+                <dt className="text-eyebrow font-medium uppercase tracking-[0.12em] text-ink-600">
+                  {collectOnly ? "Come in" : "Collect"}
+                </dt>
                 <dd className="text-right text-body text-ink-900">
                   {pickup ? `${formatDay(pickup)}${time ? `, ${formatTime(time)}` : ""}` : <Unset />}
                 </dd>
-                <dt className="text-eyebrow font-medium uppercase tracking-[0.12em] text-ink-600">Return</dt>
-                <dd className="text-right text-body text-ink-900">{ret ? formatDay(ret) : <Unset />}</dd>
-                <dt className="text-eyebrow font-medium uppercase tracking-[0.12em] text-ink-600">Length</dt>
-                <dd className="tabular text-right text-body text-ink-900">
-                  {days ? `${days} ${days === 1 ? "day" : "days"}` : <Unset />}
-                </dd>
+                {/* Nothing comes back, so there is nothing to say here. */}
+                {!collectOnly && (
+                  <>
+                    <dt className="text-eyebrow font-medium uppercase tracking-[0.12em] text-ink-600">Return</dt>
+                    <dd className="text-right text-body text-ink-900">{ret ? formatDay(ret) : <Unset />}</dd>
+                    <dt className="text-eyebrow font-medium uppercase tracking-[0.12em] text-ink-600">Length</dt>
+                    <dd className="tabular text-right text-body text-ink-900">
+                      {days ? `${days} ${days === 1 ? "day" : "days"}` : <Unset />}
+                    </dd>
+                  </>
+                )}
               </dl>
 
               <Stitch />
               <p className="eyebrow">What happens next</p>
               <ol className="mt-4 space-y-3 text-caption text-ink-900">
-                <Next>Your dates are held for you the moment you send this.</Next>
+                <Next>
+                  {collectOnly
+                    ? "It comes off the rail in your size the moment you send this."
+                    : toKeep.length > 0
+                      ? "Your dates are held, and what you are buying comes off the rail, the moment you send this."
+                      : "Your dates are held for you the moment you send this."}
+                </Next>
                 <Next>The shop calls or messages you to confirm.</Next>
+                {toKeep.length > 0 && (
+                  // R2: her own process. Worth saying, because it is the call
+                  // she has to answer for the piece to still be there.
+                  <Next>You get another call about two hours before you come in.</Next>
+                )}
                 <Next>Nothing is paid online. You pay at the shop when you collect.</Next>
                 <Next>
-                  Plans change? Cancel online until {cutoff} {cutoff === 1 ? "hour" : "hours"} before pickup.
+                  Plans change? Cancel online until {cutoff} {cutoff === 1 ? "hour" : "hours"} before{" "}
+                  {collectOnly ? "you are due in" : "pickup"}.
                 </Next>
-                <Next>If the shop cannot confirm in time, the hold lapses and the dates open again.</Next>
+                <Next>
+                  {collectOnly
+                    ? "If the shop cannot confirm in time, the hold lapses and the piece goes back on the rail."
+                    : "If the shop cannot confirm in time, the hold lapses and the dates open again."}
+                </Next>
               </ol>
             </Slip>
           </aside>

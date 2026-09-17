@@ -4,24 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { clear, remove, useSelection, SELECTION_MAX } from "@/lib/selection";
-import {
-  ENQUIRY_NOTICE,
-  hasRealPhone,
-  REQUEST_NOTICE,
-  reserveHref,
-  selectionHref,
-} from "@/lib/enquiry";
+import { REQUEST_NOTICE, reserveHref } from "@/lib/enquiry";
 import { registerFlightTarget, useAirborne } from "@/components/site/GarmentFlight";
 import { formatINR } from "@/lib/rentals";
 
 /**
  * The tray: what has been gathered, and where it goes to be reserved.
  *
- * Rental and jewellery pieces go to /reserve together, as one booking
- * (BOOKING_ENGINE_SPEC_V2 D5). Retail pieces cannot be booked online until
- * Phase 3, so they go by the WhatsApp message instead, which names only them:
- * the secondary action when the tray holds both, the only one when it holds
- * nothing else.
+ * Everything gathered goes to /reserve together, as one booking
+ * (BOOKING_ENGINE_SPEC_V2 D5). Retail joined it in Phase 3, which is why there
+ * is one button here again and no WhatsApp fork: the tray holds slugs and no
+ * sizes, and /reserve asks for the colour and size of anything being bought.
  *
  * The header mark is always rendered, even at zero. Two reasons, and the second
  * is the load-bearing one: a control that appears only once it has contents
@@ -82,10 +75,6 @@ export function SelectionTray() {
     return () => document.removeEventListener("keydown", onKey);
   }, [open, close]);
 
-  const real = hasRealPhone();
-  const bookable = sel.items.filter((i) => i.kind !== "retail");
-  const retail = sel.items.filter((i) => i.kind === "retail");
-  const retailHref = selectionHref(retail);
 
   return (
     <>
@@ -266,56 +255,16 @@ export function SelectionTray() {
                     </p>
                   )}
 
-                  {bookable.length > 0 && (
-                    <>
-                      <Link
-                        href={reserveHref(bookable.map((i) => i.slug))}
-                        onClick={close}
-                        className="press mt-8 flex min-h-[48px] items-center justify-center rounded-control bg-porcelain-50 px-6 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
-                      >
-                        {bookable.length === 1
-                          ? "Reserve this piece"
-                          : "Reserve these pieces"}
-                      </Link>
-                      <p className="mt-3 text-caption text-porcelain-50/70">
-                        {REQUEST_NOTICE}
-                      </p>
-                    </>
-                  )}
-
-                  {/* Retail waits for Phase 3, so its pieces still go by
-                      WhatsApp. Beside a booking it takes the outline and names
-                      what it is for, so she does not read it as a second way
-                      to reserve the same pieces. */}
-                  {retail.length > 0 && (
-                    <>
-                      <a
-                        href={retailHref}
-                        {...(real ? { target: "_blank", rel: "noreferrer" } : {})}
-                        onClick={close}
-                        className={`press flex min-h-[48px] items-center justify-center rounded-control px-6 text-center font-medium transition-colors duration-[180ms] ${
-                          bookable.length > 0
-                            ? "mt-6 border border-porcelain-50/40 text-porcelain-50 hover:bg-porcelain-50/10"
-                            : "mt-8 bg-porcelain-50 text-violet-950 hover:bg-gold-100"
-                        }`}
-                      >
-                        {!real
-                          ? "Plan a visit"
-                          : bookable.length > 0
-                            ? retail.length === 1
-                              ? "Reserve the piece to buy on WhatsApp"
-                              : "Reserve the pieces to buy on WhatsApp"
-                            : retail.length === 1
-                              ? "Reserve this piece"
-                              : "Reserve these pieces"}
-                      </a>
-                      {real && bookable.length === 0 && (
-                        <p className="mt-3 text-caption text-porcelain-50/70">
-                          {ENQUIRY_NOTICE}
-                        </p>
-                      )}
-                    </>
-                  )}
+                  <Link
+                    href={reserveHref(sel.items.map((i) => i.slug))}
+                    onClick={close}
+                    className="press mt-8 flex min-h-[48px] items-center justify-center rounded-control bg-porcelain-50 px-6 font-medium text-violet-950 transition-colors duration-[180ms] hover:bg-gold-100"
+                  >
+                    {count === 1 ? "Reserve this piece" : "Reserve these pieces"}
+                  </Link>
+                  <p className="mt-3 text-caption text-porcelain-50/70">
+                    {REQUEST_NOTICE}
+                  </p>
 
                   <button
                     type="button"

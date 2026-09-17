@@ -8,6 +8,7 @@ import { neon } from "@neondatabase/serverless";
 import { sql } from "@/lib/db";
 import { sqlPublic } from "@/lib/dbPublic";
 import { verifyAccess } from "@/lib/bookingAccess";
+import { getVariantsFor, type RetailVariant } from "@/lib/retail";
 import {
   CODE_RE,
   DEFAULT_PICKUP_HOURS,
@@ -91,31 +92,42 @@ export type Bookable = {
   id: string;
   slug: string;
   name: string;
-  type: "rental" | "jewellery";
+  type: "rental" | "jewellery" | "retail";
+  /** Per day for a rental or a piece of jewellery; null for retail. */
   pricePerDay: number | null;
+  /** Outright, for retail; null for the other two. */
+  price: number | null;
   category: string | null;
   images: unknown;
   spin: unknown;
+  /**
+   * Retail only: the colours and the sizes she chooses between. A retail
+   * reservation names one of each (RETAIL_SPEC §1.1), because the count that
+   * guards it is keyed on both.
+   */
+  variants: RetailVariant[];
 };
 
-/** Active rental/jewellery products for the given slugs, in the order given. */
+/** Active bookable products for the given slugs, in the order given. */
 export async function getBookables(slugs: string[]): Promise<Bookable[]> {
   if (slugs.length === 0) return [];
   const rows = await sqlPublic<{
     id: string;
     slug: string;
     name: string;
-    type: "rental" | "jewellery";
+    type: "rental" | "jewellery" | "retail";
     rental_price: string | null;
+    price: string | null;
     category_slug: string | null;
     images: unknown;
     spin: unknown;
   }>`
-    select p.id, p.slug, p.name, p.type, p.rental_price, p.images, p.spin,
+    select p.id, p.slug, p.name, p.type, p.rental_price, p.price, p.images, p.spin,
            c.slug as category_slug
       from products p left join categories c on c.id = p.category_id
      where p.slug = any(${slugs}::text[]) and p.is_active
-       and p.type in ('rental', 'jewellery')`;
+       and p.type in ('rental', 'jewellery', 'retail')`;
+  const variants = await getVariantsFor(rows.filter((r) => r.type === "retail").map((r) => r.id));
   const bySlug = new Map(rows.map((r) => [r.slug, r]));
   return slugs.flatMap((s) => {
     const r = bySlug.get(s);
@@ -126,9 +138,11 @@ export async function getBookables(slugs: string[]): Promise<Bookable[]> {
           name: r.name,
           type: r.type,
           pricePerDay: r.rental_price == null ? null : Number(r.rental_price),
+          price: r.price == null ? null : Number(r.price),
           category: r.category_slug,
           images: r.images,
           spin: r.spin,
+          variants: variants.get(r.id) ?? [],
         }]
       : [];
   });
@@ -182,6 +196,13 @@ export const isToken = (t: unknown): t is string => typeof t === "string" && TOK
 // ---------------------------------------------------------------------------
 // create (V2 §2.1)
 
+/**
+ * One line of a request. A rental or a piece of jewellery is named by its slug
+ * alone — there is one of it. A retail piece also names the colour and the size,
+ * which is what its count is keyed on.
+ */
+export type ItemInput = string | { slug?: unknown; variant?: unknown; size?: unknown };
+
 export type CreateInput = {
   items: unknown;
   pickup: unknown;
@@ -198,11 +219,13 @@ export type CreateResult =
   | { ok: false; status: 400; error: "invalid"; field: string; message: string }
   | { ok: false; status: 400; error: "range"; problem: RangeProblem }
   | { ok: false; status: 409; error: "dates_taken"; slugs: string[] }
+  | { ok: false; status: 409; error: "out_of_stock"; slugs: string[]; message: string }
   | { ok: false; status: 429; error: "rate_limited" };
 
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const SLUG_RE = /^[a-z0-9-]{1,120}$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const invalid = (field: string, message: string): CreateResult => ({
   ok: false, status: 400, error: "invalid", field, message,
@@ -210,7 +233,15 @@ const invalid = (field: string, message: string): CreateResult => ({
 
 export async function createBooking(input: CreateInput): Promise<CreateResult> {
   // ---- shape --------------------------------------------------------------
-  const slugs = Array.isArray(input.items) ? input.items.map(str) : [];
+  // A line is a slug, or an object naming a colour and size with it.
+  const lines: { slug: string; variant: string | null; size: string | null }[] = Array.isArray(input.items)
+    ? (input.items as ItemInput[]).map((i) =>
+        typeof i === "string"
+          ? { slug: str(i), variant: null, size: null }
+          : { slug: str(i?.slug), variant: str(i?.variant) || null, size: str(i?.size) || null },
+      )
+    : [];
+  const slugs = lines.map((l) => l.slug);
   if (slugs.length === 0) return invalid("items", "Choose at least one piece.");
   if (slugs.length > MAX_ITEMS) return invalid("items", `A booking can hold up to ${MAX_ITEMS} pieces.`);
   if (!slugs.every((s) => SLUG_RE.test(s))) return invalid("items", "One of the pieces is not recognised.");
@@ -226,18 +257,39 @@ export async function createBooking(input: CreateInput): Promise<CreateResult> {
   if (note && note.length > NOTE_MAX) return invalid("note", `Keep the note under ${NOTE_MAX} characters.`);
 
   const pickup = str(input.pickup);
-  const ret = str(input.ret);
   const time = str(input.time);
 
   // Lapse first, so a hold whose window has passed cannot refuse this request
   // just because the cron has not run yet (V2 invariant 11).
-  const [settings] = await Promise.all([getBookingSettings(), lapseExpired()]);
+  const [settings, products] = await Promise.all([getBookingSettings(), getBookables(slugs), lapseExpired()]);
+  if (products.length !== slugs.length) {
+    return invalid("items", "One of the pieces is no longer available to book.");
+  }
+
+  // A retail piece is collected, not returned (RETAIL_SPEC §2), so a basket of
+  // nothing but retail is one day long whatever the form sent. A mixed basket
+  // keeps the rental's range and she collects everything on the pickup day —
+  // she comes in once.
+  const ret = products.every((p) => p.type === "retail") ? pickup : str(input.ret);
+
   const problem = checkRange({ pickup, ret, time }, settings.pickupHours);
   if (problem) return { ok: false, status: 400, error: "range", problem };
 
-  const products = await getBookables(slugs);
-  if (products.length !== slugs.length) {
-    return invalid("items", "One of the pieces is no longer available to book.");
+  // Each retail line names a colour and a size this piece actually comes in.
+  // Whether one is still to be had is not asked here: the count moves in the
+  // same statement that checks it, below, and asking first would only be a
+  // guess with a race in it.
+  const byId = new Map(lines.map((l, i) => [products[i].id, l]));
+  for (const [i, p] of products.entries()) {
+    const l = lines[i];
+    if (p.type !== "retail") continue;
+    const variant = p.variants.find((v) => v.id === l.variant);
+    if (!l.variant || !UUID_RE.test(l.variant) || !variant) {
+      return invalid("items", `Choose a colour for the ${p.name}.`);
+    }
+    if (!l.size || !variant.sizes.some((s) => s.size === l.size)) {
+      return invalid("items", `Choose a size for the ${p.name}.`);
+    }
   }
 
   // ---- rate limit: bookings per phone, counted from the table itself (V2 §5)
@@ -249,15 +301,16 @@ export async function createBooking(input: CreateInput): Promise<CreateResult> {
   // ---- write --------------------------------------------------------------
   const token = toB64url(crypto.getRandomValues(new Uint8Array(32)));
   const hash = await hashToken(token);
-  const ids = products.map((p) => p.id);
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = randomCode();
     const id = crypto.randomUUID();
     try {
-      // Two statements in one transaction. The booking id is generated here so
-      // the items can reference it without a round-trip in between; the item
-      // trigger derives each item's blocked range and status from the booking.
+      // One statement for the booking and one per piece, in one transaction.
+      // The booking id is generated here so the items can reference it without a
+      // round-trip in between; the item trigger derives each item's blocked
+      // range, status and buffer from the booking and the product, and takes a
+      // retail piece's count.
       await transaction((tx) => [
         tx`
           insert into bookings
@@ -269,11 +322,14 @@ export async function createBooking(input: CreateInput): Promise<CreateResult> {
              least(now() + make_interval(mins => ${settings.expiryMinutes}),
                    (${pickup}::date + ${time}::time) at time zone 'Asia/Kolkata'),
              ${time}::time, ${note}, decode(${hash}, 'hex'))`,
-        tx`
-          insert into booking_items (booking_id, product_id, price, buffer_days)
-          select ${id}, p.id, coalesce(p.rental_price, 0), ${settings.bufferDays}
-            from products p
-           where p.id = any(${ids}::uuid[])`,
+        ...products.map((p) => {
+          const l = byId.get(p.id)!;
+          return tx`
+            insert into booking_items (booking_id, product_id, variant_id, size, price, buffer_days)
+            values (${id}, ${p.id}, ${l.variant}::uuid, ${l.size},
+                    ${p.type === "retail" ? (p.price ?? 0) : (p.pricePerDay ?? 0)},
+                    ${settings.bufferDays})`;
+        }),
       ]);
       return { ok: true, code, token };
     } catch (err) {
@@ -281,6 +337,22 @@ export async function createBooking(input: CreateInput): Promise<CreateResult> {
       if (e.code === "23505" && /code/.test(e.constraint ?? "")) continue; // code collision
       if (e.code === "23P01") {
         return { ok: false, status: 409, error: "dates_taken", slugs: await collidingSlugs(products, pickup, ret, settings.bufferDays) };
+      }
+      // VV001: the last one in that size went while she was filling the form
+      // (migration 0008). The whole transaction rolled back, so nothing is held.
+      if (e.code === "VV001") {
+        const out = products.filter((p) => p.type === "retail");
+        const named = out.length === 1 ? out[0] : null;
+        const l = named ? byId.get(named.id) : null;
+        return {
+          ok: false,
+          status: 409,
+          error: "out_of_stock",
+          slugs: out.map((p) => p.slug),
+          message: named
+            ? `The ${named.name} has just gone in size ${l?.size}. Choose another size, or call the shop.`
+            : "One of the pieces has just gone in the size you chose. Choose another size, or call the shop.",
+        };
       }
       throw err;
     }
@@ -306,6 +378,7 @@ async function collidingSlugs(products: Bookable[], pickup: string, ret: string,
     select distinct bi.product_id as id from booking_items bi
      where bi.product_id = any(${products.map((p) => p.id)}::uuid[])
        and bi.status not in ('cancelled','returned')
+       and bi.holds_dates
        and bi.blocked_range && daterange(${pickup}::date, ${ret}::date + 1 + ${buffer}::int, '[)')`;
   const hit = new Set(rows.map((r) => r.id));
   return products.filter((p) => hit.has(p.id)).map((p) => p.slug);
@@ -328,7 +401,18 @@ export type CustomerBooking = {
   createdAt: string;
   canCancel: boolean;
   cancelDeadline: string | null; // ISO
-  items: { slug: string; name: string; type: string; price: number; category: string | null; images: unknown; spin: unknown }[];
+  items: {
+    slug: string;
+    name: string;
+    type: string;
+    price: number;
+    category: string | null;
+    images: unknown;
+    spin: unknown;
+    /** Retail only: the colour and size she reserved. */
+    colour: string | null;
+    size: string | null;
+  }[];
 };
 
 type Row = {
@@ -381,15 +465,21 @@ async function loadBooking(where: "token" | "phone" | "verified", code: string, 
       from b`;
   const r = rows[0];
   if (!r) return null;
+  // Rentals first, then retail, then jewellery: the docket and the status page
+  // both group what she is renting apart from what she is buying (RETAIL_SPEC
+  // §3.3), and the jewellery is the cross-sell that goes with whichever it is.
   const items = await sql<{
-    slug: string; name: string; type: string; price: string; category: string | null; images: unknown; spin: unknown;
+    slug: string; name: string; type: string; price: string; category: string | null;
+    images: unknown; spin: unknown; colour: string | null; size: string | null;
   }>`
-    select p.slug, p.name, p.type::text as type, bi.price, c.slug as category, p.images, p.spin
+    select p.slug, p.name, p.type::text as type, bi.price, c.slug as category, p.images, p.spin,
+           v.colour_name as colour, bi.size
       from booking_items bi
       join products p on p.id = bi.product_id
       left join categories c on c.id = p.category_id
+      left join product_variants v on v.id = bi.variant_id
      where bi.booking_id = ${r.id}
-     order by (p.type = 'jewellery'), p.name`;
+     order by (case p.type when 'rental' then 0 when 'retail' then 1 else 2 end), p.name`;
   return {
     id: r.id,
     code: r.code,

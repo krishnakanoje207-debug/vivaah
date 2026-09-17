@@ -223,6 +223,7 @@ async function save(formData: FormData, id: string | null): Promise<FormState> {
     }
     for (const v of variants) {
       const stockJson = JSON.stringify(v.stock);
+      let variantId = v.id;
       if (v.id && existingIds.has(v.id)) {
         await sql`
           update product_variants set
@@ -231,15 +232,28 @@ async function save(formData: FormData, id: string | null): Promise<FormState> {
             is_active = ${v.is_active}
           where id = ${v.id}`;
       } else if (!v.id) {
-        await sql`
+        const [row] = await sql<{ id: string }>`
           insert into product_variants
             (product_id, colour_name, colour_hex, stock, price_override, is_active)
           values
             (${productId}, ${v.colour_name}, ${v.colour_hex}, ${stockJson}::jsonb,
-             ${v.price_override}, ${v.is_active})`;
+             ${v.price_override}, ${v.is_active})
+          returning id`;
+        variantId = row.id;
       }
+      if (variantId) await syncStock(variantId, v.stock);
     }
   } catch (e: unknown) {
+    // held_within_stock: she has set a count below what is already spoken for.
+    // The database refuses it, and saying so by name is more use than "could
+    // not save" — the fix is to cancel a reservation or raise the count.
+    if ((e as { constraint?: string })?.constraint === "held_within_stock") {
+      return {
+        ok: false,
+        message:
+          "One of those counts is lower than the number already reserved in that size. Cancel a reservation first, or leave the count where it is.",
+      };
+    }
     if ((e as { code?: string })?.code === "23505") {
       return {
         ok: false,
@@ -253,6 +267,34 @@ async function save(formData: FormData, id: string | null): Promise<FormState> {
 
   revalidatePath("/admin/products");
   redirect("/admin/products");
+}
+
+/**
+ * Writes what the shop owns into variant_stock, the table the storefront reads
+ * and a reservation moves (migration 0007).
+ *
+ * `held` is never touched here: it belongs to the booking triggers, which take
+ * it when a request is made and give it back when one is cancelled. This sets
+ * `quantity` only, and `held_within_stock` refuses a count below what is
+ * already spoken for — caught by the caller and named.
+ *
+ * A size she has removed from the form is deleted only when nothing holds it.
+ * A size with a live reservation stays, with its count, because deleting it
+ * would take away the row the collection has to be released against.
+ */
+async function syncStock(variantId: string, stock: Record<string, number>) {
+  const sizes = Object.keys(stock);
+  for (const size of sizes) {
+    const qty = Math.max(0, Math.trunc(stock[size]));
+    await sql`
+      insert into variant_stock (variant_id, size, quantity)
+      values (${variantId}, ${size}, ${qty})
+      on conflict (variant_id, size) do update set quantity = excluded.quantity`;
+  }
+  await sql`
+    delete from variant_stock
+     where variant_id = ${variantId} and held = 0
+       and not (size = any(${sizes}::text[]))`;
 }
 
 export async function createProduct(_prev: FormState, formData: FormData): Promise<FormState> {

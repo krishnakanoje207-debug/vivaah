@@ -39,6 +39,7 @@ const A = slug("a");
 const B = slug("b");
 const J = slug("j");
 const R = slug("r"); // retail
+let variantId = "";
 
 // A Monday about ten weeks out, so no real booking and no closed day interferes.
 let base = addDays(todayIST(), 70);
@@ -63,6 +64,9 @@ const book = (items: string[], pickup: string, ret: string, extra: Partial<Recor
     ...extra,
   });
 
+/** A retail line: the slug plus the colour and size its count is keyed on. */
+const buy = (size: string) => ({ slug: R, variant: variantId, size });
+
 const ok = (r: CreateResult): r is Extract<CreateResult, { ok: true }> => r.ok;
 const describe = (r: CreateResult) => (r.ok ? `ok ${r.code}` : JSON.stringify(r));
 
@@ -73,6 +77,14 @@ async function setup() {
            ('rental', 'Verify B', ${B}, 1000, 0, true),
            ('jewellery', 'Verify J', ${J}, 300, 0, true)`;
   await sql`insert into products (type, name, slug, price, is_active) values ('retail', 'Verify R', ${R}, 500, true)`;
+  // Retail: one colour, two of it in M and one in S, so the count can be
+  // proved to run out in one size without touching the other (RETAIL_SPEC §5).
+  const [v] = await sql<{ id: string }>`
+    insert into product_variants (product_id, colour_name, colour_hex)
+    select id, 'Verify colour', '#abcdef' from products where slug = ${R}
+    returning id`;
+  variantId = v.id;
+  await sql`insert into variant_stock (variant_id, size, quantity) values (${v.id}, 'M', 2), (${v.id}, 'S', 1)`;
 }
 
 async function cleanup() {
@@ -178,14 +190,14 @@ async function main() {
 
   // 10. bad input writes nothing
   const before = await sql`select count(*)::int as n from bookings where customer_name = 'Verify Script'`;
-  const retail = await book([R], day(30), day(30));
+  const retail = await book([R], day(30), day(30)); // named, but no colour or size
   const dup = await book([A, A], day(30), day(30));
   const offGrid = await book([A], day(30), day(30), { time: "11:10" });
   const sunday = await book([A], day(6), day(6));
   const tooLong = await book([A], day(30), day(70));
   const badPhone = await book([A], day(30), day(30), { phone: "12345" });
   const after = await sql`select count(*)::int as n from bookings where customer_name = 'Verify Script'`;
-  check(!retail.ok && retail.error === "invalid", "reject: retail piece", describe(retail));
+  check(!retail.ok && retail.error === "invalid", "reject: retail piece with no size named", describe(retail));
   check(!dup.ok && dup.error === "invalid", "reject: same piece twice", describe(dup));
   check(!offGrid.ok && offGrid.error === "range" && offGrid.problem === "bad_time", "reject: pickup time off the grid", describe(offGrid));
   check(!sunday.ok && sunday.error === "range" && sunday.problem === "closed_day", "reject: pickup on a closed day", describe(sunday));
@@ -262,6 +274,78 @@ async function main() {
     );
   } else {
     check(false, "extension: setup bookings", `${describe(ext)} | ${describe(next)}`);
+  }
+
+  // ---- retail (specs/RETAIL_SPEC.md §5) --------------------------------
+  // 14. the count, not the calendar. The shop owns two in M; two customers get
+  // one each on the same day, and the third is refused — by the database, in
+  // the same statement that moved the count, not by a number read beforehand.
+  const m1 = await book([buy("M")], day(75), day(75));
+  const m2 = await book([buy("M")], day(75), day(75));
+  const m3 = await book([buy("M")], day(75), day(75));
+  check(
+    ok(m1) && ok(m2) && !m3.ok && m3.error === "out_of_stock",
+    "retail: two of a size both commit on one day, the third is refused",
+    [m1, m2, m3].map(describe).join(" | "),
+  );
+
+  // 15. the count is keyed on the size, so M running out says nothing about S.
+  const sizeS = await book([buy("S")], day(75), day(75));
+  check(ok(sizeS), "retail: reserving M never blocks S of the same piece", describe(sizeS));
+
+  // 16. a retail hold is not a date. The rental guarantee still is.
+  const together = await book([A, buy("M")], day(80), day(81));
+  check(
+    !together.ok && together.error === "out_of_stock",
+    "retail: a piece with none left refuses the whole request, rental included",
+    describe(together),
+  );
+  // The whole transaction rolled back, so the rental it was asked for is still
+  // free — and once taken, it is held against everyone, exactly as before.
+  const alone = await book([A], day(80), day(81));
+  const clash = await book([A], day(80), day(80));
+  check(
+    ok(alone) && !clash.ok && clash.error === "dates_taken",
+    "retail: a refused basket leaves its rental free, and the rental then holds its dates",
+    `${describe(alone)} | ${describe(clash)}`,
+  );
+
+  // 17. cancelling gives the count back, and `held` never passes `quantity`.
+  if (ok(m1)) {
+    const heldBefore = await sql<{ held: number }>`
+      select held from variant_stock where variant_id = ${variantId} and size = 'M'`;
+    const byToken = await getBookingByToken(m1.code, m1.token);
+    const cancelled = byToken ? await cancelByCustomer(byToken.id) : false;
+    const heldAfter = await sql<{ held: number; quantity: number }>`
+      select held, quantity from variant_stock where variant_id = ${variantId} and size = 'M'`;
+    const again = await book([buy("M")], day(77), day(77));
+    check(
+      cancelled && heldAfter[0].held === heldBefore[0].held - 1 && heldAfter[0].held <= heldAfter[0].quantity && ok(again),
+      "retail: cancelling releases the count, and the piece can be reserved again",
+      `held ${heldBefore[0].held} -> ${heldAfter[0].held} of ${heldAfter[0].quantity}; ${describe(again)}`,
+    );
+  } else {
+    check(false, "retail: cancelling releases the count (setup booking)", describe(m1));
+  }
+
+  // 18. no buffer, and collection takes the piece off the rail for good.
+  if (ok(m2)) {
+    const id = (await sql<{ id: string }>`select id from bookings where code = ${m2.code}`)[0].id;
+    await sql`update bookings set status = 'confirmed', expires_at = null where id = ${id}`;
+    await sql`update bookings set status = 'picked_up' where id = ${id}`;
+    const stock = await sql<{ held: number; quantity: number }>`
+      select held, quantity from variant_stock where variant_id = ${variantId} and size = 'M'`;
+    const item = await sql<{ buffer_days: number; holds_dates: boolean; blocked: string }>`
+      select bi.buffer_days, bi.holds_dates, bi.blocked_range::text as blocked
+        from booking_items bi join products p on p.id = bi.product_id
+       where bi.booking_id = ${id} and p.slug = ${R}`;
+    check(
+      item[0].buffer_days === 0 && item[0].holds_dates === false && stock[0].quantity === 1,
+      "retail: no buffer days, no date hold, and collection takes it off the rail",
+      `buffer ${item[0].buffer_days}, holdsDates ${item[0].holds_dates}, quantity ${stock[0].quantity}`,
+    );
+  } else {
+    check(false, "retail: collection takes it off the rail (setup booking)", describe(m2));
   }
 
   await lapseExpired();

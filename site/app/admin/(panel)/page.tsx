@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { sql } from "@/lib/db";
+import { CallList, type DueSoon } from "./CallList";
 import { lapseExpired } from "@/lib/booking";
 import { formatDay, formatTime } from "@/lib/bookingRules";
 import {
@@ -52,6 +53,32 @@ async function loadStats(): Promise<Stats> {
     group by t.today
   `;
   return row;
+}
+
+/**
+ * The call list (specs/RETAIL_SPEC.md R2). The owner's process for a collection
+ * is to ring about two hours before the appointment, and nobody answering means
+ * the reservation is off. Nothing in the software does that on a timer — what
+ * the software owes her is the list and the number.
+ *
+ * Confirmed bookings collecting today, from now until the end of the shop's
+ * day. Rentals appear too: the call is about a person coming in at a time, and
+ * which half of the shop the piece belongs to does not change that.
+ */
+async function loadDueSoon(): Promise<DueSoon[]> {
+  return sql<DueSoon>`
+    select b.id, b.code, b.customer_name, b.phone,
+           to_char(b.pickup_time, 'HH24:MI') as pickup_time,
+           bool_or(p.type = 'retail') as has_retail,
+           bool_or(p.type <> 'retail') as has_rental
+      from bookings b
+      join booking_items bi on bi.booking_id = b.id
+      join products p on p.id = bi.product_id
+     where b.status = 'confirmed'
+       and lower(b.booked_range) = (now() at time zone 'Asia/Kolkata')::date
+     group by b.id
+     order by b.pickup_time nulls last
+     limit 12`;
 }
 
 async function loadRecent(): Promise<RecentBooking[]> {
@@ -107,7 +134,7 @@ function StatCard({ label, value, href, hint, accent }: StatCard) {
 export default async function AdminDashboardPage() {
   // Lapse first, so the request count never includes one whose window has passed.
   await lapseExpired();
-  const [stats, recent] = await Promise.all([loadStats(), loadRecent()]);
+  const [stats, recent, dueSoon] = await Promise.all([loadStats(), loadRecent(), loadDueSoon()]);
 
   const cards: StatCard[] = [
     {
@@ -163,6 +190,8 @@ export default async function AdminDashboardPage() {
           <StatCard key={c.label} {...c} />
         ))}
       </section>
+
+      <CallList items={dueSoon} />
 
       <section className="mt-10">
         <div className="flex items-baseline justify-between">

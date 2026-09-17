@@ -56,6 +56,13 @@ type Props = {
   ready: boolean;
   /** "them" for several pieces, "it" for one. */
   pronoun: string;
+  /**
+   * One day rather than a range: a basket of nothing but retail is a collection
+   * appointment, and there is no return leg to draw (specs/RETAIL_SPEC.md §3.3).
+   * `onChange` then reports the same day twice, so everything downstream — the
+   * slip, the form, the request — keeps working in ranges.
+   */
+  single?: boolean;
 };
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -103,7 +110,7 @@ const LONG = fmt({ weekday: "long", day: "numeric", month: "long", year: "numeri
 const MONTH = fmt({ month: "long" });
 const utc = (d: string) => new Date(`${d}T00:00:00Z`);
 
-export function AvailabilityCalendar({ today, blocked, bufferDays, hours, pickup, ret, onChange, ready, pronoun }: Props) {
+export function AvailabilityCalendar({ today, blocked, bufferDays, hours, pickup, ret, onChange, ready, pronoun, single = false }: Props) {
   const uid = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const wantFocus = useRef(false);
@@ -154,7 +161,7 @@ export function AvailabilityCalendar({ today, blocked, bufferDays, hours, pickup
     return last;
   }, [pickup, fits]);
 
-  const choosingReturn = pickup !== null && ret === null;
+  const choosingReturn = !single && pickup !== null && ret === null;
   const canReturn = (d: string) => choosingReturn && lastReturn !== null && d >= pickup! && d <= lastReturn;
   // While she is choosing a return, a later day that cannot be one is shown as
   // unavailable rather than quietly restarting the booking from it; an earlier
@@ -164,7 +171,8 @@ export function AvailabilityCalendar({ today, blocked, bufferDays, hours, pickup
 
   const choose = (d: string) => {
     if (!selectable(d)) return;
-    if (canReturn(d)) onChange(pickup, d);
+    if (single) onChange(d, d);
+    else if (canReturn(d)) onChange(pickup, d);
     else onChange(d, null);
   };
 
@@ -216,7 +224,11 @@ export function AvailabilityCalendar({ today, blocked, bufferDays, hours, pickup
   const closedNames = hours.closed_weekdays.map((n) => WEEKDAY_NAMES_SUN0[n]);
   const prompt = !ready
     ? "Reading the calendar."
-    : !pickup
+    : single
+      ? pickup
+        ? "To change it, choose another day."
+        : "Choose the day you come in."
+      : !pickup
       ? "Choose the day you collect."
       : !ret
         ? lastReturn && lastReturn < addDays(pickup, MAX_DAYS - 1)
@@ -390,7 +402,10 @@ export function AvailabilityCalendar({ today, blocked, bufferDays, hours, pickup
           <span aria-hidden="true" className="h-4 w-5 bg-violet-100" style={stitch("var(--color-gold-600)")} />
           Your dates
         </li>
-        {bufferDays > 0 && (
+        {/* The buffer readies a garment that comes back. Nothing in a
+            collection does, so in single mode there is no return and this
+            explains a mark the grid never draws. */}
+        {bufferDays > 0 && !single && (
           <li className="flex items-center gap-2.5">
             <span aria-hidden="true" className="h-2 w-5" style={stitch("var(--color-violet-500)")} />
             {bufferDays === 1 ? "A day" : `${bufferDays} days`} the shop keeps after a return to ready the pieces

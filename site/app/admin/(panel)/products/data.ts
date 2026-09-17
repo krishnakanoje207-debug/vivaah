@@ -127,17 +127,23 @@ export async function getProduct(id: string): Promise<ProductFormValues | null> 
   const p = rows[0];
   if (!p) return null;
 
+  // The counts come from variant_stock, not from the `stock` jsonb beside them:
+  // since migration 0007 that table is what the shop actually owns, what the
+  // storefront offers sizes from, and what a reservation moves. The jsonb is
+  // the pre-0007 copy and is no longer read anywhere (RETAIL_SPEC §1.1).
   const variantRows = await sql<{
     id: string;
     colour_name: string;
     colour_hex: string;
-    stock: Record<string, number>;
+    stock: Record<string, number> | null;
     price_override: string | null;
   }>`
-    select id, colour_name, colour_hex, stock, price_override
-      from product_variants
-     where product_id = ${id} and is_active
-     order by created_at`;
+    select v.id, v.colour_name, v.colour_hex, v.price_override,
+           (select jsonb_object_agg(s.size, s.quantity)
+              from variant_stock s where s.variant_id = v.id) as stock
+      from product_variants v
+     where v.product_id = ${id} and v.is_active
+     order by v.created_at`;
 
   const variants: VariantRow[] = variantRows.map((v) => ({
     id: v.id,

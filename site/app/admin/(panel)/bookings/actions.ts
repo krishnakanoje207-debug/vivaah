@@ -73,6 +73,26 @@ export async function cancelConfirmed(_prev: ActionState, formData: FormData): P
   return { ok: true };
 }
 
+// confirmed → cancelled, because nobody answered the call before the
+// appointment (specs/RETAIL_SPEC.md R2). The same transition as cancelConfirmed
+// and deliberately a separate action: the reason is recorded, so she can see
+// how often this happens rather than reading it back out of free-text notes.
+// Whatever the booking held is released by the triggers — the dates, and a
+// retail piece's count.
+export async function cancelNoAnswer(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const rows = await sql`
+    update bookings
+       set status = 'cancelled', cancelled_by = 'shop', cancel_reason = 'no_answer'
+     where id = ${id} and status = 'confirmed'
+    returning id`;
+  if (rows.length === 0) return { error: STALE };
+  revalidatePath("/admin");
+  refresh(id);
+  return { ok: true };
+}
+
 // cancelled → confirmed (admin revive). The sync trigger re-derives the items to
 // 'confirmed', re-firing the exclusion constraint — if the dates were taken while
 // this booking sat cancelled, Postgres raises 23P01, which we surface distinctly
