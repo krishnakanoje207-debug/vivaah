@@ -201,13 +201,32 @@ spec did not already settle.
   deletes its row only where `held = 0`, because the row is what a collection is
   released against.
 
-### 7.3 Gates
+### 7.3 The two pages that were still written for rentals
+Built after the engine, once retail rows could actually exist.
+
+The **customer's status page** now has a day rather than dates when nothing is
+rented, three stations rather than four (a collection never enters `returned`),
+no return row and nothing to extend. A mixed booking is the case worth getting
+right: it runs on the rental's range, she comes in once for all of it, so it
+keeps all four stations and its return line says "what you rented, to the shop".
+
+The **admin inbox** marks each booking rental, collection or both, asked as two
+questions over its items rather than one. A collection drops the return line,
+the return row, the "Mark returned" button and the next-step card once it is
+picked up; a mixed booking keeps them. Retail lines carry their colour and size
+under the name. A shop cancellation made because nobody answered now says so.
+
+Suppressing "Mark returned" and the return day follows from §2 rather than §4,
+and is deliberate: offering to return a piece that has been sold is a bug, not
+a missing nicety.
+
+### 7.4 Gates
 All green on the final state, run from `site/` with the dev server up:
 `verify-booking.mts` **35/35** (invariants 14–18 added, and test 10 now checks
 that a retail line with no size is refused rather than that retail is refused),
 `verify-schema.mjs` **17/17**, `site-audit.mjs` **396/396** (`/retail/[slug]`
 added to the routes), `hero-scrim-verify.mjs` **8/8**, `tsc` clean.
 
-### 7.4 Not built
+### 7.5 Not built
 Nothing in §6, as intended. `npm run lint` was not run: it exhausts V8's heap on
 this machine while the dev server holds memory. It is not one of the gates.
