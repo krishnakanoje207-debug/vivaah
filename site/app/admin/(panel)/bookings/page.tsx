@@ -4,13 +4,16 @@ import { lapseExpired } from "@/lib/booking";
 import { formatDay, formatTime } from "@/lib/bookingRules";
 import {
   TABS,
+  KIND_META,
   STATUS_META,
+  bookingKind,
   lapsesLabel,
   resolveTab,
   statusLabel,
   telHref,
   waDigits,
   type BookingStatus,
+  type CancelReason,
   type CancelledBy,
 } from "./format";
 
@@ -26,7 +29,10 @@ type Row = {
   phone: string;
   status: BookingStatus;
   cancelled_by: CancelledBy;
+  cancel_reason: CancelReason;
   was_confirmed: boolean;
+  has_rental: boolean;
+  has_retail: boolean;
   pickup: string;
   ret: string;
   pickup_time: string | null;
@@ -40,7 +46,8 @@ type Row = {
 async function loadRows(status: BookingStatus | null, extensions: boolean): Promise<Row[]> {
   return sql<Row>`
     select
-      b.id, b.code, b.customer_name, b.phone, b.status, b.cancelled_by, b.customer_note,
+      b.id, b.code, b.customer_name, b.phone, b.status, b.cancelled_by, b.cancel_reason,
+      b.customer_note,
       b.verified_at is not null                          as was_confirmed,
       to_char(lower(b.booked_range), 'YYYY-MM-DD')       as pickup,
       to_char(upper(b.booked_range) - 1, 'YYYY-MM-DD')   as ret,
@@ -50,6 +57,14 @@ async function loadRows(status: BookingStatus | null, extensions: boolean): Prom
          from booking_items bi join products p on p.id = bi.product_id
         where bi.booking_id = b.id)                      as item_names,
       (select count(*)::int from booking_items bi where bi.booking_id = b.id) as item_count,
+      -- Both sides are asked, never one: a basket may hold a rental and a piece
+      -- she is buying, and the row has to say so rather than pick a side.
+      (select bool_or(p.type <> 'retail')
+         from booking_items bi join products p on p.id = bi.product_id
+        where bi.booking_id = b.id)                      as has_rental,
+      (select bool_or(p.type = 'retail')
+         from booking_items bi join products p on p.id = bi.product_id
+        where bi.booking_id = b.id)                      as has_retail,
       exists (select 1 from extension_requests e
                where e.booking_id = b.id and e.status = 'pending') as open_extension
     from bookings b
@@ -66,7 +81,7 @@ async function loadRows(status: BookingStatus | null, extensions: boolean): Prom
 function StatusBadge({ row }: { row: Row }) {
   return (
     <span className={`inline-block rounded-full px-2.5 py-0.5 text-caption ${STATUS_META[row.status].badge}`}>
-      {statusLabel(row.status, row.cancelled_by, row.was_confirmed)}
+      {statusLabel(row.status, row.cancelled_by, row.was_confirmed, row.cancel_reason)}
     </span>
   );
 }
@@ -75,6 +90,7 @@ function StatusBadge({ row }: { row: Row }) {
 // links on a pending request sit above it so she can reach the customer in one tap.
 function BookingRow({ row }: { row: Row }) {
   const pending = row.status === "pending";
+  const kind = bookingKind(row.has_rental, row.has_retail);
   return (
     <div className="relative rounded-card border border-ink-900/10 bg-white p-4 shadow-card transition-colors hover:border-violet-300 md:grid md:grid-cols-[1.4fr_1.6fr_1.4fr_auto] md:items-center md:gap-4">
       {/* Customer + code */}
@@ -127,12 +143,19 @@ function BookingRow({ row }: { row: Row }) {
           Pickup {formatDay(row.pickup)}
           {row.pickup_time && `, ${formatTime(row.pickup_time)}`}
         </p>
-        <p className="tabular text-caption text-ink-600">Return {formatDay(row.ret)}</p>
+        {/* Nothing comes back from a collection, so there is no return day to
+            draw — the row would otherwise repeat the pickup day as a return. */}
+        {kind !== "collection" && (
+          <p className="tabular text-caption text-ink-600">Return {formatDay(row.ret)}</p>
+        )}
         {pending && <p className="mt-0.5 text-caption text-warning">{lapsesLabel(row.expires_ms)}</p>}
       </div>
 
-      {/* Status + open extension flag */}
+      {/* What it is, its status, and any open extension */}
       <div className="mt-3 flex flex-wrap items-center gap-2 md:mt-0 md:flex-col md:items-end">
+        <span className={`inline-block rounded-full border px-2.5 py-0.5 text-caption ${KIND_META[kind].badge}`}>
+          {KIND_META[kind].label}
+        </span>
         <StatusBadge row={row} />
         {row.open_extension && (
           <span className="inline-block rounded-full bg-gold-100 px-2.5 py-0.5 text-caption text-gold-700">
@@ -170,7 +193,7 @@ export default async function AdminBookingsPage({
     <div>
       <h1 className="font-display text-h2 text-ink-900">Bookings</h1>
       <p className="mt-1 text-body text-ink-600">
-        Confirm requests with the customer, then track each rental.
+        Confirm requests with the customer, then track each booking.
       </p>
 
       {/* Tab bar */}

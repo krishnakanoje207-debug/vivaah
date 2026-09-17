@@ -121,7 +121,19 @@ function ArmedButton({
   );
 }
 
-export function BookingActions({ id, status }: { id: string; status: string }) {
+// `collection` is true only when nothing in the booking is rented: picked up
+// then means collected and paid for at the counter, and it is the end of the
+// booking, so the return has to be off the table (RETAIL_SPEC §2). A mixed
+// booking still returns its rental, and keeps the button.
+export function BookingActions({
+  id,
+  status,
+  collection,
+}: {
+  id: string;
+  status: string;
+  collection: boolean;
+}) {
   if (status === "pending") {
     return (
       <div className="flex flex-col gap-3">
@@ -130,7 +142,9 @@ export function BookingActions({ id, status }: { id: string; status: string }) {
           id={id}
           action={declineBooking}
           label="Decline"
-          prompt="Decline this request? The held dates will be released. Let the customer know."
+          prompt={`Decline this request? ${
+            collection ? "The pieces go back into stock." : "The held dates will be released."
+          } Let the customer know.`}
           confirmLabel="Yes, decline"
           busyLabel="Declining…"
         />
@@ -145,7 +159,11 @@ export function BookingActions({ id, status }: { id: string; status: string }) {
           id={id}
           action={cancelConfirmed}
           label="Cancel booking"
-          prompt="Cancel this booking? The held dates will be released."
+          prompt={
+            collection
+              ? "Cancel this booking? The pieces go back into stock."
+              : "Cancel this booking? The held dates will be released."
+          }
           confirmLabel="Yes, cancel"
           busyLabel="Cancelling…"
         />
@@ -153,6 +171,7 @@ export function BookingActions({ id, status }: { id: string; status: string }) {
     );
   }
   if (status === "picked_up") {
+    if (collection) return null;
     return (
       <TransitionButton action={markReturned} id={id} label="Mark returned" busyLabel="Saving…" />
     );

@@ -5,13 +5,16 @@ import { lapseExpired } from "@/lib/booking";
 import { daysBetween, formatDay, formatTime } from "@/lib/bookingRules";
 import { BookingActions, ExtensionDecision } from "../BookingActions";
 import {
+  KIND_META,
   STATUS_META,
+  bookingKind,
   formatINR,
   lapsesLabel,
   statusLabel,
   telHref,
   waDigits,
   type BookingStatus,
+  type CancelReason,
   type CancelledBy,
 } from "../format";
 
@@ -28,6 +31,7 @@ type Booking = {
   email: string | null;
   status: BookingStatus;
   cancelled_by: CancelledBy;
+  cancel_reason: CancelReason;
   amount_due: string;
   pickup: string;
   ret: string;
@@ -46,6 +50,10 @@ type Item = {
   name: string;
   price: string;
   images: { path: string; alt: string }[];
+  /** Retail only: the colour and size she reserved, which is what she collects. */
+  retail: boolean;
+  colour: string | null;
+  size: string | null;
 };
 
 type Extension = {
@@ -60,7 +68,8 @@ type Extension = {
 async function loadBooking(id: string): Promise<Booking | null> {
   const rows = await sql<Booking>`
     select
-      b.id, b.code, b.customer_name, b.phone, b.email, b.status, b.cancelled_by, b.amount_due,
+      b.id, b.code, b.customer_name, b.phone, b.email, b.status, b.cancelled_by, b.cancel_reason,
+      b.amount_due,
       to_char(lower(b.booked_range), 'YYYY-MM-DD')       as pickup,
       to_char(upper(b.booked_range) - 1, 'YYYY-MM-DD')   as ret,
       to_char(b.pickup_time, 'HH24:MI')                  as pickup_time,
@@ -75,12 +84,19 @@ async function loadBooking(id: string): Promise<Booking | null> {
   return rows[0] ?? null;
 }
 
+// Rentals first, then what she is buying, as the customer's own docket groups
+// them (RETAIL_SPEC §3.3). A retail line names the colour and size its count is
+// keyed on; a rental is one piece and has neither, which is how the two read
+// apart in the list.
 async function loadItems(id: string): Promise<Item[]> {
   return sql<Item>`
-    select bi.id, bi.price, p.name, p.images
-    from booking_items bi join products p on p.id = bi.product_id
+    select bi.id, bi.price, p.name, p.images, bi.size,
+           p.type = 'retail' as retail, v.colour_name as colour
+    from booking_items bi
+    join products p on p.id = bi.product_id
+    left join product_variants v on v.id = bi.variant_id
     where bi.booking_id = ${id}
-    order by p.name`;
+    order by (p.type = 'retail'), p.name`;
 }
 
 async function loadExtensions(id: string): Promise<Extension[]> {
@@ -144,7 +160,16 @@ export default async function BookingDetailPage({
   const [items, extensions] = await Promise.all([loadItems(id), loadExtensions(id)]);
 
   const meta = STATUS_META[booking.status];
-  const label = statusLabel(booking.status, booking.cancelled_by, booking.verified !== null);
+  const label = statusLabel(
+    booking.status,
+    booking.cancelled_by,
+    booking.verified !== null,
+    booking.cancel_reason,
+  );
+  const kind = bookingKind(
+    items.some((i) => !i.retail),
+    items.some((i) => i.retail),
+  );
   const pickupWhen = `${formatDay(booking.pickup)}${
     booking.pickup_time ? `, ${formatTime(booking.pickup_time)}` : ""
   }`;
@@ -170,9 +195,14 @@ export default async function BookingDetailPage({
           <h1 className="font-display text-h2 text-ink-900">{booking.customer_name}</h1>
           <p className="tabular mt-0.5 text-caption text-ink-400">{booking.code}</p>
         </div>
-        <span className={`inline-block rounded-full px-3 py-1 text-caption ${meta.badge}`}>
-          {label}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`inline-block rounded-full border px-3 py-1 text-caption ${KIND_META[kind].badge}`}>
+            {KIND_META[kind].label}
+          </span>
+          <span className={`inline-block rounded-full px-3 py-1 text-caption ${meta.badge}`}>
+            {label}
+          </span>
+        </div>
       </div>
 
       <div className="mt-6 flex flex-col gap-4">
@@ -185,7 +215,8 @@ export default async function BookingDetailPage({
               Call or message {booking.customer_name} to agree the booking, then confirm it here.
             </p>
             <p className="tabular mt-1 text-caption text-ink-600">
-              Pickup {pickupWhen} · Return {formatDay(booking.ret)} · {items.length}{" "}
+              Pickup {pickupWhen}
+              {kind !== "collection" && ` · Return ${formatDay(booking.ret)}`} · {items.length}{" "}
               {items.length === 1 ? "piece" : "pieces"}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
@@ -210,15 +241,17 @@ export default async function BookingDetailPage({
               {booking.expires && `, at ${booking.expires}`}
             </p>
             <div className="mt-4 border-t border-gold-600/20 pt-4">
-              <BookingActions id={booking.id} status={booking.status} />
+              <BookingActions id={booking.id} status={booking.status} collection={kind === "collection"} />
             </div>
           </section>
         )}
 
-        {/* Forward actions for confirmed / picked_up. */}
-        {(booking.status === "confirmed" || booking.status === "picked_up") && (
+        {/* Forward actions for confirmed / picked_up. A collection that has been
+            picked up is finished, so there is no next step to offer. */}
+        {(booking.status === "confirmed" ||
+          (booking.status === "picked_up" && kind !== "collection")) && (
           <Card title="Next step">
-            <BookingActions id={booking.id} status={booking.status} />
+            <BookingActions id={booking.id} status={booking.status} collection={kind === "collection"} />
           </Card>
         )}
 
@@ -228,7 +261,7 @@ export default async function BookingDetailPage({
             <p className="mb-3 text-caption text-ink-600">
               Reviving confirms this booking, but only if its dates are still free.
             </p>
-            <BookingActions id={booking.id} status={booking.status} />
+            <BookingActions id={booking.id} status={booking.status} collection={kind === "collection"} />
           </Card>
         )}
 
@@ -253,13 +286,18 @@ export default async function BookingDetailPage({
           </div>
         </Card>
 
-        {/* Dates */}
-        <Card title="Pickup and return">
+        {/* Dates. A collection is one appointment: the range is the single day
+            she comes in, so a return row would only repeat the pickup. */}
+        <Card title={kind === "collection" ? "Collection" : "Pickup and return"}>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-body">
             <dt className="text-ink-400">Pickup</dt>
             <dd className="tabular text-ink-900">{pickupWhen}</dd>
-            <dt className="text-ink-400">Return</dt>
-            <dd className="tabular text-ink-900">{formatDay(booking.ret)}</dd>
+            {kind !== "collection" && (
+              <>
+                <dt className="text-ink-400">Return</dt>
+                <dd className="tabular text-ink-900">{formatDay(booking.ret)}</dd>
+              </>
+            )}
           </dl>
         </Card>
 
@@ -271,6 +309,11 @@ export default async function BookingDetailPage({
                 <Thumb item={item} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-body text-ink-900">{item.name}</p>
+                  {item.retail && (
+                    <p className="truncate text-caption text-ink-600">
+                      {[item.colour, item.size && `Size ${item.size}`].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
                 </div>
                 <span className="tabular text-body text-ink-600">{formatINR(item.price)}</span>
               </li>

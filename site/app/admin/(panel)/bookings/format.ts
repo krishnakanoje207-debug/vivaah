@@ -11,6 +11,10 @@ export type BookingStatus =
 
 export type CancelledBy = "customer" | "shop" | "lapsed" | null;
 
+// Why the shop ended it. One value, because the shop's process has one: the
+// call before a collection went unanswered (specs/RETAIL_SPEC.md R2).
+export type CancelReason = "no_answer" | null;
+
 // Inbox tabs. `status: null` = no status filter; `extensions` narrows to bookings
 // with an extension request still waiting on her.
 export const TABS = [
@@ -45,12 +49,36 @@ export function statusLabel(
   status: BookingStatus,
   cancelledBy: CancelledBy,
   wasConfirmed: boolean,
+  reason: CancelReason = null,
 ): string {
   if (status !== "cancelled") return STATUS_META[status].label;
   if (cancelledBy === "customer") return "Customer cancelled";
   if (cancelledBy === "lapsed") return "Lapsed";
-  if (cancelledBy === "shop") return wasConfirmed ? "Cancelled by shop" : "Declined";
+  if (cancelledBy === "shop") {
+    // Worth the room in the badge: a customer she could not reach is not a
+    // customer who changed her mind, and only the first is worth a second call.
+    if (reason === "no_answer") return "Cancelled, no answer";
+    return wasConfirmed ? "Cancelled by shop" : "Declined";
+  }
   return "Cancelled";
+}
+
+// What the booking is, which is a question about its pieces and not about the
+// booking: one basket may hold a lehenga to rent and a kurti to buy, because
+// the tray gathers across the trades. A collection is bought and kept, so it
+// has no return day, no buffer and never reaches "returned" — which is why the
+// inbox has to say which it is before she opens it (RETAIL_SPEC §4).
+export type BookingKind = "rental" | "collection" | "mixed";
+
+export const KIND_META: Record<BookingKind, { label: string; badge: string }> = {
+  rental: { label: "Rental", badge: "border-ink-900/15 text-ink-600" },
+  collection: { label: "Collection", badge: "border-gold-600/40 bg-gold-100 text-gold-700" },
+  mixed: { label: "Rental and collection", badge: "border-gold-600/40 text-gold-700" },
+};
+
+export function bookingKind(hasRental: boolean, hasRetail: boolean): BookingKind {
+  if (hasRental && hasRetail) return "mixed";
+  return hasRetail ? "collection" : "rental";
 }
 
 export const formatINR = (n: number | string | null | undefined): string => {
