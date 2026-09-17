@@ -5,6 +5,18 @@ import { formatINR } from "@/lib/format";
 import { nightBadge } from "@/lib/navratri";
 import { RENTAL_CATEGORIES } from "@/lib/categories";
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one.
+ *  Only the category stand-ins have them; a turntable frame is left alone. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
+/** The card's plate at every breakpoint it is laid out at: the home rail's
+ *  60vw / 38vw / 22vw run, and the /rentals grid's one, two, three columns. */
+const CARD_SIZES = "(min-width: 1024px) 24vw, (min-width: 640px) 38vw, 60vw";
+
 // Shared rental card (homepage featured + /rentals gallery). Arch-topped image
 // (§3b jharokha motif) on the stage colour; shows the real turntable front frame
 // when available, else a porcelain placeholder.
@@ -32,6 +44,10 @@ export function RentalCard({ p }: { p: Rental }) {
             <img
               src={`${p.spin.basePath}/000.${p.spin.ext}`}
               alt={p.name}
+              width={1280}
+              height={720}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-400 ease-out-strong group-hover:scale-[1.03]"
             />
           ) : sample ? (
@@ -39,8 +55,14 @@ export function RentalCard({ p }: { p: Rental }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={sample}
+                srcSet={photoSrcSet(sample)}
+                sizes={CARD_SIZES}
                 alt=""
                 aria-hidden="true"
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-400 ease-out-strong group-hover:scale-[1.03]"
               />
               {/* Bottom-left, clear of the badges at top-left and the gather

@@ -87,6 +87,13 @@ const FACTS = [
  * tiles; it is three now, and its tall arch sits at the right-hand end so the
  * mosaic is bracketed by the two arches, first tile and last.
  */
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
 type Tile = { span: string; media: string; arch?: boolean; end?: boolean };
 const TILE: Record<string, Tile> = {
   "three-piece-suits": { span: "md:col-span-5", media: "aspect-[3/4]", arch: true },
@@ -336,8 +343,14 @@ export default async function RetailPage({
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={c.image}
+                      srcSet={c.image ? photoSrcSet(c.image) : undefined}
+                      sizes="(min-width: 768px) 50vw, 92vw"
                       alt=""
                       aria-hidden="true"
+                      width={660}
+                      height={880}
+                      loading="lazy"
+                      decoding="async"
                       className={`w-full object-cover transition-transform duration-[180ms] group-hover:scale-[1.03] ${t.media}`}
                     />
                   </div>
@@ -430,8 +443,14 @@ export default async function RetailPage({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/categories/side-lehengas.webp"
+              srcSet="/categories/side-lehengas-160.webp 160w, /categories/side-lehengas-320.webp 320w, /categories/side-lehengas-480.webp 480w, /categories/side-lehengas.webp 660w"
+              sizes="112px"
               alt=""
               aria-hidden="true"
+              width={660}
+              height={880}
+              loading="lazy"
+              decoding="async"
               className="keyline arch h-36 w-28 bg-violet-900 object-cover"
             />
           </div>
@@ -499,7 +518,13 @@ export default async function RetailPage({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/categories/party-wear-suits.webp"
+                srcSet="/categories/party-wear-suits-160.webp 160w, /categories/party-wear-suits-320.webp 320w, /categories/party-wear-suits-480.webp 480w, /categories/party-wear-suits.webp 660w"
+                sizes="(min-width: 768px) 420px, 92vw"
                 alt="A party wear suit on the rail in the shop"
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="keyline aspect-[4/5] w-full bg-porcelain-200 object-cover"
               />
             </GoldFrame>

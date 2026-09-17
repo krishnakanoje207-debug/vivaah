@@ -35,6 +35,13 @@ export function CuratedMoment({ category }: { category: Category }) {
               src={category.image}
               alt=""
               aria-hidden="true"
+              width={660}
+              height={880}
+              /* The LCP element on a filtered view: it is the full-bleed ground
+                 of the first screenful, so it is eager and told to jump the
+                 queue rather than lazied like every picture below it. */
+              fetchPriority="high"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover object-[72%_center] md:object-[center_28%] opacity-60"
             />
           )

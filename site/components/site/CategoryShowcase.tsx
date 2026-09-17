@@ -9,6 +9,13 @@ import {
   type Category,
 } from "@/lib/categories";
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
 /**
  * "Browse by category" big-card section (CATEGORY_IMMERSION_PLAN W6).
  * Fluid-Saree big-card treatment (§3b arch, porcelain-50 Fraunces titles over a
@@ -76,7 +83,13 @@ function CategoryRail({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={c.image}
+              srcSet={c.image ? photoSrcSet(c.image) : undefined}
+              sizes="(min-width: 640px) 288px, 64vw"
               alt={c.name}
+              width={660}
+              height={880}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-violet-950/80 via-violet-950/15 to-transparent transition-colors duration-500 group-hover:from-violet-950/90" />

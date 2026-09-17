@@ -344,7 +344,13 @@ export default async function RentalsPage({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/categories/side-lehengas.webp"
+                  srcSet="/categories/side-lehengas-160.webp 160w, /categories/side-lehengas-320.webp 320w, /categories/side-lehengas-480.webp 480w, /categories/side-lehengas.webp 660w"
+                  sizes="(min-width: 768px) 46vw, 92vw"
                   alt="A side lehenga in silk, photographed on the wearer"
+                  width={660}
+                  height={880}
+                  loading="lazy"
+                  decoding="async"
                   className="keyline aspect-[4/5] w-full bg-stage object-cover"
                 />
               </GoldFrame>

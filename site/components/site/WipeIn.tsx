@@ -1,10 +1,6 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 /**
  * `reveal` per object — Room V's device (DESIGN_SPEC_V3 §2.6): a wipe per
@@ -15,6 +11,9 @@ gsap.registerPlugin(ScrollTrigger);
  * properties §3 permits. Children opt in with [data-wipe].
  *
  * Reduced motion: final state, no animation.
+ *
+ * CSS, not GSAP (17 Sep 2026) — same reasoning and the same numbers as Reveal:
+ * 0.7s, power2.out (easeOutCubic), 90ms between objects, once at 80% viewport.
  */
 export function WipeIn({
   children,
@@ -30,30 +29,29 @@ export function WipeIn({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const targets = el.querySelectorAll<HTMLElement>("[data-wipe]");
-    const items = targets.length ? targets : [el];
+    targets.forEach((t, i) => t.style.setProperty("--i", String(i)));
+    el.style.setProperty("--wipe-step", `${stagger}s`);
+    el.classList.add("vv-wipe");
+    if (!targets.length) el.classList.add("vv-wipe-self");
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      gsap.set(items, { clipPath: "inset(0 0 0% 0)" });
-      return;
-    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        el.setAttribute("data-wiped", "");
+        io.disconnect();
+      },
+      { rootMargin: "0px 0px -20% 0px" }
+    );
+    io.observe(el);
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        items,
-        { clipPath: "inset(0 0 100% 0)" },
-        {
-          clipPath: "inset(0 0 0% 0)",
-          duration: 0.7,
-          ease: "power2.out",
-          stagger,
-          scrollTrigger: { trigger: el, start: "top 80%", once: true },
-        }
-      );
-    }, el);
-
-    return () => ctx.revert();
+    return () => {
+      io.disconnect();
+      el.classList.remove("vv-wipe", "vv-wipe-self");
+      el.removeAttribute("data-wiped");
+    };
   }, [stagger]);
 
   return (

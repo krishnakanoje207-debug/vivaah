@@ -3,6 +3,14 @@ import { SelectionButton } from "@/components/site/SelectionButton";
 import { formatINR } from "@/lib/format";
 import type { RetailCard as Card } from "@/lib/retail";
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one.
+ *  Only the category stand-in has them; a piece's own uploaded path does not. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
 /**
  * One piece on the shop's rail — the retail counterpart of RentalCard.
  *
@@ -33,8 +41,14 @@ export function PieceCard({ p }: { p: Card }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.image}
+                srcSet={p.sample ? photoSrcSet(p.image) : undefined}
+                sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"
                 alt={p.sample ? "" : p.name}
                 {...(p.sample ? { "aria-hidden": "true" as const } : {})}
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-400 ease-out-strong group-hover:scale-[1.03]"
               />
               {p.sample && (

@@ -277,7 +277,13 @@ export default function VisitPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/categories/sarees.webp"
+                srcSet="/categories/sarees-160.webp 160w, /categories/sarees-320.webp 320w, /categories/sarees-480.webp 480w, /categories/sarees.webp 660w"
+                sizes="(min-width: 768px) 40vw, 92vw"
                 alt="A saree being tried on in the shop"
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="keyline arch aspect-[4/5] max-h-[23rem] w-full object-cover shadow-card"
               />
             </Parallax>

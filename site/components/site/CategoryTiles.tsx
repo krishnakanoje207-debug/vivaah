@@ -2,6 +2,13 @@ import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import type { Category } from "@/lib/categories";
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
 /**
  * Editorial Category Tiles (§3b, §5c).
  * Displays categories as staggered jharokha arches with archival imagery.
@@ -38,7 +45,13 @@ export function CategoryTiles({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={c.image}
+                    srcSet={photoSrcSet(c.image)}
+                    sizes="(min-width: 1024px) 23vw, (min-width: 640px) 30vw, 46vw"
                     alt={c.name}
+                    width={660}
+                    height={880}
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-400 ease-out-strong group-hover:scale-[1.03]"
                   />
                 ) : (

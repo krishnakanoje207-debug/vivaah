@@ -79,6 +79,16 @@ const CHECKS = [
   { text: "Every piece steamed before it leaves.", image: "/categories/sarees.webp" },
 ];
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one.
+ *  Built once per list rather than per render: both lists are module constants. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+const DOOR_SRCSET = DOORS.map((d) => photoSrcSet(d.image));
+const CHECK_SRCSET = CHECKS.map((c) => photoSrcSet(c.image));
+
 // The hero scrim, measured against the bare plate rather than guessed at
 // (lab/hero-centre7). violet-950 is #191129. The bloom sits under the type
 // block and the riser climbs from the bottom edge, so the shade is spent where
@@ -252,7 +262,13 @@ export default async function HomePage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/categories/side-lehengas.webp"
+                srcSet="/categories/side-lehengas-160.webp 160w, /categories/side-lehengas-320.webp 320w, /categories/side-lehengas-480.webp 480w, /categories/side-lehengas.webp 660w"
+                sizes="(min-width: 768px) 290px, 92vw"
                 alt="A piece being fitted in the shop"
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="keyline aspect-[4/5] w-full object-cover shadow-card"
               />
             </Parallax>
@@ -329,8 +345,14 @@ export default async function HomePage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={DOORS[0].image}
+                  srcSet={DOOR_SRCSET[0]}
+                  sizes="300px"
                   alt=""
                   aria-hidden="true"
+                  width={660}
+                  height={880}
+                  loading="lazy"
+                  decoding="async"
                   className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
@@ -359,8 +381,14 @@ export default async function HomePage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={DOORS[1].image}
+                  srcSet={DOOR_SRCSET[1]}
+                  sizes="300px"
                   alt=""
                   aria-hidden="true"
+                  width={660}
+                  height={880}
+                  loading="lazy"
+                  decoding="async"
                   className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
@@ -389,8 +417,14 @@ export default async function HomePage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={DOORS[2].image}
+                srcSet={DOOR_SRCSET[2]}
+                sizes="340px"
                 alt=""
                 aria-hidden="true"
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="aspect-[3/4] w-full max-h-[27rem] max-w-[340px] object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               />
               <p className="eyebrow on-dark absolute left-5 top-5">
@@ -430,8 +464,14 @@ export default async function HomePage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/categories/rajasthani-poshak.webp"
+                srcSet="/categories/rajasthani-poshak-160.webp 160w, /categories/rajasthani-poshak-320.webp 320w"
+                sizes="44px"
                 alt=""
                 aria-hidden="true"
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="h-11 w-11 rounded-full object-cover"
               />
               <span className="flex items-center gap-2">
@@ -479,7 +519,13 @@ export default async function HomePage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={CHECKS[0].image}
+                  srcSet={CHECK_SRCSET[0]}
+                  sizes="(min-width: 640px) 32vw, 300px"
                   alt={CHECKS[0].text}
+                  width={660}
+                  height={880}
+                  loading="lazy"
+                  decoding="async"
                   className="aspect-[3/4] w-full object-cover ring-1 ring-ink-900/15"
                 />
               </Parallax>
@@ -495,7 +541,13 @@ export default async function HomePage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={c.image}
+                    srcSet={CHECK_SRCSET[i + 1]}
+                    sizes="(min-width: 640px) 15.5vw, 200px"
                     alt={c.text}
+                    width={660}
+                    height={880}
+                    loading="lazy"
+                    decoding="async"
                     className="aspect-[4/5] w-full object-cover ring-1 ring-ink-900/15"
                   />
                   <figcaption className="mt-4 flex gap-3 text-caption">

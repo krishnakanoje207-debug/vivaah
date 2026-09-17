@@ -13,6 +13,13 @@ import { getJewellery, getJewelleryCategories } from "@/lib/jewellery";
 import { jewelleryImages } from "./images";
 import { SHOP } from "@/lib/site";
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
 /**
  * The jewellery page: the shelf, rented on its own or with an outfit.
  *
@@ -223,8 +230,14 @@ export default async function JewelleryPage({
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={c.image}
+                            srcSet={photoSrcSet(c.image)}
+                            sizes="(min-width: 1024px) 15vw, (min-width: 640px) 30vw, 45vw"
                             alt=""
                             aria-hidden="true"
+                            width={660}
+                            height={880}
+                            loading="lazy"
+                            decoding="async"
                             className="absolute inset-0 h-full w-full object-cover"
                           />
                           <span className="absolute bottom-3 left-3 rounded-full bg-porcelain-50/90 px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide text-ink-900">
@@ -290,7 +303,13 @@ export default async function JewelleryPage({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/categories/rajasthani-poshak.webp"
+                srcSet="/categories/rajasthani-poshak-160.webp 160w, /categories/rajasthani-poshak-320.webp 320w, /categories/rajasthani-poshak-480.webp 480w, /categories/rajasthani-poshak.webp 660w"
+                sizes="(min-width: 768px) 50vw, 70vw"
                 alt="A woman in a Rajasthani poshak wearing the full set that goes with it"
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="keyline aspect-[3/4] max-h-[26rem] w-full object-cover"
               />
             </Parallax>
@@ -300,7 +319,13 @@ export default async function JewelleryPage({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/categories/chaniya-cholis.webp"
+                  srcSet="/categories/chaniya-cholis-160.webp 160w, /categories/chaniya-cholis-320.webp 320w, /categories/chaniya-cholis-480.webp 480w, /categories/chaniya-cholis.webp 660w"
+                  sizes="(min-width: 768px) 19rem, 40vw"
                   alt="The set matched to the outfit, worn with a chaniya choli"
+                  width={660}
+                  height={880}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover"
                 />
               </div>

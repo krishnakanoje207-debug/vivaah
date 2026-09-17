@@ -321,6 +321,102 @@
   mask: url("/hero/hero-garden-subject.webp") center / cover no-repeat;
 }
 
+/* =============================================================================
+   The letter wave (components/site/RippleHeading.tsx) — a heading assembling
+   left to right as it comes into view. v3 §4's element reveal, per letter: a
+   0.44em rise out of a 2.5deg lean, 0.7s, power2.out, 22ms between letters,
+   once. Every number is the GSAP tween's, which this replaces; see the
+   component's header for what that tween cost on a phone.
+
+   `power2.out` is GSAP's easeOutCubic. `translate` and `rotate` are the
+   independent properties, NOT `transform`, which the pointer ripple keeps for
+   itself. Nothing here applies until the component adds `.vv-wave`, so a
+   heading whose JavaScript never arrives is simply a heading, and one asked for
+   reduced motion is never given the class at all.
+   ============================================================================= */
+.vv-wave [data-letter] {
+  opacity: 0;
+  translate: 0 0.44em;
+  rotate: 2.5deg;
+}
+.vv-wave[data-wave] [data-letter] {
+  opacity: 1;
+  translate: none;
+  rotate: none;
+  transition:
+    opacity 0.7s cubic-bezier(0.215, 0.61, 0.355, 1),
+    translate 0.7s cubic-bezier(0.215, 0.61, 0.355, 1),
+    rotate 0.7s cubic-bezier(0.215, 0.61, 0.355, 1);
+  transition-delay: calc(var(--i) * 22ms);
+}
+
+/* The element reveal (components/site/Reveal.tsx) and the object wipe
+   (components/site/WipeIn.tsx). Both carry their component's own numbers:
+   14px and 0.45s on easeOutQuart for the reveal, a clip-path wipe over 0.7s on
+   easeOutCubic for the other, each staggered by its `--i`. As with the letter
+   wave, none of it applies until the component adds the class, so no-JS and
+   reduced motion both land on the finished state. */
+.vv-reveal [data-reveal],
+.vv-reveal-self {
+  opacity: 0;
+  translate: 0 14px;
+}
+.vv-reveal[data-revealed] [data-reveal],
+.vv-reveal-self[data-revealed] {
+  opacity: 1;
+  translate: none;
+  transition:
+    opacity 0.45s cubic-bezier(0.165, 0.84, 0.44, 1),
+    translate 0.45s cubic-bezier(0.165, 0.84, 0.44, 1);
+  transition-delay: calc(var(--i, 0) * var(--reveal-step, 0.05s));
+}
+
+.vv-wipe [data-wipe],
+.vv-wipe-self {
+  clip-path: inset(0 0 100% 0);
+}
+.vv-wipe[data-wiped] [data-wipe],
+.vv-wipe-self[data-wiped] {
+  clip-path: inset(0 0 0% 0);
+  transition: clip-path 0.7s cubic-bezier(0.215, 0.61, 0.355, 1);
+  transition-delay: calc(var(--i, 0) * var(--wipe-step, 0.09s));
+}
+
+/* The front door's rooms are laid out when they are approached, not all at once
+   (17 Sep 2026). The page is seven sections and ~7,300px on a phone, and the
+   browser was doing style and layout for all of it before the first screen
+   could be interacted with: measured on a 4x-throttled phone, one full relayout
+   of this page cost 168.6ms, and 31.2ms with this rule in place.
+   `contain-intrinsic-size: auto <length>` is what makes it free of movement —
+   the length is only the first guess, and `auto` then remembers each section's
+   real height, so the scrollbar settles after one pass and nothing on screen
+   ever shifts. The hero is excluded: it is the first screen, and there is
+   nothing to defer.
+
+   Scoped to the home page by its hero frame, the same test the heading rule
+   below uses. It is deliberately not site-wide: /rentals' rooms are measured by
+   ScrollTrigger, and a section that reports its placeholder height instead of
+   its real one would put those triggers in the wrong place. Verified here
+   against the torn edges (which overhang by 6px and are not clipped), the
+   parallax scrub, and every reveal, wipe and letter wave — all of which are
+   IntersectionObserver-driven and fire correctly on a skipped section. */
+main:has(.hero-frame) > section:nth-of-type(n + 2) {
+  content-visibility: auto;
+  /* The median height of the sections this applies to, measured at each width
+     (they run 147px to 1841px, so a single number is wrong at one end or the
+     other). It is only the first guess — it decides how long the scrollbar is
+     before a section has ever been laid out, and nothing else — but a guess
+     that is 29% out is a scrollbar that visibly shortens on the first scroll.
+     At these values the page's first-load height is within 3% on a phone and
+     10% on a desktop, and exact after one pass. */
+  contain-intrinsic-size: auto 900px;
+}
+@media (min-width: 768px) {
+  main:has(.hero-frame) > section:nth-of-type(n + 2) {
+    contain-intrinsic-size: auto 620px;
+  }
+}
+
 /* Hero overlay starts hidden (JS/GSAP reveals it as the scene settles).
    Reduced-motion and no-JS users see it immediately. */
 [data-hero] {

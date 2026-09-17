@@ -4,6 +4,14 @@ import { formatINR } from "@/lib/format";
 import { jewelleryImage } from "@/app/jewellery/images";
 import type { JewelleryPiece } from "@/lib/jewellery";
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one.
+ *  Only the stand-ins have them; a piece's own uploaded path does not. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
 /**
  * One jewellery piece on /jewellery. RentalCard's shape (arch plate, name and
  * price under it, the gather control over the far corner) so the two
@@ -25,8 +33,14 @@ export function JewelleryCard({ p }: { p: JewelleryPiece }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={own?.path ?? sample!}
+                srcSet={sample ? photoSrcSet(sample) : undefined}
+                sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"
                 alt={own ? own.alt : ""}
                 aria-hidden={own ? undefined : true}
+                width={660}
+                height={880}
+                loading="lazy"
+                decoding="async"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-400 ease-out-strong group-hover:scale-[1.03]"
               />
               {sample && (

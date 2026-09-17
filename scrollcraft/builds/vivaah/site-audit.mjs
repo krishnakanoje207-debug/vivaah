@@ -130,9 +130,33 @@ async function auditRoute(browser, route) {
     rec(status === expected, route, w.name, `HTTP ${expected}`, `got ${status}`);
 
     // ---- images actually loaded ----
-    const brokenImgs = await page.evaluate(() =>
-      [...document.images].filter((i) => !i.complete || i.naturalWidth === 0).map((i) => i.getAttribute("src"))
-    );
+    // The scroll above requests every lazy image, but requesting is not
+    // arriving: at 90ms a step a 60KB photograph is still in flight when the
+    // loop moves on, and sampling `complete` here would report the site broken
+    // for being patient. So wait for them to settle, bounded, and only then ask.
+    // A genuinely broken image never settles complete with a natural width, so
+    // this waits out the lazy ones without excusing a 404.
+    // Anything still unfinished gets what a visitor gives it: brought into view
+    // and waited for. Below-the-fold images are lazy and sit inside
+    // content-visibility sections, so the fast scroll above requests them and
+    // moves on before they land. A broken src still fails this — it never
+    // reaches naturalWidth > 0 however long it is looked at.
+    const brokenImgs = await page.evaluate(async () => {
+      const settle = (img) =>
+        new Promise((done) => {
+          if (img.complete && img.naturalWidth > 0) return done();
+          img.scrollIntoView({ block: "center" });
+          const t = setTimeout(done, 5000);
+          const end = () => { clearTimeout(t); done(); };
+          img.addEventListener("load", end, { once: true });
+          img.addEventListener("error", end, { once: true });
+        });
+      for (const img of document.images) await settle(img);
+      window.scrollTo(0, 0);
+      return [...document.images]
+        .filter((i) => !i.complete || i.naturalWidth === 0)
+        .map((i) => i.getAttribute("src"));
+    });
     rec(brokenImgs.length === 0, route, w.name, "every image loaded", brokenImgs.slice(0, 3).join(" | "));
 
     // ---- the page must not build its own chrome (layout supplies it) ----

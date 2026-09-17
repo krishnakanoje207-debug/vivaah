@@ -2,9 +2,6 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 /**
  * A heading whose letters ripple.
@@ -32,14 +29,27 @@ gsap.registerPlugin(ScrollTrigger);
  * letters, and translation still sees the label. Under reduced motion nothing
  * splits at all: the heading renders as plain text with no spans and no
  * listeners, which is also the no-JS state.
+ *
+ * THE WAVE IS CSS (17 Sep 2026), and the numbers are unchanged: 0.44em rise,
+ * 2.5deg, 0.7s, power2.out, 22ms per letter, once at 80% of the viewport. It
+ * was a GSAP tween over every letter, and profiling the front door on a 4x
+ * throttled phone put 24.3s of 37.5s of script time inside `gsap/CSSPlugin`:
+ * `_convertToUnit` 15.6s and `_getComputedProperty` 8.0s. Both are per-target
+ * reads of computed style, and GSAP interleaves them with its own writes, so
+ * 176 letter spans bought 250 forced style recalculations and ten
+ * whole-document ones. The same 176 spans measured 34ms written one-at-a-time
+ * against 2.9ms written in a batch.
+ *
+ * CSS does not need to read anything: the browser already knows what 0.44em is
+ * on each span, the stagger is `--i` multiplied in a `transition-delay`, and an
+ * IntersectionObserver at `-20%` of the bottom edge is exactly ScrollTrigger's
+ * `top 80%`. One class is written per heading instead of a tween per letter.
+ *
+ * It animates the INDEPENDENT `translate` and `rotate` properties, not
+ * `transform`, so it cannot collide with the pointer ripple below, which keeps
+ * `transform` to itself. The browser composes translate, then rotate, then
+ * transform — the same order GSAP wrote them in, so the result is identical.
  */
-
-// The wave. Element reveals are 0.7s/70ms (v2 §4); 70ms per LETTER would take
-// four seconds on a line this long, so the stagger is per-letter here and the
-// duration is the shared one.
-const IN_DURATION = 0.7;
-const IN_STAGGER = 0.022;
-const IN_RISE = "0.44em";
 
 // The pointer ripple.
 const AMPLITUDE = 10; // px of lift at the cursor
@@ -66,8 +76,17 @@ export function RippleHeading({
   const ref = useRef<HTMLHeadingElement>(null);
 
   // Split into words first so a word never breaks across a line, then letters
-  // inside each word. Spaces stay as real text between the word spans.
-  const words = useMemo(() => children.split(/(\s+)/), [children]);
+  // inside each word. Spaces stay as real text between the word spans. Each
+  // letter carries its position in the WHOLE line as `--i`, because that is
+  // what the stagger runs on: the wave crosses the heading, not each word.
+  const words = useMemo(() => {
+    let i = 0;
+    return children.split(/(\s+)/).map((chunk) =>
+      /\s/.test(chunk) || !chunk
+        ? { chunk, letters: null }
+        : { chunk, letters: Array.from(chunk).map((ch) => ({ ch, i: i++ })) }
+    );
+  }, [children]);
 
   useEffect(() => {
     const el = ref.current;
@@ -77,42 +96,66 @@ export function RippleHeading({
     const letters = Array.from(el.querySelectorAll<HTMLElement>("[data-letter]"));
     if (!letters.length) return;
 
-    const ctx = gsap.context(() => {
-      // ---- 1. the wave in -------------------------------------------------
-      gsap.set(letters, { yPercent: 0, y: IN_RISE, opacity: 0, rotate: 2.5 });
-      gsap.to(letters, {
-        y: 0,
-        opacity: 1,
-        rotate: 0,
-        duration: IN_DURATION,
-        stagger: IN_STAGGER,
-        ease: "power2.out",
-        scrollTrigger: { trigger: el, start: "top 80%", once: true },
-      });
-    }, el);
+    // ---- 1. the wave in ---------------------------------------------------
+    // The class carries the pre-state, so nothing is hidden for a visitor whose
+    // JavaScript never arrives, and `data-wave` releases it. Both are single
+    // writes on the heading; the letters are never touched.
+    el.classList.add("vv-wave");
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        el.setAttribute("data-wave", "");
+        io.disconnect();
+      },
+      // ScrollTrigger's `start: "top 80%"`: the top edge reaching 80% down the
+      // viewport is the bottom 20% of the root being cut away.
+      { rootMargin: "0px 0px -20% 0px" }
+    );
+    io.observe(el);
+
+    const stopWave = () => {
+      io.disconnect();
+      el.classList.remove("vv-wave");
+      el.removeAttribute("data-wave");
+    };
 
     if (staticAfterReveal || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      return () => ctx.revert();
+      return stopWave;
     }
 
     // ---- 2. the pointer ripple -------------------------------------------
     // quickTo gives each letter its own interpolator, so the bump keeps its
     // shape instead of every letter chasing the same tween.
-    const setters = letters.map((l) =>
-      gsap.quickTo(l, "yPercent", { duration: EASE_IN, ease: "power3.out" })
-    );
+    // Built on the first pointer that actually reaches the heading, not at
+    // mount. An interpolator and a measured centre per letter is a page's worth
+    // of work for an effect nobody can see until the cursor is on the word, and
+    // the measure has to wait for the fonts anyway.
+    const ctx = gsap.context(() => {}, el);
+    let setters: ReturnType<typeof gsap.quickTo>[] | null = null;
     let centres: number[] = [];
 
     const measure = () => {
+      if (!setters) return;
       const base = el.getBoundingClientRect().left;
       centres = letters.map((l) => {
         const r = l.getBoundingClientRect();
         return r.left - base + r.width / 2;
       });
     };
-    measure();
+
+    const build = () => {
+      if (setters) return;
+      ctx.add(() => {
+        setters = letters.map((l) =>
+          gsap.quickTo(l, "yPercent", { duration: EASE_IN, ease: "power3.out" })
+        );
+      });
+      measure();
+    };
 
     const onMove = (e: PointerEvent) => {
+      build();
+      if (!setters) return;
       const base = el.getBoundingClientRect().left;
       const px = e.clientX - base;
       for (let i = 0; i < letters.length; i++) {
@@ -124,27 +167,27 @@ export function RippleHeading({
     };
 
     const onLeave = () => {
-      for (const set of setters) set(0);
+      if (setters) for (const set of setters) set(0);
     };
 
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerleave", onLeave);
+    // The line rewraps as the viewport changes, so the centres are stale.
     window.addEventListener("resize", measure);
-    // The line rewraps as fonts settle; re-measure once they have.
-    document.fonts?.ready.then(measure).catch(() => {});
 
     return () => {
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("resize", measure);
+      stopWave();
       ctx.revert();
     };
   }, [children, staticAfterReveal]);
 
   return (
     <Tag ref={ref as never} className={className} aria-label={children}>
-      {words.map((chunk, wi) =>
-        /\s/.test(chunk) ? (
+      {words.map(({ chunk, letters }, wi) =>
+        !letters ? (
           <span key={wi} aria-hidden="true">
             {chunk}
           </span>
@@ -160,8 +203,17 @@ export function RippleHeading({
                 : ""
             }`}
           >
-            {Array.from(chunk).map((ch, ci) => (
-              <span key={ci} data-letter className="inline-block will-change-transform">
+            {letters.map(({ ch, i }, ci) => (
+              // No `will-change`: it was on every letter of every heading for
+              // the life of the page, which is 176 layers held open on the
+              // front door alone. The wave's own transition promotes what it
+              // needs, for as long as it needs it.
+              <span
+                key={ci}
+                data-letter
+                className="inline-block"
+                style={{ "--i": i } as React.CSSProperties}
+              >
                 {ch}
               </span>
             ))}
