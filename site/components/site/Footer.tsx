@@ -38,6 +38,14 @@ export function Footer() {
                   Rental terms
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/privacy"
+                  className="block py-2 transition-colors hover:text-porcelain-50 md:py-0"
+                >
+                  Privacy
+                </Link>
+              </li>
             </ul>
           </nav>
 

@@ -8,6 +8,8 @@ foot of this file so any claim here can be re-run.
 
 Status at audit (14 Sep, revised): **11 done, 4 partial, 4 not started, 1 blocked on the owner.**
 
+Status 17 Sep, after the pre-launch pass: **13 done, 1 correctly deferred, 2 partial, 2 not started, 1 blocked on the owner.** What is left is items 12 and 13 (Suspense boundaries, marking the invalid field), item 18 (analytics, which needs the owner to choose one), and item 19 (her real address and phone).
+
 | # | Item | Status | Where it stands |
 |---|---|---|---|
 | 1 | Custom 404 page | **Done** | `app/not-found.tsx`, in the site-audit's seven routes. Wants its own `<title>` (see P1.1). |
@@ -18,15 +20,15 @@ Status at audit (14 Sep, revised): **11 done, 4 partial, 4 not started, 1 blocke
 | 6 | Favicon set | **Partial** | `favicon.ico` only; no `icon.png`, `apple-icon`, or manifest. Blocked with the logo. See P3.1. |
 | 7 | robots.txt | **Done** | 14 Sep: `app/robots.ts`, disallows `/admin`, points at the sitemap. |
 | 8 | sitemap.xml | **Done** | 14 Sep: `app/sitemap.ts`, six static routes plus every slug from `getRentals()`. |
-| 9 | Alt text on every image | **Partial** | No image anywhere is missing the attribute. 16 carry `alt=""` without `aria-hidden="true"`. See P1.5. |
+| 9 | Alt text on every image | **Done** | 17 Sep: audited every `<img>` in `app/` and `components/` by tag rather than by line. 47 images, 20 decorative, and all 20 now pair `alt=""` with `aria-hidden="true"`. The "16" in the original count was a line-based grep missing the attribute on the following line; one real offender remained, a thumbnail in `PieceStage`, and it is fixed. |
 | 10 | Mobile breakpoints | **Done** | site-audit gates 1920/1440/390; hero-scrim adds Pixel 7. 10 Sep pass made the phone a first-class width. |
 | 11 | Sticky mobile CTA | **Done** | 14 Sep: `ActionBar` — call + WhatsApp, appears after the hero, stands down at the footer and for the consent panel. |
 | 12 | Loading states | **Partial** | 14 Sep: `app/loading.tsx` and `app/error.tsx` added, so the document streams. Suspense boundaries still absent — see P2.2. |
 | 13 | Form error states | **Partial** | All 12 forms that exist (admin) render errors and pending states; none marks the invalid field. See P2.5. |
 | 14 | Thank-you page | **Not started** | Phase 2, the confirmation step of the booking state machine. |
-| 15 | Privacy policy page | **Not started** | `/policies` is rental terms, not privacy. The cookie banner sets a consent cookie with nothing explaining it. See P2.3. |
+| 15 | Privacy policy page | **Done** | 17 Sep: `/privacy`, in `/policies`' grammar, linked from the footer and the sitemap. Every clause was read out of the code rather than adapted from a template, and `scripts/verify-privacy.mjs` fails if the code stops matching it. Two facts are marked unset rather than invented: the retention period and where to write. |
 | 16 | Terms page | **Done** | `/policies` — booking and pre-payment, extensions, damage and care, pickup and return. |
-| 17 | Cookie banner | **Not started** | The component is built and complete — and is mounted on no surface, so no visitor has ever seen it. See P2.3. |
+| 17 | Cookie banner | **Correctly deferred** | 17 Sep: this row was wrong to call it unstarted. `CookieConsent.tsx` is finished and deliberately unmounted, and says so in its own header: the only cookies the site sets are strictly necessary, so there is nothing to consent to, and mounting a banner would advertise tracking that is not happening. It is item 18 that unblocks this, not the other way round. |
 | 18 | Analytics installed | **Not started** | The consent gate is built and empty. See P2.4. |
 | 19 | Real contact address | **Blocked on owner** | `TODO(owner)`; `/` renders "Shop address, City" and "+91 00000 00000". See P3.2. |
 | 20 | Compressed images | **Done** | 14 Sep: hero 2137 KB -> 124 KB, 18 category JPEGs -> WebP, `fetchPriority` on the LCP image. |

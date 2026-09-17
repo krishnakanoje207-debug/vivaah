@@ -123,7 +123,12 @@ export function PieceStage({
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.path} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={img.path}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-full w-full object-cover"
+                />
               </button>
             ))}
           </div>

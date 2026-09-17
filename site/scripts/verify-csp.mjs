@@ -16,7 +16,7 @@
 const BASE = process.env.BASE ?? "http://localhost:3000";
 
 // Documents only. /api and /_next are deliberately outside the matcher.
-const ROUTES = ["/", "/rentals", "/retail", "/jewellery", "/visit", "/policies", "/reserve", "/admin/login", "/nope-404"];
+const ROUTES = ["/", "/rentals", "/retail", "/jewellery", "/visit", "/policies", "/privacy", "/reserve", "/admin/login", "/nope-404"];
 
 const results = [];
 const check = (ok, label, detail = "") => {
