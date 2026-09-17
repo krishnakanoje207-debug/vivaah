@@ -22,7 +22,7 @@
  * counts and its booking. All of it is deleted in `finally`, including after a
  * failure. It never touches a booking or a product it did not create.
  */
-import { chromium } from "@playwright/test";
+import { chromium, type Page } from "@playwright/test";
 import { neon } from "@neondatabase/serverless";
 import { SESSION_COOKIE, createSession } from "../lib/adminAuth.ts";
 
@@ -61,6 +61,32 @@ async function settled<T>(read: () => Promise<T>, done: (v: T) => boolean, ms = 
     v = await read();
   }
   return v;
+}
+
+/**
+ * Wait for Turnstile to issue a token, which the form will not submit without.
+ *
+ * The widget fetches its script from Cloudflare and calls back a few seconds
+ * after load, and the steps between arriving and pressing Reserve do not
+ * reliably take that long. When the click lands first the form refuses it and
+ * says so ("we are still checking that this is coming from a person"), which
+ * surfaces here as a navigation timeout that looks like a booking failure and
+ * is nothing of the kind. A real visitor waits a second and presses it again;
+ * this waits for the same thing she does, so the gate measures the booking
+ * rather than the round trip to Cloudflare.
+ */
+async function awaitBotToken(p: Page): Promise<boolean> {
+  return p
+    .waitForFunction(
+      () => {
+        const i = document.querySelector('input[name="cf-turnstile-response"]') as HTMLInputElement | null;
+        return !!i && i.value.length > 0;
+      },
+      undefined,
+      { timeout: 30_000 }
+    )
+    .then(() => true)
+    .catch(() => false);
 }
 
 // Real Chrome, as the other harnesses use: this project installs no Playwright
@@ -118,6 +144,7 @@ try {
   await page.fill("#rv-phone", "9876543210");
   await page.fill("#rv-note", "Automated end-to-end check. Delete me.");
 
+  check(await awaitBotToken(page), "the bot check issues a token before the form is sent");
   await page.click('button[type="submit"]');
   await page.waitForURL(/\/booking\/VVH-/, { timeout: NAV_TIMEOUT });
 
@@ -125,6 +152,32 @@ try {
   code = url.pathname.split("/").pop()!;
   check(/^VVH-[0-9A-Z]{4}$/.test(code), "form posts and lands on the booking", code);
   check(url.searchParams.get("k")!.length > 20, "the redirect carries the access token");
+
+  // --- the notification the request raised (COMMS_FLOW_SPEC_V2 §5) ---
+  // `after()` runs the send once the response has gone, so this reads until the
+  // answer settles rather than asserting immediately. It waits for BOTH legs,
+  // not merely for the table to stop being empty: `notify` records one channel
+  // at a time, so a read taken between the two writes sees only the owner's row
+  // and would fail a path that is working. With no RESEND_API_KEY on a dev
+  // machine the honest expectation is two logged skips, which still proves the
+  // whole path fired: the route reached `notify`, it loaded the booking, built
+  // both messages, and wrote what each channel did.
+  const comms = await settled(
+    async () =>
+      (await sql`
+        select recipient, status, detail from comms_log
+         where booking_id = (select id from bookings where code = ${code})`) as {
+        recipient: string;
+        status: string;
+        detail: string | null;
+      }[],
+    (rows) => rows.length >= 2,
+  );
+  check(
+    comms.length === 2 && comms.some((c) => c.recipient === "owner") && comms.some((c) => c.recipient === "customer"),
+    "the request notifies the shop and the customer",
+    comms.map((c) => `${c.recipient}: ${c.status}${c.detail ? ` (${c.detail})` : ""}`).join(" | ") || "nothing logged",
+  );
 
   // --- the row the site actually wrote ---
   const [row] = (await sql`
@@ -332,6 +385,7 @@ try {
   await shopper.fill("#rv-name", "Retail Verify");
   await shopper.fill("#rv-phone", "9876501234");
   await shopper.fill("#rv-note", "Automated end-to-end check. Delete me.");
+  check(await awaitBotToken(shopper), "retail: the bot check issues a token before the form is sent");
   await shopper.click('button[type="submit"]');
   await shopper.waitForURL(/\/booking\/VVH-/, { timeout: NAV_TIMEOUT });
   retailCode = new URL(shopper.url()).pathname.split("/").pop()!;
