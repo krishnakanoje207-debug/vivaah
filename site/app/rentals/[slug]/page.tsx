@@ -15,7 +15,8 @@ import { Parallax } from "@/components/site/Parallax";
 import { GoldFrame } from "@/components/site/GoldFrame";
 import { SectionEdge } from "@/components/site/SectionEdge";
 import { RippleHeading } from "@/components/site/RippleHeading";
-import { getRental, formatINR, galleryFrames } from "@/lib/rentals";
+import { getRental, galleryFrames } from "@/lib/rentals";
+import { formatINR } from "@/lib/format";
 
 /**
  * One rental product — grammar: "two acts".

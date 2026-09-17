@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SelectionButton } from "@/components/site/SelectionButton";
-import { formatINR, productBadges, type Rental } from "@/lib/rentals";
+import { productBadges, type Rental } from "@/lib/rentals";
+import { formatINR } from "@/lib/format";
 import { nightBadge } from "@/lib/navratri";
 import { RENTAL_CATEGORIES } from "@/lib/categories";
 

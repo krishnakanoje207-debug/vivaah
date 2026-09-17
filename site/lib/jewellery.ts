@@ -8,7 +8,11 @@ import { cache } from "react";
 import { sqlPublic } from "@/lib/dbPublic";
 import { jewelleryImage } from "@/app/jewellery/images";
 
-export { formatINR } from "@/lib/format";
+// formatINR is NOT re-exported here. This module imports lib/dbPublic, so the
+// Neon driver comes with any value imported from it: SelectionTray took the
+// convenience re-export that used to sit here and shipped a Postgres client to
+// every visitor on every page, 45KB over the wire, because the tray is in Nav.
+// Import the formatter from lib/format, which is pure.
 
 export type JewelleryImage = { path: string; alt: string };
 

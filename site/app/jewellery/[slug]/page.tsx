@@ -10,7 +10,8 @@ import { Parallax } from "@/components/site/Parallax";
 import { SectionEdge } from "@/components/site/SectionEdge";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { Button } from "@/components/ui/Button";
-import { getJewelleryPiece, formatINR } from "@/lib/jewellery";
+import { getJewelleryPiece } from "@/lib/jewellery";
+import { formatINR } from "@/lib/format";
 import { jewelleryImage } from "@/app/jewellery/images";
 
 /**

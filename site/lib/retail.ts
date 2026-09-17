@@ -266,4 +266,8 @@ export async function getRetailSlugs(): Promise<string[]> {
   return rows.map((r) => r.slug);
 }
 
-export { formatINR } from "@/lib/format";
+// formatINR is NOT re-exported here. This module imports lib/dbPublic, so the
+// Neon driver comes with any value imported from it: SelectionTray took the
+// convenience re-export that used to sit here and shipped a Postgres client to
+// every visitor on every page, 45KB over the wire, because the tray is in Nav.
+// Import the formatter from lib/format, which is pure.

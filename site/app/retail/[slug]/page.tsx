@@ -8,7 +8,8 @@ import { Ornament } from "@/components/site/Ornament";
 import { Reveal } from "@/components/site/Reveal";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { SectionEdge } from "@/components/site/SectionEdge";
-import { formatINR, getRetailPiece } from "@/lib/retail";
+import { getRetailPiece } from "@/lib/retail";
+import { formatINR } from "@/lib/format";
 import { RETAIL_CATEGORIES } from "@/lib/categories";
 
 /**

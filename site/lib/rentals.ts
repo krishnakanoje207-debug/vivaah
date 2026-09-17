@@ -73,9 +73,11 @@ export function galleryFrames(spin: SpinConfig, n = 5): string[] {
   return idx.map((i) => `${spin.basePath}/${String(i).padStart(spin.pad, "0")}.${spin.ext}`);
 }
 
-// Lives in lib/format so client components can use it without pulling this
-// file (and with it the app_public connection) into the browser bundle.
-export { formatINR } from "@/lib/format";
+// formatINR is NOT re-exported here. This module imports lib/dbPublic, so the
+// Neon driver comes with any value imported from it: SelectionTray took the
+// convenience re-export that used to sit here and shipped a Postgres client to
+// every visitor on every page, 45KB over the wire, because the tray is in Nav.
+// Import the formatter from lib/format, which is pure.
 
 // The DB `spin` jsonb is the admin/canonical shape (specs/schema.sql:65); the
 // SpinViewer wants the fuller SpinConfig. The extra render fields (ext/pad/

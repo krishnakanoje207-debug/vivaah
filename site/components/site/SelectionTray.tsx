@@ -6,7 +6,7 @@ import Link from "next/link";
 import { clear, remove, useSelection, SELECTION_MAX } from "@/lib/selection";
 import { REQUEST_NOTICE, reserveHref } from "@/lib/enquiry";
 import { registerFlightTarget, useAirborne } from "@/components/site/GarmentFlight";
-import { formatINR } from "@/lib/rentals";
+import { formatINR } from "@/lib/format";
 
 /**
  * The tray: what has been gathered, and where it goes to be reserved.
