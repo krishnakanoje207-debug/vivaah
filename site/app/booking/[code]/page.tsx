@@ -9,7 +9,7 @@ import { MAX_DAYS, TZ, addDays, daysBetween, formatDay, formatTime, maskPhone } 
 import { sql } from "@/lib/db";
 import { hasRealPhone } from "@/lib/enquiry";
 import { formatINR } from "@/lib/format";
-import { RENTAL_CATEGORIES } from "@/lib/categories";
+import { RENTAL_CATEGORIES, RETAIL_CATEGORIES } from "@/lib/categories";
 import { SHOP, hasRealAddress } from "@/lib/site";
 import { jewelleryImage } from "@/app/jewellery/images";
 import { LookupForm } from "./LookupForm";
@@ -29,6 +29,12 @@ import { ExtendBooking } from "./ExtendBooking";
  *   Ledger    porcelain-50  the dates | the pieces
  *   Changes   stage         keep it longer | cancel (only when either applies)
  *   Shop      violet-950    hours, address, call, WhatsApp
+ *
+ * Retail changes what the page may promise, not how it is built. A piece she is
+ * buying is collected once and kept, so a booking with nothing rented in it has
+ * a day rather than dates, no return, no length and nothing to extend; a booking
+ * holding both lists what she is renting apart from what she is buying, because
+ * the two carry different promises (RETAIL_SPEC §2, §3.3).
  *
  * No proof (link token or lookup cookie) renders the code + phone form, and it
  * renders the same whether or not the code exists. Nothing here moves on scroll:
@@ -62,39 +68,63 @@ function istMoment(iso: string): string {
 
 const STATIONS = ["Requested", "Confirmed", "Collected", "Returned"] as const;
 const STATION_OF = { pending: 0, confirmed: 1, picked_up: 2, returned: 3 } as const;
+// A collection ends where it ends: nothing she bought comes back, and the
+// booking never enters `returned`, so the fourth station would be a promise of
+// something that is not going to happen (RETAIL_SPEC §2).
+const COLLECT_STATIONS = STATIONS.slice(0, 3);
+
+const isCollectOnly = (b: CustomerBooking) => b.items.every((p) => p.type === "retail");
 
 function statusCopy(b: CustomerBooking): { word: string; line: string; detail: string | null } {
   const it = b.items.length === 1 ? "it" : "them";
+  const collect = isCollectOnly(b);
+  const buying = b.items.some((p) => p.type === "retail");
+  const when = b.time ? `${formatDay(b.pickup)} at ${formatTime(b.time)}` : formatDay(b.pickup);
+  // What a lapse or a cancellation gives back: the dates, for something on loan;
+  // the piece itself, for something she was buying, which goes back on the rail.
+  const freed = collect
+    ? `${b.items.length === 1 ? "the piece goes" : "the pieces go"} back on the rail`
+    : "the dates are released";
+  const freedPast = collect
+    ? `${b.items.length === 1 ? "the piece went" : "the pieces went"} back on the rail`
+    : "the dates were released";
   switch (b.status) {
     case "pending":
       return {
         word: "Requested.",
         line: "We'll call or message you to confirm.",
         detail: b.expiresAt
-          ? `If we have not confirmed it by ${istMoment(b.expiresAt)}, the request lapses and the dates are released.`
+          ? `If we have not confirmed it by ${istMoment(b.expiresAt)}, the request lapses and ${freed}.`
           : null,
       };
     case "confirmed":
       return {
         word: "Confirmed.",
-        line: b.time
-          ? `Collect ${it} at the shop on ${formatDay(b.pickup)} at ${formatTime(b.time)}.`
-          : `Collect ${it} at the shop on ${formatDay(b.pickup)}.`,
+        line: collect ? `Come in to the shop on ${when}.` : `Collect ${it} at the shop on ${when}.`,
         detail: null,
       };
     case "picked_up":
-      return { word: "Collected.", line: `Bring ${it} back to the shop on ${formatDay(b.ret)}.`, detail: null };
+      if (collect) {
+        return { word: "Collected.", line: `${b.items.length === 1 ? "It is" : "They are"} yours. Thank you.`, detail: null };
+      }
+      return {
+        word: "Collected.",
+        line: buying
+          ? `Bring what you rented back to the shop on ${formatDay(b.ret)}.`
+          : `Bring ${it} back to the shop on ${formatDay(b.ret)}.`,
+        detail: null,
+      };
     case "returned":
       return { word: "Returned.", line: "Everything is back at the shop. Thank you.", detail: null };
     case "cancelled":
       if (b.cancelledBy === "lapsed") {
-        return { word: "Lapsed.", line: "The request lapsed before we could confirm it, so the dates were released.", detail: null };
+        return { word: "Lapsed.", line: `The request lapsed before we could confirm it, so ${freedPast}.`, detail: null };
       }
       if (b.cancelledBy === "shop") {
         return { word: "Cancelled.", line: "We could not take this booking. Call the shop if you would like to talk it through.", detail: null };
       }
       if (b.cancelledBy === "customer") {
-        return { word: "Cancelled.", line: "You cancelled this booking, and the dates were released.", detail: null };
+        return { word: "Cancelled.", line: `You cancelled this booking, and ${freedPast}.`, detail: null };
       }
       return { word: "Cancelled.", line: "This booking was cancelled.", detail: null };
   }
@@ -102,14 +132,27 @@ function statusCopy(b: CustomerBooking): { word: string; line: string; detail: s
 
 type Piece = CustomerBooking["items"][number];
 
+function ownImage(images: unknown): string | null {
+  const first = Array.isArray(images)
+    ? (images as { path?: unknown }[]).find((i) => typeof i?.path === "string" && i.path.startsWith("/"))
+    : undefined;
+  return first ? (first.path as string) : null;
+}
+
 // The piece's own photograph where one exists, else its category's, labelled.
 function pieceImage(p: Piece): { src: string; sample: boolean } | null {
   if (p.type === "jewellery") {
-    const own = Array.isArray(p.images)
-      ? (p.images as { path?: unknown }[]).find((i) => typeof i?.path === "string" && i.path.startsWith("/"))
-      : undefined;
-    if (own) return { src: own.path as string, sample: false };
+    const own = ownImage(p.images);
+    if (own) return { src: own, sample: false };
     const s = p.category ? jewelleryImage(p.category) : null;
+    return s ? { src: s, sample: true } : null;
+  }
+  // Retail has no frame set to take a plate from, so it is the product's own
+  // photograph or its category's, the way the rail on /retail shows it.
+  if (p.type === "retail") {
+    const own = ownImage(p.images);
+    if (own) return { src: own, sample: false };
+    const s = RETAIL_CATEGORIES.find((c) => c.slug === p.category)?.image;
     return s ? { src: s, sample: true } : null;
   }
   const base = (p.spin as { basePath?: unknown } | null)?.basePath;
@@ -141,7 +184,15 @@ export default async function BookingPage({
   const cancelled = b.status === "cancelled";
   const station = b.status === "cancelled" ? -1 : STATION_OF[b.status];
 
-  const extendable = b.status === "confirmed" || b.status === "picked_up";
+  // The two trades, kept apart for the ledger. A mixed booking runs on the
+  // rental's range and she comes in once, on the pickup day, for all of it.
+  const toRent = b.items.filter((p) => p.type !== "retail");
+  const toKeep = b.items.filter((p) => p.type === "retail");
+  const collectOnly = toRent.length === 0;
+
+  // Nothing goes home on loan in a collection, so there is nothing to keep
+  // longer; in a mixed booking the extension is the rental's.
+  const extendable = !collectOnly && (b.status === "confirmed" || b.status === "picked_up");
   const [ext] = extendable
     ? await sql<Extension>`
         select status::text as status, to_char(requested_return, 'YYYY-MM-DD') as requested_return,
@@ -183,7 +234,7 @@ export default async function BookingPage({
                 Read this code out if you call the shop.
               </p>
 
-              {!cancelled && <Seam at={station} />}
+              {!cancelled && <Seam at={station} stations={collectOnly ? COLLECT_STATIONS : STATIONS} />}
 
               <p className="mt-12 max-w-[34ch] font-display text-h2 text-balance text-porcelain-50">
                 <span className="text-gold-500">{copy.word}</span> {copy.line}
@@ -204,20 +255,37 @@ export default async function BookingPage({
         <div className="shell-wide relative">
           <div className="grid gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-24 lg:pl-[11rem]">
             <div>
-              <h2 className="text-h2 text-ink-900">{cancelled ? "The dates it held" : "The dates"}</h2>
+              <h2 className="text-h2 text-ink-900">
+                {collectOnly
+                  ? cancelled
+                    ? "The day it held"
+                    : "The day"
+                  : cancelled
+                    ? "The dates it held"
+                    : "The dates"}
+              </h2>
               <dl className="mt-10 border-t border-ink-900/15">
                 <div className="border-b border-ink-900/15 py-6">
-                  <dt className="eyebrow">Collect</dt>
+                  <dt className="eyebrow">{collectOnly ? "Come in" : "Collect"}</dt>
                   <dd className="mt-2 font-display text-h2 text-ink-900">{formatDay(b.pickup)}</dd>
                   <dd className="mt-1 text-caption text-ink-600">
-                    {b.time ? `at ${formatTime(b.time)}, from the shop` : "from the shop, in opening hours"}
+                    {b.time
+                      ? `at ${formatTime(b.time)}, ${collectOnly ? "at the shop" : "from the shop"}`
+                      : `${collectOnly ? "at the shop" : "from the shop"}, in opening hours`}
                   </dd>
                 </div>
-                <div className="border-b border-ink-900/15 py-6">
-                  <dt className="eyebrow">Return</dt>
-                  <dd className="mt-2 font-display text-h2 text-ink-900">{formatDay(b.ret)}</dd>
-                  <dd className="mt-1 text-caption text-ink-600">to the shop</dd>
-                </div>
+                {/* Nothing she is buying comes back, so a collection has no
+                    second date at all; in a mixed booking only what she rented
+                    is owed (RETAIL_SPEC §2). */}
+                {!collectOnly && (
+                  <div className="border-b border-ink-900/15 py-6">
+                    <dt className="eyebrow">Return</dt>
+                    <dd className="mt-2 font-display text-h2 text-ink-900">{formatDay(b.ret)}</dd>
+                    <dd className="mt-1 text-caption text-ink-600">
+                      {toKeep.length > 0 ? "what you rented, to the shop" : "to the shop"}
+                    </dd>
+                  </div>
+                )}
                 <div className="border-b border-ink-900/15 py-6">
                   <dt className="eyebrow">Phone</dt>
                   <dd className="tabular mt-2 font-display text-h2 text-ink-900">{maskPhone(b.phone)}</dd>
@@ -230,60 +298,31 @@ export default async function BookingPage({
               <h2 className="text-h2 text-ink-900">
                 {b.items.length === 1 ? "The piece" : `The ${b.items.length} pieces`}
               </h2>
-              <ul className="mt-10 border-t border-ink-900/15">
-                {b.items.map((p) => {
-                  const img = pieceImage(p);
-                  const href = p.type === "jewellery" ? `/jewellery/${p.slug}` : `/rentals/${p.slug}`;
-                  const kind =
-                    p.type === "jewellery"
-                      ? "Jewellery"
-                      : RENTAL_CATEGORIES.find((c) => c.slug === p.category)?.name ?? "To rent";
-                  return (
-                    <li key={p.slug} className="border-b border-ink-900/15 py-6">
-                      <Link href={href} className="press-card group grid grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-6 sm:grid-cols-[8rem_minmax(0,1fr)]">
-                        <div className="keyline arch relative aspect-[4/5] overflow-hidden bg-stage">
-                          {img ? (
-                            <>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={img.src}
-                                alt={img.sample ? "" : p.name}
-                                aria-hidden={img.sample ? true : undefined}
-                                className="absolute inset-0 h-full w-full object-cover"
-                              />
-                              {img.sample && (
-                                <span className="absolute inset-x-0 bottom-0 bg-porcelain-50/90 py-0.5 text-center text-[0.625rem] font-medium tracking-wide text-ink-900">
-                                  Sample photo
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center bg-porcelain-100 text-2xl text-gold-600/50">
-                              &#10022;
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="text-[1.35rem] leading-tight transition-colors duration-[180ms] ease-out-strong group-hover:text-violet-700">
-                            {p.name}
-                          </h3>
-                          <p className="mt-1 text-caption text-ink-600">{kind}</p>
-                          <p className="mt-4 text-ink-900">
-                            {p.price > 0 ? (
-                              <>
-                                <span className="tabular font-semibold">₹{formatINR(p.price)}</span>
-                                <span className="text-ink-600"> / day, paid at the shop</span>
-                              </>
-                            ) : (
-                              <span className="text-ink-600">Priced at the shop</span>
-                            )}
-                          </p>
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+              {/* Under separate headings when the booking holds both: the two
+                  carry different promises, and one of them she keeps
+                  (RETAIL_SPEC §3.3). One trade alone needs no heading. */}
+              {toRent.length > 0 && toKeep.length > 0 ? (
+                <>
+                  <p className="eyebrow mt-10">To rent</p>
+                  <ul className="mt-4 border-t border-ink-900/15">
+                    {toRent.map((p) => (
+                      <PieceLine key={p.slug} p={p} />
+                    ))}
+                  </ul>
+                  <p className="eyebrow mt-10">To keep</p>
+                  <ul className="mt-4 border-t border-ink-900/15">
+                    {toKeep.map((p) => (
+                      <PieceLine key={p.slug} p={p} />
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <ul className="mt-10 border-t border-ink-900/15">
+                  {b.items.map((p) => (
+                    <PieceLine key={p.slug} p={p} />
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>
@@ -303,7 +342,7 @@ export default async function BookingPage({
                   {ext?.status === "pending" ? (
                     <>
                       <p className="mt-4 max-w-[28ch] font-display text-h3 text-ink-900">
-                        You asked to keep {b.items.length === 1 ? "it" : "them"} until {formatDay(ext.requested_return)}.
+                        You asked to keep {toRent.length === 1 ? "it" : "them"} until {formatDay(ext.requested_return)}.
                       </p>
                       <p className="mt-3 max-w-[52ch] text-ink-600">
                         We will reply to it.{" "}
@@ -347,12 +386,14 @@ export default async function BookingPage({
                           : "You can cancel here."}
                       </p>
                       <p className="mt-3 max-w-[52ch] text-ink-600">After that, call the shop.</p>
-                      <CancelBooking code={b.code} />
+                      <CancelBooking code={b.code} collectOnly={collectOnly} />
                     </>
                   ) : (
                     <>
                       <p className="mt-4 max-w-[28ch] font-display text-h3 text-ink-900">
-                        It is too close to pickup to cancel online.
+                        {collectOnly
+                          ? "It is too close to the time you are due in to cancel online."
+                          : "It is too close to pickup to cancel online."}
                       </p>
                       <p className="mt-3 max-w-[52ch] text-ink-600">
                         Please call the shop on{" "}
@@ -381,7 +422,7 @@ export default async function BookingPage({
         <div className="shell-wide relative">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,20rem)_1fr_1fr] lg:gap-20">
             <p className="max-w-[16ch] font-display text-h2 text-porcelain-50">
-              Pickup and return are at the shop.
+              {collectOnly ? "Collection is at the shop." : "Pickup and return are at the shop."}
             </p>
 
             <dl className="border-t border-porcelain-50/20 pt-8">
@@ -434,16 +475,78 @@ export default async function BookingPage({
   );
 }
 
+/** One line of the ledger: the plate, the name, what it is, and its price. */
+function PieceLine({ p }: { p: Piece }) {
+  const img = pieceImage(p);
+  const retail = p.type === "retail";
+  const href =
+    p.type === "jewellery" ? `/jewellery/${p.slug}` : retail ? `/retail/${p.slug}` : `/rentals/${p.slug}`;
+  const kind =
+    p.type === "jewellery"
+      ? "Jewellery"
+      : retail
+        ? RETAIL_CATEGORIES.find((c) => c.slug === p.category)?.name ?? "To keep"
+        : RENTAL_CATEGORIES.find((c) => c.slug === p.category)?.name ?? "To rent";
+  // The colour and size she reserved, which is the whole of what tells one
+  // kurti on the rail from the next. Never how many are left (RETAIL_SPEC R3).
+  const variant = [p.colour, p.size && `size ${p.size}`].filter(Boolean).join(" · ");
+  return (
+    <li className="border-b border-ink-900/15 py-6">
+      <Link href={href} className="press-card group grid grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-6 sm:grid-cols-[8rem_minmax(0,1fr)]">
+        <div className="keyline arch relative aspect-[4/5] overflow-hidden bg-stage">
+          {img ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={img.src}
+                alt={img.sample ? "" : p.name}
+                aria-hidden={img.sample ? true : undefined}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              {img.sample && (
+                <span className="absolute inset-x-0 bottom-0 bg-porcelain-50/90 py-0.5 text-center text-[0.625rem] font-medium tracking-wide text-ink-900">
+                  Sample photo
+                </span>
+              )}
+            </>
+          ) : (
+            <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center bg-porcelain-100 text-2xl text-gold-600/50">
+              &#10022;
+            </span>
+          )}
+        </div>
+        <div>
+          <h3 className="text-[1.35rem] leading-tight transition-colors duration-[180ms] ease-out-strong group-hover:text-violet-700">
+            {p.name}
+          </h3>
+          <p className="mt-1 text-caption text-ink-600">{kind}</p>
+          {variant && <p className="mt-1 text-caption text-ink-600">{variant}</p>}
+          <p className="mt-4 text-ink-900">
+            {p.price > 0 ? (
+              <>
+                <span className="tabular font-semibold">₹{formatINR(p.price)}</span>
+                <span className="text-ink-600">{retail ? " to keep, paid at the shop" : " / day, paid at the shop"}</span>
+              </>
+            ) : (
+              <span className="text-ink-600">Priced at the shop</span>
+            )}
+          </p>
+        </div>
+      </Link>
+    </li>
+  );
+}
+
 /**
  * Where she is along the booking, as a seam: the thread is sewn up to the
  * current station and tacked (dashed) beyond it. Four words, no numerals.
  */
-function Seam({ at }: { at: number }) {
+function Seam({ at, stations }: { at: number; stations: readonly string[] }) {
   return (
-    <ol className="mt-12 grid max-w-[44rem] grid-cols-4">
-      {STATIONS.map((s, i) => {
+    <ol className={`mt-12 grid max-w-[44rem] ${stations.length === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
+      {stations.map((s, i) => {
         const reached = i <= at;
-        const last = i === STATIONS.length - 1;
+        const last = i === stations.length - 1;
         return (
           <li key={s} aria-current={i === at ? "step" : undefined} className="relative pt-6">
             {!last && (

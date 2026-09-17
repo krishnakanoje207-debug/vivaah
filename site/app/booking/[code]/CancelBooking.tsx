@@ -9,8 +9,12 @@ import { Button } from "@/components/ui/Button";
 // lookup, where the cookie is the proof.
 export const linkToken = () => new URLSearchParams(window.location.search).get("k") ?? undefined;
 
-/** Two steps: ask, then do. The default focus on the second step is to keep it. */
-export function CancelBooking({ code }: { code: string }) {
+/**
+ * Two steps: ask, then do. The default focus on the second step is to keep it.
+ * `collectOnly` is a booking with nothing rented in it, where what cancelling
+ * frees is the piece rather than a run of dates (RETAIL_SPEC §2).
+ */
+export function CancelBooking({ code, collectOnly }: { code: string; collectOnly: boolean }) {
   const router = useRouter();
   const [step, setStep] = useState<"ask" | "confirm" | "sending">("ask");
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +59,11 @@ export function CancelBooking({ code }: { code: string }) {
       ) : (
         <div className="border-l border-danger pl-5">
           <p className="max-w-[44ch] text-ink-900">
-            Cancel {code}? The dates are released straight away, and the booking cannot be brought back online.
+            Cancel {code}?{" "}
+            {collectOnly
+              ? "What you reserved goes back on the rail straight away"
+              : "The dates are released straight away"}
+            , and the booking cannot be brought back online.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <button
