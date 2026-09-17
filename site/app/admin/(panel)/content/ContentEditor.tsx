@@ -43,6 +43,8 @@ function BlockForm({ block }: { block?: Block }) {
               id="key-new"
               name="key"
               placeholder="home.hero"
+              aria-invalid={!!fe.key}
+              aria-describedby={fe.key ? "key-new-error" : undefined}
               className={`${field} tabular`}
             />
           ) : (
@@ -51,8 +53,11 @@ function BlockForm({ block }: { block?: Block }) {
               <p className="tabular font-display text-h3 text-ink-900">{block.key}</p>
             </>
           )}
+          {/* No focus hook here: this form has one field, so there is nothing
+              to hunt for, and the id differs from the error key. Marking the
+              input is the part that matters (P2.5). */}
           {isNew && fe.key && (
-            <p role="alert" className="mt-1 text-caption text-danger">
+            <p id="key-new-error" role="alert" className="mt-1 text-caption text-danger">
               {fe.key}
             </p>
           )}

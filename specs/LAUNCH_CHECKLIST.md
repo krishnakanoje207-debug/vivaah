@@ -8,7 +8,7 @@ foot of this file so any claim here can be re-run.
 
 Status at audit (14 Sep, revised): **11 done, 4 partial, 4 not started, 1 blocked on the owner.**
 
-Status 17 Sep, after the pre-launch pass: **13 done, 1 correctly deferred, 2 partial, 2 not started, 1 blocked on the owner.** What is left is items 12 and 13 (Suspense boundaries, marking the invalid field), item 18 (analytics, which needs the owner to choose one), and item 19 (her real address and phone).
+Status 17 Sep, after the pre-launch pass: **15 done, 1 correctly deferred, 1 not started, 1 blocked on the owner.** What is left is item 18 (analytics, which needs the owner to choose a provider) and item 19 (her real shop address; the phone now renders a real number).
 
 | # | Item | Status | Where it stands |
 |---|---|---|---|
@@ -23,8 +23,8 @@ Status 17 Sep, after the pre-launch pass: **13 done, 1 correctly deferred, 2 par
 | 9 | Alt text on every image | **Done** | 17 Sep: audited every `<img>` in `app/` and `components/` by tag rather than by line. 47 images, 20 decorative, and all 20 now pair `alt=""` with `aria-hidden="true"`. The "16" in the original count was a line-based grep missing the attribute on the following line; one real offender remained, a thumbnail in `PieceStage`, and it is fixed. |
 | 10 | Mobile breakpoints | **Done** | site-audit gates 1920/1440/390; hero-scrim adds Pixel 7. 10 Sep pass made the phone a first-class width. |
 | 11 | Sticky mobile CTA | **Done** | 14 Sep: `ActionBar` — call + WhatsApp, appears after the hero, stands down at the footer and for the consent panel. |
-| 12 | Loading states | **Partial** | 14 Sep: `app/loading.tsx` and `app/error.tsx` added, so the document streams. Suspense boundaries still absent — see P2.2. |
-| 13 | Form error states | **Partial** | All 12 forms that exist (admin) render errors and pending states; none marks the invalid field. See P2.5. |
+| 12 | Loading states | **Done** | 17 Sep: `/` now has a real Suspense boundary. The one query the front door needs was moved into `RailSection` behind `RentalRailSkeleton`, which restates RentalRail's own geometry (same `SectionEdge` seed, same padding, same card widths) so nothing moves when the rail arrives. Proved by the streamed HTML: hero at byte 18,928, skeleton at 32,965, and the real rail appended at 196,681 once Neon answered. CLS 0 across three throttled runs. `/rentals` is deliberately left alone — its masthead, tiles, arcade and grid all need the same query, so a boundary there is a page restructure for a smaller win. |
+| 13 | Form error states | **Done** | 17 Sep: every admin field that can carry a message now sets `aria-invalid` and points `aria-describedby` at both its hint and its error, and focus moves to the first bad field in reading order. Gated by `scripts/verify-admin-a11y.mts` (18/18), which asks the browser what a screen reader would be told rather than grepping for attributes. It also found a worse pre-existing bug than the one it was written for: React 19 resets an uncontrolled `<form action={serverAction}>` even when the action FAILED, so a rejected save in Settings discarded everything typed and refilled the stored values. Those fields are controlled now. |
 | 14 | Thank-you page | **Not started** | Phase 2, the confirmation step of the booking state machine. |
 | 15 | Privacy policy page | **Done** | 17 Sep: `/privacy`, in `/policies`' grammar, linked from the footer and the sitemap. Every clause was read out of the code rather than adapted from a template, and `scripts/verify-privacy.mjs` fails if the code stops matching it. Two facts are marked unset rather than invented: the retention period and where to write. |
 | 16 | Terms page | **Done** | `/policies` — booking and pre-payment, extensions, damage and care, pickup and return. |

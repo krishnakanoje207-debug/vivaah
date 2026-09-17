@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { Preloader } from "@/components/site/Preloader";
+import { RentalRailSkeleton } from "@/components/site/RentalRailSkeleton";
 import { SectionEdge } from "@/components/site/SectionEdge";
 import { RippleHeading } from "@/components/site/RippleHeading";
 import { Reveal } from "@/components/site/Reveal";
@@ -9,6 +10,7 @@ import { Parallax } from "@/components/site/Parallax";
 import { RentalRail } from "@/components/site/RentalRail";
 import { NavratriBand } from "@/components/site/NavratriBand";
 import { SHOP, hasRealAddress } from "@/lib/site";
+import { Suspense } from "react";
 import { getRentals, getRentalCategories } from "@/lib/rentals";
 
 /**
@@ -145,13 +147,29 @@ function HeroPlate({ priority = false }: { priority?: boolean }) {
   );
 }
 
-export default async function HomePage() {
+/**
+ * The rail, and the only thing on this page that needs the database.
+ *
+ * Pulled out of HomePage and put behind a Suspense boundary (LAUNCH_CHECKLIST
+ * P2.2). Before this the whole document waited on Neon: the measured 3.9s TTFB
+ * on the front door was the browser being shown nothing, and because the free
+ * tier suspends after five idle minutes, the first visitor after a quiet spell
+ * paid for the wake-up before she saw a single word. `app/loading.tsx` softened
+ * that by streaming a loading screen, but it replaced the entire page.
+ *
+ * Now the hero, the story, the proof frames and the footer are static content
+ * and paint straight away, and only this strip is held back.
+ */
+async function RailSection() {
   const [all, categories] = await Promise.all([getRentals(), getRentalCategories()]);
   // Categories with nothing photographed yet stand in on the rail, so all eight
   // silhouettes are reachable from the front door even while the catalogue is
   // three pieces deep. See PendingCard for why these are not invented products.
   const pending = categories.filter((c) => c.count === 0);
+  return <RentalRail items={all.slice(0, 8)} total={all.length} pending={pending} />;
+}
 
+export default async function HomePage() {
   return (
     <>
       <Preloader nonce={(await headers()).get("x-nonce") ?? undefined} />
@@ -243,7 +261,9 @@ export default async function HomePage() {
       {/* ---------- The rail ------------------------------------------------
           Real stock, immediately under the headline that promises it. See
           RentalRail's own header for why this is a rail and not a grid. */}
-      <RentalRail items={all.slice(0, 8)} total={all.length} pending={pending} />
+      <Suspense fallback={<RentalRailSkeleton />}>
+        <RailSection />
+      </Suspense>
 
       {/* ---------- Story: who runs the shop --------------------------------
           On the dark ground, the alternate of the two the site runs on. The

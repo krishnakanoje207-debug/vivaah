@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import { describedBy, useFocusFirstError } from "@/components/admin/formA11y";
 import { rentable, slugify } from "./helpers";
 import { VariantsEditor } from "./VariantsEditor";
 import {
@@ -22,10 +23,29 @@ const fieldClass =
 const labelClass = "block text-caption font-medium text-ink-600 mb-1.5";
 const sectionClass = "rounded-card border border-ink-900/10 bg-white p-5 shadow-card md:p-6";
 
-function FieldError({ msg }: { msg?: string }) {
+// The order the form reads on screen (P2.5): the focus hook goes to the first
+// error in THIS order, not whichever the server checked first. `type` and
+// `spin` are group errors and their fieldsets carry those ids.
+const FIELD_ORDER = [
+  "name",
+  "slug",
+  "type",
+  "category_id",
+  "description_en",
+  "description_hi",
+  "rental_price",
+  "prebook_charge",
+  "extension_rate",
+  "price",
+  "spin",
+] as const;
+
+// `id` so the field itself can name this through aria-describedby; without it
+// the message is announced once and the input still reads as valid (P2.5).
+function FieldError({ id, msg }: { id?: string; msg?: string }) {
   if (!msg) return null;
   return (
-    <p role="alert" className="mt-1 text-caption text-danger">
+    <p id={id} role="alert" className="mt-1 text-caption text-danger">
       {msg}
     </p>
   );
@@ -42,6 +62,7 @@ export function ProductForm({
 }) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(action, {});
   const errors = state.errors ?? {};
+  useFocusFirstError(state.errors, FIELD_ORDER, pending);
 
   const [type, setType] = useState<Section>(initial.type);
   const [name, setName] = useState(initial.name);
@@ -112,10 +133,12 @@ export function ProductForm({
               name="name"
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
+              aria-invalid={!!errors.name}
+              aria-describedby={describedBy("name", false, !!errors.name)}
               className={fieldClass}
               required
             />
-            <FieldError msg={errors.name} />
+            <FieldError id="name-error" msg={errors.name} />
           </div>
 
           <div>
@@ -130,13 +153,24 @@ export function ProductForm({
                 setSlug(e.target.value);
                 setSlugEdited(true);
               }}
+              aria-invalid={!!errors.slug}
+              aria-describedby={describedBy("slug", false, !!errors.slug)}
               className={`${fieldClass} tabular`}
             />
-            <FieldError msg={errors.slug} />
+            <FieldError id="slug-error" msg={errors.slug} />
           </div>
 
-          <div>
-            <span className={labelClass}>Type</span>
+          {/* A radio set, so the error belongs to the group. tabIndex -1 makes
+              the fieldset focusable by script without adding it to the tab
+              order, so the focus hook can land on it and a screen reader reads
+              the legend with the message (P2.5). */}
+          <fieldset
+            id="type"
+            tabIndex={-1}
+            aria-invalid={!!errors.type}
+            aria-describedby={describedBy("type", false, !!errors.type)}
+          >
+            <legend className={labelClass}>Type</legend>
             <div className="flex gap-2">
               {(["rental", "retail", "jewellery"] as const).map((t) => (
                 <label
@@ -159,8 +193,8 @@ export function ProductForm({
                 </label>
               ))}
             </div>
-            <FieldError msg={errors.type} />
-          </div>
+            <FieldError id="type-error" msg={errors.type} />
+          </fieldset>
 
           <div>
             <label htmlFor="category_id" className={labelClass}>
@@ -171,6 +205,8 @@ export function ProductForm({
               name="category_id"
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
+              aria-invalid={!!errors.category_id}
+              aria-describedby={describedBy("category_id", false, !!errors.category_id)}
               className={fieldClass}
             >
               <option value="">Choose a category…</option>
@@ -180,7 +216,7 @@ export function ProductForm({
                 </option>
               ))}
             </select>
-            <FieldError msg={errors.category_id} />
+            <FieldError id="category_id-error" msg={errors.category_id} />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -194,6 +230,8 @@ export function ProductForm({
                 value={descEn}
                 onChange={(e) => setDescEn(e.target.value)}
                 rows={4}
+                aria-invalid={!!errors.description_en}
+                aria-describedby={describedBy("description_en", false, !!errors.description_en)}
                 className={fieldClass}
               />
             </div>
@@ -207,6 +245,8 @@ export function ProductForm({
                 value={descHi}
                 onChange={(e) => setDescHi(e.target.value)}
                 rows={4}
+                aria-invalid={!!errors.description_hi}
+                aria-describedby={describedBy("description_hi", false, !!errors.description_hi)}
                 className={fieldClass}
               />
             </div>
@@ -275,9 +315,11 @@ export function ProductForm({
                 type="number"
                 min={0}
                 defaultValue={initial.rental_price ?? ""}
+                aria-invalid={!!errors.rental_price}
+                aria-describedby={describedBy("rental_price", false, !!errors.rental_price)}
                 className={`${fieldClass} tabular`}
               />
-              <FieldError msg={errors.rental_price} />
+              <FieldError id="rental_price-error" msg={errors.rental_price} />
             </div>
             <div>
               <label htmlFor="prebook_charge" className={labelClass}>
@@ -289,9 +331,11 @@ export function ProductForm({
                 type="number"
                 min={0}
                 defaultValue={initial.prebook_charge ?? ""}
+                aria-invalid={!!errors.prebook_charge}
+                aria-describedby={describedBy("prebook_charge", false, !!errors.prebook_charge)}
                 className={`${fieldClass} tabular`}
               />
-              <FieldError msg={errors.prebook_charge} />
+              <FieldError id="prebook_charge-error" msg={errors.prebook_charge} />
             </div>
             <div>
               <label htmlFor="extension_rate" className={labelClass}>
@@ -303,9 +347,11 @@ export function ProductForm({
                 type="number"
                 min={0}
                 defaultValue={initial.extension_rate ?? ""}
+                aria-invalid={!!errors.extension_rate}
+                aria-describedby={describedBy("extension_rate", false, !!errors.extension_rate)}
                 className={`${fieldClass} tabular`}
               />
-              <FieldError msg={errors.extension_rate} />
+              <FieldError id="extension_rate-error" msg={errors.extension_rate} />
             </div>
           </div>
         ) : (
@@ -319,9 +365,11 @@ export function ProductForm({
               type="number"
               min={0}
               defaultValue={initial.price ?? ""}
+              aria-invalid={!!errors.price}
+              aria-describedby={describedBy("price", false, !!errors.price)}
               className={`${fieldClass} tabular`}
             />
-            <FieldError msg={errors.price} />
+            <FieldError id="price-error" msg={errors.price} />
           </div>
         )}
       </div>
@@ -421,7 +469,15 @@ export function ProductForm({
           360° view
         </label>
         {spinOn && (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          /* `errors.spin` is about the three fields below taken together, so
+              the group carries it. Focusable by script only, as with `type`. */
+          <div
+            id="spin"
+            tabIndex={-1}
+            aria-invalid={!!errors.spin}
+            aria-describedby={describedBy("spin", false, !!errors.spin)}
+            className="mt-4 grid gap-4 sm:grid-cols-2"
+          >
             <div className="sm:col-span-2">
               <label htmlFor="spin_base" className={labelClass}>
                 Frames base path
@@ -472,7 +528,7 @@ export function ProductForm({
             </label>
           </div>
         )}
-        <FieldError msg={errors.spin} />
+        <FieldError id="spin-error" msg={errors.spin} />
       </div>
 
       {/* Variants */}
