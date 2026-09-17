@@ -178,6 +178,59 @@ re-wrap cannot move the page under it. Note while doing this that the italic fac
 "one editorial accent per section" convention, which is worth a deliberate
 decision rather than an inheritance.
 
+**FIXED, 17 September 2026, and the cause was not what this section assumed.**
+The section above reads as though nobody had asked for a preload. In fact
+`next/font` had asked: it marks every preloadable subset with a `.p.` in the
+filename, and `75a7cfd2a925650a-s.p.woff2` is one of them. It then looks the
+route up in `.next/server/next-font-manifest.json` at render to decide what to
+emit, and **on this project that manifest is empty in production**. The
+Turbopack dev build fills it with twelve routes and `appUsingSizeAdjust: true`;
+`next build --webpack` leaves `app: {}` and `appUsingSizeAdjust: false`. So no
+route has ever shipped a single `<link rel="preload" as="font">`, on any page,
+since the build moved to `--webpack`.
+
+That ties this item to a decision recorded elsewhere in `CLAUDE.md` for an
+unrelated reason: the build is on `--webpack` because Turbopack output breaks
+OpenNext at runtime. The flag was adopted to keep the Worker alive and it has
+been quietly costing every font preload on the site. It is worth re-testing
+whichever way when `opennextjs-cloudflare` ships Turbopack support.
+
+The fix is `site/lib/fontPreload.ts` plus a `ReactDOM.preload` per file in the
+root layout, covering the two Bodoni latin faces: the h1 sets one word in
+italic, so the roman and the italic share a line and either arriving late
+re-wraps it. The other eight `.p.` files are deliberately left alone —
+Instrument Sans falls back to Arial at size-adjust 102.74% and was not among
+Lighthouse's culprits, and the Devanagari faces are dormant until Phase 4.
+
+Measured, 412x915 at 4x CPU and a 1.6Mbps/150ms link, the same probe against
+both:
+
+| | Bodoni discovered | finished | vs first paint | CLS |
+|---|---|---|---|---|
+| deployed, no preload | 1735 to 2025 ms | 3639 to 3881 ms | after | **0.1306**, attributed to `.hero-copy` |
+| local build, preload | **224 to 402 ms** | 1236 to 1511 ms | **before** | **0, 0, 0** |
+
+Discovery moves about 1.5 s earlier, which puts both faces in place before
+first paint, so there is no re-wrap left to shift anything. The reserved
+`.hero-copy` height this section holds in reserve was not needed and was not
+built.
+
+Two honest caveats. The "after" column is a local `next start`, not the Worker,
+so the origin differs and only the deployed number is like-for-like with the
+rest of this document; the causal chain (discovery time, and finishing before
+rather than after paint) is what is being claimed, not the absolute timings.
+And preloading ~100KB does put it on the critical path, where item 2.4 warns
+about contention with the LCP image — worth confirming with a Lighthouse run
+once this is deployed.
+
+Because the URLs are content hashes written by hand, a font change would 404
+them silently and the CLS would come back with nothing looking broken.
+`site/scripts/verify-font-preload.mjs` is the guard: it asserts each file is in
+the build, is still referenced by the built CSS, and that the manifest is still
+empty, so if a future Next or adapter starts preloading on its own the
+hand-written links are reported as redundant rather than left to duplicate. It
+needs `.next`, nothing else, and passes 8/8.
+
 **Risk to the design.** None for the preload. Reserving the hero copy's height is
 a layout constraint that has to be checked at 390, 768, 1440 and 2560, but it
 changes nothing a visitor sees when it is right.

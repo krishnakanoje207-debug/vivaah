@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import ReactDOM from "react-dom";
 import { Bodoni_Moda, Instrument_Sans, Noto_Serif_Devanagari, Mukta } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { SiteChrome } from "@/components/site/SiteChrome";
 import { SHOP, SITE_URL } from "@/lib/site";
+import { PRELOADED_FONTS } from "@/lib/fontPreload";
 
 // Display Didone — Bodoni Moda (DESIGN_SPEC_V3 §1). Variable instance: no pinned
 // weight (wght 400–900 stays live, floor 400) and the full opsz 6–96 axis, which
@@ -85,6 +87,21 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Asked for by hand because `next/font` cannot ask for them here: the
+  // --webpack build leaves next-font-manifest empty, so nothing is ever
+  // preloaded automatically. See lib/fontPreload.ts for the whole story.
+  //
+  // ReactDOM.preload rather than a <link> in the tree: React hoists a rendered
+  // link into <head> and then also records its own float for the same href, so
+  // the markup carried each font twice. Browsers dedupe by URL and it fetched
+  // nothing extra, but this is the API that means it once. `crossOrigin` is
+  // required even though the files are same-origin, because a font is always
+  // fetched in CORS mode and a preload that disagrees is discarded and fetched
+  // again.
+  for (const href of PRELOADED_FONTS) {
+    ReactDOM.preload(href, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
+  }
+
   return (
     // Preloader's inline script sets data-preloader on <html> before hydration,
     // on purpose, so React must not treat that attribute as a mismatch.
