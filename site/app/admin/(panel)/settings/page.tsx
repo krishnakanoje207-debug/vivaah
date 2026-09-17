@@ -4,6 +4,7 @@ import {
   BookingRulesForm,
   ShopForm,
   ChargesForm,
+  SessionsForm,
 } from "./SettingsForms";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +68,7 @@ export default async function AdminSettingsPage() {
           }}
         />
         <ChargesForm initial={{ en: str(charges.en), hi: str(charges.hi) }} />
+        <SessionsForm />
       </div>
     </div>
   );

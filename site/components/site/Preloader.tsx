@@ -58,7 +58,15 @@ const SKIP_SCRIPT = `(function(){try{
   if(a&&a.startTime!=null)d.style.setProperty("--vv-mark-at",-Math.round(document.timeline.currentTime-a.startTime)+"ms");
 }catch(e){}})();`;
 
-export function Preloader() {
+/**
+ * `nonce` authorises the inline script below under the Content Security Policy
+ * (SECURITY_HARDENING_SPEC S3). It is the one inline script this site writes;
+ * Next stamps its own by reading the policy itself. Without it the script is
+ * silently refused and repeat visitors sit through the preloader every time,
+ * with nothing in the page looking broken — which is why verify-csp.mjs checks
+ * the rendered tag actually carries one.
+ */
+export function Preloader({ nonce }: { nonce?: string }) {
   const [gone, setGone] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<HTMLDivElement>(null);
@@ -167,7 +175,7 @@ export function Preloader() {
 
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: SKIP_SCRIPT }} />
+      <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SKIP_SCRIPT }} />
       <div
         ref={rootRef}
         aria-hidden="true"

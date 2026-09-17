@@ -1,8 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { revokeAllSessions } from "@/lib/adminSessions";
+import { SESSION_COOKIE } from "@/lib/adminAuth";
 import { isTime, type PickupHours } from "@/lib/bookingRules";
 
 export type SettingsState = {
@@ -134,4 +138,27 @@ export async function saveCharges(_prev: SettingsState, form: FormData): Promise
   `;
   revalidatePath("/admin/settings");
   return { ok: true };
+}
+
+// --- Sessions ----------------------------------------------------------------
+
+/**
+ * End every admin session, including this one (SECURITY_HARDENING_SPEC S2).
+ *
+ * The session token carries an issued-at and is refused once that is older than
+ * the stored floor, so moving the floor to now invalidates every token that has
+ * ever been handed out. This is the answer to a browser left logged in at the
+ * shop, a borrowed phone, or a cookie copied off a machine — none of which the
+ * ordinary "Log out" can reach, because that only clears the cookie in front of
+ * it.
+ *
+ * It deliberately signs the caller out too. Anything else would need a session
+ * identity to exclude, and this system has one admin and no session identities;
+ * being asked to log in again is also the honest confirmation that it worked.
+ */
+export async function signOutEverywhere(): Promise<void> {
+  await requireAdmin();
+  await revokeAllSessions();
+  (await cookies()).delete(SESSION_COOKIE);
+  redirect("/admin/login?revoked=1");
 }

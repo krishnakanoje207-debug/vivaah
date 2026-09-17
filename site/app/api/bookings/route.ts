@@ -3,6 +3,7 @@ import { createBooking } from "@/lib/booking";
 import { notify } from "@/lib/comms";
 import { RANGE_MESSAGES } from "@/lib/bookingRules";
 import { clientIp, verifyTurnstile } from "@/lib/turnstile";
+import { rateLimit } from "@/lib/rateLimit";
 
 /**
  * Create a booking request (specs/BOOKING_ENGINE_SPEC_V2.md §2.1). No payment:
@@ -22,7 +23,19 @@ export async function POST(req: Request) {
     return Response.json({ error: "invalid", message: "Something went wrong sending the form." }, { status: 400 });
   }
 
-  if (!(await verifyTurnstile(body.turnstile, clientIp(req)))) {
+  // Per IP, alongside the per-phone limit inside createBooking: that one stops
+  // one customer flooding the shop with requests, this one stops one machine
+  // holding dates across many invented phone numbers (SECURITY_HARDENING_SPEC S1).
+  const ip = clientIp(req);
+  const limit = await rateLimit(`booking:${ip ?? "unknown"}`, 10, 60 * 60 * 1000);
+  if (!limit.ok) {
+    return Response.json(
+      { error: "rate_limited", message: "A lot of requests have come from this connection. Please wait a little, or call the shop." },
+      { status: 429 },
+    );
+  }
+
+  if (!(await verifyTurnstile(body.turnstile, ip))) {
     return Response.json(
       { error: "challenge", message: "We could not check that this came from a person. Please try again." },
       { status: 403 },

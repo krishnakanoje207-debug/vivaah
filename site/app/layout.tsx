@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ReactDOM from "react-dom";
+import { headers } from "next/headers";
 import { Bodoni_Moda, Instrument_Sans, Noto_Serif_Devanagari, Mukta } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/site/Nav";
@@ -84,9 +85,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // The per-request nonce proxy.ts minted. Next stamps its own scripts by
+  // reading the CSP header itself; this is for the one inline script the site
+  // writes, in the preloader. Reading headers() is also what opts every route
+  // into dynamic rendering, which a nonce requires and which the route table
+  // said costs three static pages (SECURITY_HARDENING_SPEC S3).
+  // Read, not used here: the only inline script the site writes is the
+  // preloader's, and that is rendered by app/page.tsx, which takes the nonce
+  // itself. The read still has to happen in the ROOT layout, because that is
+  // what opts every route into the dynamic rendering a nonce requires; doing it
+  // only on the page would leave /policies and /visit prerendered with unnonced
+  // Next scripts that the policy would then block.
+  void (await headers()).get("x-nonce");
   // Asked for by hand because `next/font` cannot ask for them here: the
   // --webpack build leaves next-font-manifest empty, so nothing is ever
   // preloaded automatically. See lib/fontPreload.ts for the whole story.

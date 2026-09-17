@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Preloader } from "@/components/site/Preloader";
 import { SectionEdge } from "@/components/site/SectionEdge";
 import { RippleHeading } from "@/components/site/RippleHeading";
@@ -153,7 +154,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Preloader />
+      <Preloader nonce={(await headers()).get("x-nonce") ?? undefined} />
 
       {/* ---------- Hero: the panel and the garden --------------------------
           A split: the type sits on a violet panel down the left, the photograph

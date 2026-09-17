@@ -6,6 +6,7 @@ import {
   saveBookingRules,
   saveShop,
   saveCharges,
+  signOutEverywhere,
   type SettingsState,
 } from "./actions";
 
@@ -292,6 +293,36 @@ export function ChargesForm({ initial }: { initial: Charges }) {
         <div className="flex items-center gap-4">
           <SaveButton pending={pending} />
           <Feedback state={state} />
+        </div>
+      </form>
+    </Section>
+  );
+}
+
+/**
+ * Sessions. Not a saved setting, so it is a plain form rather than a
+ * useActionState one: the action ends the session that submitted it and
+ * redirects to the login page, so there is no state to come back to.
+ */
+export function SessionsForm() {
+  return (
+    <Section
+      title="Sessions"
+      caption="Signed in somewhere you should not be? This ends every session, on every device."
+    >
+      <form action={signOutEverywhere} className="flex flex-col gap-4">
+        <p className="text-body text-ink-600">
+          Logging out only signs you out of the browser you are using. If you have left yourself
+          signed in on a shop computer or someone else&apos;s phone, this is what closes it. You
+          will be asked to sign in again here too.
+        </p>
+        <div>
+          <button
+            type="submit"
+            className="press inline-flex min-h-[2.75rem] items-center justify-center rounded-control border border-danger/40 px-5 text-[0.9375rem] font-semibold text-danger transition-colors duration-[180ms] hover:bg-danger hover:text-porcelain-50"
+          >
+            Sign out of every device
+          </button>
         </div>
       </form>
     </Section>

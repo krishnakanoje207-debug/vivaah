@@ -69,7 +69,19 @@ export async function verifyCredentials(user: string, password: string): Promise
   return userOk && passOk;
 }
 
-// --- session token: <expEpochSeconds>.<base64url HMAC-SHA256(secret, exp)> ---
+// --- session token ----------------------------------------------------------
+// <expEpochSeconds>.<iatEpochSeconds>.<base64url HMAC-SHA256(secret, "exp.iat")>
+//
+// The issued-at is what makes revocation possible (SECURITY_HARDENING_SPEC S2).
+// Before it the token carried only an expiry, so every session minted in the
+// same second was byte-identical and none of them could be told apart, let
+// alone stopped. `lib/adminSessions.ts` holds the floor that `iat` is compared
+// against; this module stays free of the database and of `next/headers` so
+// middleware can keep importing it.
+//
+// Two-part tokens from before this change no longer parse and are refused. That
+// is deliberate: the point of the change is to be able to invalidate sessions,
+// so the ones issued while that was impossible do not get grandfathered in.
 async function hmac(secret: string, message: string): Promise<Uint8Array> {
   const key = await crypto.subtle.importKey(
     "raw",
@@ -82,25 +94,43 @@ async function hmac(secret: string, message: string): Promise<Uint8Array> {
   return new Uint8Array(sig);
 }
 
+export type SessionClaims = { exp: number; iat: number };
+
 export async function createSession(): Promise<string> {
   const secret = process.env.SESSION_SECRET;
   if (!secret) throw new Error("SESSION_SECRET is not set.");
-  const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-  const sig = await hmac(secret, String(exp));
-  return `${exp}.${bytesToB64url(sig)}`;
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + SESSION_TTL_SECONDS;
+  const sig = await hmac(secret, `${exp}.${iat}`);
+  return `${exp}.${iat}.${bytesToB64url(sig)}`;
 }
 
-export async function verifySession(token: string | undefined | null): Promise<boolean> {
-  if (!token) return false;
-  const dot = token.indexOf(".");
-  if (dot <= 0) return false;
-  const expStr = token.slice(0, dot);
-  const exp = Number.parseInt(expStr, 10);
-  if (!Number.isInteger(exp) || exp * 1000 <= Date.now()) return false;
+/**
+ * Verify signature and expiry, and hand back the claims.
+ *
+ * This is everything that can be decided without the database. Whether the
+ * session has been revoked is a separate question, asked by `requireAdmin()`
+ * and the admin layout through `lib/adminSessions.ts`, because answering it
+ * needs a query and this module is imported by middleware.
+ */
+export async function readSession(token: string | undefined | null): Promise<SessionClaims | null> {
+  if (!token) return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null; // including every pre-revocation token
+  const exp = Number.parseInt(parts[0], 10);
+  const iat = Number.parseInt(parts[1], 10);
+  if (!Number.isInteger(exp) || !Number.isInteger(iat)) return null;
+  if (exp * 1000 <= Date.now()) return null;
   const secret = process.env.SESSION_SECRET;
-  if (!secret) return false;
-  const expected = await hmac(secret, expStr);
-  return timingSafeEqual(expected, b64urlToBytes(token.slice(dot + 1)));
+  if (!secret) return null;
+  const expected = await hmac(secret, `${parts[0]}.${parts[1]}`);
+  if (!timingSafeEqual(expected, b64urlToBytes(parts[2]))) return null;
+  return { exp, iat };
+}
+
+/** Signature and expiry only. Middleware's check; not authoritative on its own. */
+export async function verifySession(token: string | undefined | null): Promise<boolean> {
+  return (await readSession(token)) !== null;
 }
 
 export function sessionCookieOptions() {
