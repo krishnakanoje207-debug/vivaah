@@ -1,0 +1,5 @@
+# core.autocrlf is on for this machine, which would hand Workers Assets a CRLF
+# _headers file on the next fresh checkout. The rules were only ever verified
+# against an LF one and a parse failure here is silent — the headers simply
+# stop applying — so this file is pinned.
+site/public/_headers text eol=lf
