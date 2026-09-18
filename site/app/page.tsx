@@ -109,6 +109,19 @@ const HERO_JOIN =
 export const dynamic = "force-dynamic";
 
 /** The garden photograph with its tint, scrims and join, as one stack. */
+/** The hero's own ladder, written by `tools/make_image_variants.py`. It is not
+ *  the card ladder: this photograph is full-bleed and is the LCP element, so a
+ *  480px copy is the phone's floor rather than its ceiling. At 1247x696 the
+ *  original was going whole to a 412px phone, 124 KB of the front door's 1.1 MB.
+ *  The widths are the picture's own, so the 1247 stays the top candidate. */
+const HERO_SRCSET =
+  "/hero/hero-garden-480.webp 480w, /hero/hero-garden-640.webp 640w, " +
+  "/hero/hero-garden-800.webp 800w, /hero/hero-garden-1024.webp 1024w, " +
+  "/hero/hero-garden.webp 1247w";
+/** Below sm the photograph fills the panel the type lies over; from sm it owns
+ *  the 56% column of the hero grid above. */
+const HERO_SIZES = "(min-width: 640px) 56vw, 100vw";
+
 function HeroPlate({ priority = false }: { priority?: boolean }) {
   return (
     <>
@@ -118,6 +131,8 @@ function HeroPlate({ priority = false }: { priority?: boolean }) {
           the page, none of which is above the fold. */}
       <img
         src="/hero/hero-garden.webp"
+        srcSet={HERO_SRCSET}
+        sizes={HERO_SIZES}
         alt=""
         aria-hidden="true"
         width={1247}

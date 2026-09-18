@@ -25,6 +25,14 @@ DIRS = [ROOT / "site" / "public" / "categories", ROOT / "site" / "public" / "jew
 WIDTHS = (160, 320, 480)
 QUALITY = 78
 
+# The card photographs above are drawn into boxes 160-480px wide, so that ladder
+# is the whole range they need. The hero is a different picture in every sense:
+# it is full-bleed, it is the LCP element, and at 1247x696 it was being sent
+# whole to a 412px phone -- 124 KB, the second heaviest thing on the front door.
+# It gets its own ladder because a 480px copy is useless to it and a 1024px copy
+# is useless to a category tile.
+WIDE = [(ROOT / "site" / "public" / "hero" / "hero-garden.webp", (480, 640, 800, 1024))]
+
 force = "--force" in sys.argv
 
 
@@ -51,5 +59,18 @@ for d in DIRS:
                 )
                 print(f"{out.relative_to(ROOT)}  {w}x{h}  {out.stat().st_size // 1024} KB")
                 written += 1
+
+for src, widths in WIDE:
+    with Image.open(src) as im:
+        for w in widths:
+            if w >= im.width:
+                continue
+            out = src.with_name(f"{src.stem}-{w}.webp")
+            if out.exists() and not force:
+                continue
+            h = round(im.height * w / im.width)
+            im.resize((w, h), Image.LANCZOS).save(out, "WEBP", quality=QUALITY, method=6)
+            print(f"{out.relative_to(ROOT)}  {w}x{h}  {out.stat().st_size // 1024} KB")
+            written += 1
 
 print(f"{written} variant(s) written")

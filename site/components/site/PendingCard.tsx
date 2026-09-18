@@ -1,6 +1,19 @@
 import Link from "next/link";
 import type { Category } from "@/lib/categories";
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one.
+ *  Without this the five pending cards were 459 KB of the home page's 1.1 MB,
+ *  every one of them a 660x880 picture drawn into a 247px box. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
+/** The same run of widths `RentalCard` is laid out at, because these two sit in
+ *  one rail and are deliberately the same box. */
+const CARD_SIZES = "(min-width: 1024px) 24vw, (min-width: 640px) 38vw, 60vw";
+
 /**
  * A category with nothing photographed yet.
  *
@@ -36,8 +49,14 @@ export function PendingCard({ category }: { category: Category }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={category.image}
+            srcSet={photoSrcSet(category.image)}
+            sizes={CARD_SIZES}
             alt=""
             aria-hidden="true"
+            width={660}
+            height={880}
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-400 ease-out-strong group-hover:scale-[1.03]"
           />
         ) : null}
