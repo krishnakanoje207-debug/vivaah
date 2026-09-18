@@ -195,8 +195,8 @@ OpenNext at runtime. The flag was adopted to keep the Worker alive and it has
 been quietly costing every font preload on the site. It is worth re-testing
 whichever way when `opennextjs-cloudflare` ships Turbopack support.
 
-The fix is `site/lib/fontPreload.ts` plus a `ReactDOM.preload` per file in the
-root layout, covering the two Bodoni latin faces: the h1 sets one word in
+The fix is `site/lib/fontPreload.ts` plus a rendered `<link rel="preload">` per
+file in the root layout, covering the two Bodoni latin faces: the h1 sets one word in
 italic, so the roman and the italic share a line and either arriving late
 re-wraps it. The other eight `.p.` files are deliberately left alone —
 Instrument Sans falls back to Arial at size-adjust 102.74% and was not among
@@ -209,6 +209,32 @@ both:
 |---|---|---|---|---|
 | deployed, no preload | 1735 to 2025 ms | 3639 to 3881 ms | after | **0.1306**, attributed to `.hero-copy` |
 | local build, preload | **224 to 402 ms** | 1236 to 1511 ms | **before** | **0, 0, 0** |
+
+**Correction, 18 September 2026, found while verifying the deploy.** For a day
+this fix shipped as `ReactDOM.preload` and did nothing. In a production build
+that call emits only a Flight hint — `:HL["/_next/static/media/...woff2","font",
+...]` — inlined into the BODY, at byte ~84,000 of `/`, and acted on by the
+client runtime only once the React chunks have loaded and run. That is later
+than the stylesheet, which is the discovery this item exists to beat. Not one
+route on the deployed Worker served a `<link rel="preload" as="font">`, and the
+same bundle under `wrangler dev` returned a byte-identical document, as did
+`next dev`, so it was the API and not Cloudflare, not the adapter and not the
+Suspense boundary on `/`.
+
+The table above was measured, and the reading that fits every fact is that it
+was measured on a version that rendered the `<link>` — the layout's own comment
+records seeing each font twice in the markup, which only a rendered link can
+do — and that the tidy-up to `ReactDOM.preload`, made to stop the duplication,
+came after the numbers and was never re-measured. The duplicate tag is the cost
+of the mechanism working. Browsers dedupe by URL and fetch once.
+
+The gate could not see any of this, and that is the more useful lesson: it read
+`.next` and proved the FILES were right while the PAGE asked for nothing.
+`scripts/verify-font-preload.mjs` now also fetches the served document and
+asserts the link is inside `<head>`, on one route with a Suspense boundary and
+one without. It needs a running site now, and it fails 8/12 against the
+`ReactDOM.preload` version — checked, rather than assumed, by putting that
+version back.
 
 Discovery moves about 1.5 s earlier, which puts both faces in place before
 first paint, so there is no re-wrap left to shift anything. The reserved

@@ -1,10 +1,16 @@
 /**
  * Font preload gate.
  *
- *   cd site && node scripts/verify-font-preload.mjs
+ *   cd site && node scripts/verify-font-preload.mjs          # needs the dev server
+ *   BASE=https://vivaah.vivaah.workers.dev node scripts/verify-font-preload.mjs
  *
- * Run it after a build. It needs `.next` from `npm run build`, nothing else:
- * no dev server, no database, no browser.
+ * It needs `.next` from `npm run build` AND a running site. The server half was
+ * added on 18 Sep because the build half alone could not see the bug it was
+ * written to prevent: the mechanism had been changed to `ReactDOM.preload`,
+ * which in a production build emits only a Flight hint into the body and no
+ * `<link>` at all, and this gate went on passing 8/8 while not one deployed
+ * route asked for a font early. Checking `.next` proves the FILES are right.
+ * Only the served document proves the PAGE asks for them.
  *
  * What it is guarding. `lib/fontPreload.ts` names two font files by their
  * content hash, because `next build --webpack` leaves next-font-manifest empty
@@ -80,6 +86,35 @@ if (existsSync(manifestPath)) {
   );
 } else {
   check(false, "next-font-manifest.json is present in the build");
+}
+
+// 4. The served document. Everything above is about the build; this is about
+//    what a browser is actually handed. The link has to be inside <head> — a
+//    preload discovered halfway down the body has already lost the race with
+//    the stylesheet, which is the whole point of the file.
+const BASE = process.env.BASE ?? "http://localhost:3000";
+// One route with a Suspense boundary and one without: when this broke, it broke
+// on both, and that is what proved it was the API and not the boundary.
+for (const route of ["/", "/policies"]) {
+  let head;
+  try {
+    const res = await fetch(`${BASE}${route}`);
+    const html = await res.text();
+    const end = html.indexOf("</head>");
+    head = end === -1 ? "" : html.slice(0, end);
+  } catch (e) {
+    check(false, `${route} responds (is the dev server up?)`, String(e).slice(0, 140));
+    continue;
+  }
+  for (const url of declared) {
+    const base = path.basename(url);
+    const inHead = head.includes(url) && /<link[^>]*as="font"/.test(head);
+    check(
+      inHead,
+      `${route} serves <link rel="preload" as="font"> for ${base} inside <head>`,
+      inHead ? "" : "not in the served <head>. A Flight hint in the body is not a preload: see the comment in app/layout.tsx.",
+    );
+  }
 }
 
 const passed = results.filter((r) => r.ok).length;

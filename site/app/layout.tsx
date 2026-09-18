@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import ReactDOM from "react-dom";
 import { headers } from "next/headers";
 import { Bodoni_Moda, Instrument_Sans, Noto_Serif_Devanagari, Mukta } from "next/font/google";
 import "./globals.css";
@@ -104,16 +103,26 @@ export default async function RootLayout({
   // --webpack build leaves next-font-manifest empty, so nothing is ever
   // preloaded automatically. See lib/fontPreload.ts for the whole story.
   //
-  // ReactDOM.preload rather than a <link> in the tree: React hoists a rendered
-  // link into <head> and then also records its own float for the same href, so
-  // the markup carried each font twice. Browsers dedupe by URL and it fetched
-  // nothing extra, but this is the API that means it once. `crossOrigin` is
-  // required even though the files are same-origin, because a font is always
-  // fetched in CORS mode and a preload that disagrees is discarded and fetched
-  // again.
-  for (const href of PRELOADED_FONTS) {
-    ReactDOM.preload(href, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
-  }
+  // A rendered <link>, NOT ReactDOM.preload. This was the other way round until
+  // 18 Sep, on the reasoning that a rendered link was hoisted into <head> AND
+  // recorded as a float for the same href, so the markup carried each font
+  // twice, and ReactDOM.preload is the API that means it once. It means it once
+  // and it says it nowhere: in a production build the call emits only a Flight
+  // hint, `:HL["/_next/static/media/...woff2","font",...]`, which is inlined
+  // into the BODY (byte ~84,000 of `/`) and acted on by the client runtime only
+  // after the React chunks have loaded and run. That is later than the
+  // stylesheet, which is the discovery this file exists to beat. Checked on the
+  // deployed Worker, on the same bundle under `wrangler dev` (byte-identical
+  // documents) and on `next dev`: not one route served a single
+  // `<link rel="preload" as="font">`. The duplicate tag is the cost of the
+  // mechanism working; browsers dedupe by URL and fetch once.
+  //
+  // `crossOrigin` is required even though the files are same-origin, because a
+  // font is always fetched in CORS mode and a preload that disagrees is
+  // discarded and fetched again.
+  const fontPreloads = PRELOADED_FONTS.map((href) => (
+    <link key={href} rel="preload" href={href} as="font" type="font/woff2" crossOrigin="anonymous" />
+  ));
 
   return (
     // Preloader's inline script sets data-preloader on <html> before hydration,
@@ -124,6 +133,8 @@ export default async function RootLayout({
       className={`${bodoni.variable} ${instrument.variable} ${notoDeva.variable} ${mukta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-porcelain-50 text-ink-900">
+        {/* Hoisted into <head> by React, wherever they are rendered. */}
+        {fontPreloads}
         {/* SiteChrome hides Nav/Footer on /admin (admin has its own chrome). */}
         <SiteChrome nav={<Nav />} footer={<Footer />}>
           {children}
