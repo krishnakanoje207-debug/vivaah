@@ -1,0 +1,41 @@
+# Cache lifetimes for the files Workers Assets serves without waking the Worker.
+# Responses the Worker itself renders are not covered here — their headers come
+# from next.config.ts and middleware.ts.
+#
+# PERF_PLAN 2.6: with no _headers file Workers Assets falls back to
+# `public, max-age=0, must-revalidate`, so every repeat visit revalidates every
+# chunk and every photograph. Cloudflare's edge absorbs the origin cost, which
+# is why this never showed up as a server problem — it showed up on a customer's
+# second visit on mobile data.
+#
+# This file is read by Workers Assets and is never served as an asset itself.
+
+# Build output. The filename carries a content hash, so a changed file is a
+# changed URL: this can never serve a stale one.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Photographs and the spin frames. These are NOT hashed — the path stays the
+# same when we replace the picture — so a year would strand a visitor on last
+# month's garment. A month, with a day of stale-while-revalidate so the swap
+# arrives in the background rather than in front of her.
+/categories/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+/rentals/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+/flagship/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+/jewellery/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+/hero/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+/threshold/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+
+# The social card. Cheap to refetch, and a wrong one is visible in every
+# WhatsApp share, so it gets a day rather than a month.
+/og/*
+  Cache-Control: public, max-age=86400
+
+/favicon.ico
+  Cache-Control: public, max-age=86400

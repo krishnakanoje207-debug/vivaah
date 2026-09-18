@@ -4,7 +4,7 @@
  *   cd site && node scripts/verify-csp.mjs          # needs the dev server
  *   BASE=https://vivaah.vivaah.workers.dev node scripts/verify-csp.mjs
  *
- * This asks the running site rather than reading proxy.ts, because every way
+ * This asks the running site rather than reading middleware.ts, because every way
  * this can break is a runtime one: a matcher that stops covering a route, a
  * second policy from somewhere else being intersected with this one, a nonce
  * that is minted but never reaches the markup.

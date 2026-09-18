@@ -88,7 +88,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // The per-request nonce proxy.ts minted. Next stamps its own scripts by
+  // The per-request nonce middleware.ts minted. Next stamps its own scripts by
   // reading the CSP header itself; this is for the one inline script the site
   // writes, in the preloader. Reading headers() is also what opts every route
   // into dynamic rendering, which a nonce requires and which the route table
