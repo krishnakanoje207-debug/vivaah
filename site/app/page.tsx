@@ -240,7 +240,25 @@ export default async function HomePage() {
               <RippleHeading
                 as="h1"
                 italic="changes"
-                className="mt-5 max-w-[17ch] text-h1 text-porcelain-50"
+                // `em`, not `ch`, and that one token is the whole CLS fix. `ch`
+                // is the width of a "0" in whichever face is LIVE, so this rule
+                // computed a different box before and after Bodoni arrived:
+                // 20.30px per ch under Bodoni (350.5px, three lines) against
+                // 18.34px under the generated fallback (317.4px, four lines).
+                // The block is `items-center` in a 100svh flex box, so one lost
+                // line moved it 17px and scored 0.13 to 0.16. The two faces
+                // actually BREAK within 5px of each other at a fixed width
+                // (350 against 345) — the metric-matched fallback is doing its
+                // job on the glyphs, and `size-adjust` cannot help here because
+                // it scales `ch` and every advance by the same factor, leaving
+                // the wrap invariant. It was the unit that moved, not the font.
+                // 10.7em reproduces today's Bodoni line count at all ten widths
+                // from 360 to 2560 AND gives the same count under the fallback,
+                // Times, Georgia, Noto Serif (what an Android phone actually
+                // substitutes), serif, Cambria, Constantia and Garamond. The box
+                // moves 0.6px at 412. Measured in zz-emfix.mjs / zz-emrobust.mjs
+                // under scrollcraft/builds/vivaah/.
+                className="mt-5 max-w-[10.7em] text-h1 text-porcelain-50"
               >
                 The rail changes every day. Come and see what arrived this week.
               </RippleHeading>

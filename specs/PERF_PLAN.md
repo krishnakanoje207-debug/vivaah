@@ -255,6 +255,42 @@ do — and that the tidy-up to `ReactDOM.preload`, made to stop the duplication,
 came after the numbers and was never re-measured. The duplicate tag is the cost
 of the mechanism working. Browsers dedupe by URL and fetch once.
 
+**Second correction, 18 September 2026: this section blamed the wrong thing
+twice, and the real cause was never a font problem at all.** The hero h1 was
+capped at `max-w-[17ch]`. `ch` is the width of a "0" in whichever face is LIVE,
+so that one rule computed a different box before and after Bodoni arrived —
+20.30px per ch under Bodoni (350.5px, three lines) against 18.34px under the
+generated fallback (317.4px, four lines). `.hero-copy` is `items-center` inside
+a 100svh flex box, so the lost line moved the block 17px, which is the whole
+0.13 to 0.16. Held at a FIXED width the two faces break within 5px of each other
+(350 against 345): the metric-matched fallback was doing its job on the glyphs
+the entire time. `size-adjust` cannot fix it either, because it scales `ch` and
+every glyph advance by the same factor and the wrap is invariant to it.
+
+So the preload never removed the shift — it won a race. Isolated by delaying one
+file per load against the live origin: delay the Bodoni ROMAN and CLS is 0.1299
+every time; delay the italic, or delay Instrument Sans, and it is 0.0000. The
+italic adds nothing, and Instrument Sans is not in the h1 at all, so **the two
+faces this document and `lib/fontPreload.ts` both named as the culprits were
+named because they finished near the shift, not because they moved anything.**
+With no preload at all it shifted 6 times in 6; as deployed, 3 in 12; across ten
+Lighthouse runs on the deployed page, 1 in 10 — which is why one run reports
+0.161 and the next reports 0.
+
+The fix is `max-w-[10.7em]` (`em` resolves against font-size, which does not
+change when the face swaps). It reproduces today's Bodoni line count at all ten
+widths from 360 to 2560 and gives the same count under the fallback, Times,
+Georgia, Noto Serif — what an Android phone actually substitutes — serif,
+Cambria, Constantia and Garamond. The box moves 0.6px at 412. Verified
+independently at those ten widths with the font requests aborted: identical line
+counts, and `max-width` now resolving to 349.89px either way.
+
+**And the table at the top of this document is wrong about desktop.** It records
+CLS 0.004 on `/` desktop, and this section reasoned that the line does not
+re-wrap at that width. It does: at 1920 the same mismatch is there, 3 lines
+under Bodoni against 4 under the fallback. Desktop simply wins the race more
+often.
+
 The gate could not see any of this, and that is the more useful lesson: it read
 `.next` and proved the FILES were right while the PAGE asked for nothing.
 `scripts/verify-font-preload.mjs` now also fetches the served document and

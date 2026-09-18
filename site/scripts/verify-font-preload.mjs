@@ -117,6 +117,26 @@ for (const route of ["/", "/policies"]) {
   }
 }
 
+// 5. The URLs resolve on the server that is serving the page. Check 1 proves
+//    the hash matches the LOCAL build; this proves it matches whatever is
+//    actually deployed, which is not the same claim the moment `.next` and the
+//    Worker are one deploy apart. A preload for a 404 is discarded in silence —
+//    no console error, nothing broken to look at — and the re-wrap comes back.
+for (const url of declared) {
+  const base = path.basename(url);
+  let ok = false;
+  let detail = "";
+  try {
+    const res = await fetch(`${BASE}${url}`);
+    const type = res.headers.get("content-type") ?? "";
+    ok = res.ok && type.includes("font");
+    detail = ok ? `${res.status} ${type}` : `${res.status} ${type || "(no content-type)"} — the preload points at nothing on this origin`;
+  } catch (e) {
+    detail = String(e).slice(0, 140);
+  }
+  check(ok, `${BASE} serves ${base}`, detail);
+}
+
 const passed = results.filter((r) => r.ok).length;
 console.log(`\n${passed}/${results.length} checks passed`);
 if (passed !== results.length) {
