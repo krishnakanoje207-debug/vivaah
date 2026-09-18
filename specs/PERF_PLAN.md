@@ -47,6 +47,33 @@ are on mid-range Android phones (`BRIEF.md` §4).
 | `/rentals` desktop | **72** | 0.8 s | 2.7 s | 140 ms | 0 | 7.2 s |
 | `/rentals/sage-rose` mobile | **71** | 1.4 s | 3.0 s | 680 ms | 0 | 6.7 s |
 
+**AFTER, measured by the owner 18 September 2026, 11:43-11:45 IST, against the
+deployed Worker `6494f41d`** (Lighthouse 13.4.1, emulated Moto G Power, slow 4G
+— the same lens as the baseline above; both reports are `lighthouse obile.pdf`
+and `lighthouse desktop.pdf` at the repo root):
+
+| Route and form factor | Score | FCP | LCP | TBT | CLS | Speed Index |
+|---|---|---|---|---|---|---|
+| `/` mobile | **74** (was 56 to 59) | 2.0 s | 3.0 s | 760 ms | **0** (was 0.161) | 3.1 s (was 6.5 to 7.5) |
+| `/` desktop | **96** (was 85) | 0.8 s | 1.1 s | 20 ms | **0** | 1.4 s (was 4.5) |
+
+Accessibility 100, Best Practices 96, SEO 100 on both.
+
+Two of those are worth pausing on. **The mobile 74 is above the 72 that §2.7
+measured as this page's ceiling with every animation stood down** — the motion
+is no longer what is costing the score, so §4's trade is not the one on the
+table any more. And **CLS is 0 on the phone**, which is the 0.161 this document
+opens with, gone: that is item 2.3 finally doing in production what it was
+always measured doing, after a day shipping as a no-op (see the correction in
+§2.3).
+
+What Lighthouse still names, in its own order — mobile: image delivery (est.
+437 KiB), forced reflow, the network dependency tree, render-blocking requests,
+legacy JavaScript (12 KiB), JS execution 5.4 s, main-thread work 12.2 s, back/
+forward cache refused for 2 reasons, 14 long tasks. Desktop: image delivery
+(438 KiB), render-blocking (est. 70 ms), forced reflow. Every one of those was
+already predicted by §2.2, §2.9 and §2.5 and none of them is new.
+
 The owner's reported 56 is the home page on a phone, reproduced exactly on the
 first run. Read the mobile column as the real one and the desktop column as the
 alibi: on a laptop over a fast link this site is respectable, and on a phone it
