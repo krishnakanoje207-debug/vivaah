@@ -47,6 +47,37 @@ are on mid-range Android phones (`BRIEF.md` §4).
 | `/rentals` desktop | **72** | 0.8 s | 2.7 s | 140 ms | 0 | 7.2 s |
 | `/rentals/sage-rose` mobile | **71** | 1.4 s | 3.0 s | 680 ms | 0 | 6.7 s |
 
+**ROUND TWO, 18 September 2026, against deployed `a9a4fb8a`.** Four mobile runs
+and one desktop, Lighthouse 13.4.1, same lens:
+
+| | before this round | after |
+|---|---|---|
+| `/` mobile page weight | 1104 KB over 38 requests | **668 KB over 34** |
+| `/` mobile CLS | 0.161 on 1 run in 10 | **0.0000, 0.0000, 0.0000, 0.0007** |
+| `/` mobile score | 48-79 across ten runs | 56, 76, 77, 64 |
+| `/` desktop | 96 | 94, LCP 0.9 s, FCP 0.6 s |
+| `bf-cache` audit | 2 failure reasons | **passing** |
+| `image-delivery-insight` | est. 354 KiB | est. 70 KiB |
+| `render-blocking-insight` | est. 210 ms | est. 10 ms |
+| `layout-shifts` | 1 shift found | none found |
+
+**Read the score band honestly: it has not moved much, and it was never going to
+tell us anything.** It is dominated by LCP, which ranged 2.6 s to 5.3 s across
+these four runs on one unchanged page — network weather against a Worker and a
+Neon instance that suspends when idle. What did change is deterministic and does
+not need a lucky run to show: 436 KB less on every first visit, the layout shift
+gone by construction rather than by winning a race, and the back button restoring
+instantly on the nine pages a customer actually browses.
+
+What Lighthouse still names is now small and all of it is recorded above as a
+decision rather than an oversight: 70 KiB of image delivery (the remainder is
+`NewStockPopup` and `jewellery/[slug]`, both unverifiable while the database is
+empty), 12 KiB of legacy JavaScript (Lighthouse overstates it eightfold; the
+real block is ~1.4 KB raw and removing it costs the compatibility floor for
+un-updated Android), 49 KiB of unused JavaScript (framework), and 10 ms of
+render-blocking CSS, where the small file is the one carrying the fallback font
+metrics and must block.
+
 **AFTER, measured by the owner 18 September 2026, 11:43-11:45 IST, against the
 deployed Worker `6494f41d`** (Lighthouse 13.4.1, emulated Moto G Power, slow 4G
 — the same lens as the baseline above; both reports are `lighthouse obile.pdf`
