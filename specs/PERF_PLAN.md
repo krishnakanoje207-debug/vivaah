@@ -355,6 +355,26 @@ come back `content-encoding: br`.
 
 **Effort.** An hour, including a deploy to confirm the headers actually changed.
 
+**Built, 18 September 2026.** `site/public/_headers`. `/_next/static/*` gets a
+year and `immutable`, which is safe because those names carry a content hash.
+The six photograph directories get thirty days with a day of
+`stale-while-revalidate` — deliberately not a year, because those paths are NOT
+hashed and the same URL serves a different garment after a redeploy. `/og/*` and
+the favicon get a day, since a wrong social card is visible in every WhatsApp
+share this shop's customers send.
+
+Verified against the built Worker rather than assumed, because the open question
+in this item was whether OpenNext carries the file across: `npx opennextjs-cloudflare
+build` copies `public/_headers` into `.open-next/assets/_headers` unchanged, so
+the `wrangler.jsonc` fallback was not needed. Under `wrangler dev` on that
+bundle, `/_next/static/chunks/1302-*.js` answers `public, max-age=31536000,
+immutable`, `/categories/bridal-lehengas.webp` and `/hero/hero-garden.webp`
+answer `public, max-age=2592000, stale-while-revalidate=86400`, `/og/og-default.jpg`
+and `/favicon.ico` answer `public, max-age=86400`, and `/_headers` itself is 404
+— Workers Assets reads it and does not serve it. Routes the Worker renders are
+untouched: `/privacy` still answers `private, no-cache, no-store` with its CSP
+nonce intact.
+
 ### 2.7 The preloader is paid for on every Lighthouse run and every first visit
 
 **Measured.** The preloader was isolated from the rest of the motion vocabulary
