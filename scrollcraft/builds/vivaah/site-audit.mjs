@@ -216,7 +216,22 @@ async function auditRoute(browser, route) {
         const r0 = el.getBoundingClientRect();
         const cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
         if (cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight) {
-          for (const u of document.elementsFromPoint(cx, cy)) {
+          // elementsFromPoint returns the stack TOPMOST FIRST, which includes
+          // anything painted OVER el as well as what is under it. Taking the
+          // first opaque layer therefore measured this text against whatever
+          // floated above it. The cookie banner made that visible on 18 Sep:
+          // it is fixed to the foot of the viewport, so at 390 it sat over the
+          // /privacy masthead ledger and every line in it was reported at
+          // 1.12:1 against violet-950 — text that is in fact ink-900 on
+          // porcelain and perfectly legible, just covered.
+          //
+          // Only what is painted BELOW el can be its ground, so start at el.
+          // If el is not in the stack at all it is entirely hidden behind
+          // something, and its contrast against its own ground is still the
+          // question worth asking, so fall through to the parent walk.
+          const stack = document.elementsFromPoint(cx, cy);
+          const start = stack.indexOf(el);
+          for (const u of start === -1 ? [] : stack.slice(start)) {
             if ((u !== el && el.contains(u)) || u === document.documentElement) continue;
             const c = getComputedStyle(u).backgroundColor;
             const a = c && c !== "transparent" ? alphaOf(c) : 0;

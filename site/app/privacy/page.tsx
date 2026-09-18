@@ -10,11 +10,15 @@ import { SHOP } from "@/lib/site";
  * `/privacy` — what the site does with a customer's details.
  *
  * LAUNCH_CHECKLIST item 15, which was the last of the three "not started"
- * compliance rows that is actually a gap. (Item 17, the cookie banner, is not:
- * `components/site/CookieConsent.tsx` is deliberately unmounted because the
- * site sets no cookie that needs consent, and mounting it would advertise
- * tracking that is not happening. Item 18, analytics, is what would change
- * that, and nothing has been installed.)
+ * compliance rows that is actually a gap.
+ *
+ * REVISED 18 Sep 2026, when items 17 and 18 closed together. Cloudflare Web
+ * Analytics is installed and the cookie banner is mounted, so the three clauses
+ * that turned on there being no analytics had to change with it: 04 gives
+ * Cloudflare its third job, 05 no longer says there is nothing to consent to,
+ * and 06 names the fourth thing the browser keeps. Cloudflare Web Analytics
+ * sets no cookie and does no fingerprinting, which is why 05 still says two
+ * cookies and why no fourth company appears in 04.
  *
  * It is needed because the shop now takes a name, a phone number and sometimes
  * an email through the booking form, keeps them in Neon, and as of 17 September
@@ -72,21 +76,21 @@ const CLAUSES = [
     n: "04",
     title: "Who else handles it",
     covers:
-      "Three companies, each doing one job. Neon stores the booking. Cloudflare serves the site and runs the check that tells a person from a bot. Resend sends the emails about your booking, when email is switched on. Nobody else receives your details. The one other thing that reaches outside is the map of the shop on our front page, which is loaded from Google, so opening that page lets Google see that a visit happened.",
+      "Three companies. Neon stores the booking. Cloudflare serves the site, runs the check that tells a person from a bot, and counts page views if you have allowed it. Resend sends the emails about your booking, when email is switched on. Nobody else receives your details. The one other thing that reaches outside is the map of the shop on our front page, which is loaded from Google, so opening that page lets Google see that a visit happened.",
   },
   {
     id: "cookies",
     n: "05",
     title: "Cookies, and what stays on your device",
     covers:
-      "This site sets two cookies and neither one follows you. One remembers that the shop owner is signed in to her own admin panel. The other is set only if you open your booking with its code and phone number, so the page knows you are allowed to see it. There is no advertising cookie and no analytics, so there is nothing here to consent to.",
+      "This site sets two cookies and neither one follows you. One remembers that the shop owner is signed in to her own admin panel. The other is set only if you open your booking with its code and phone number, so the page knows you are allowed to see it. There is no advertising cookie and nothing here is sold to anyone. We also ask, in a panel at the foot of the page, whether we may count which pages get opened. That counting is done by Cloudflare, it sets no cookie of its own and does not try to recognise you or follow you to other sites, and it does not start until you say yes. If you say no, or close the panel without answering, nothing is counted. You can change your answer at any time from Cookie choices in the footer, and switching it off stops the counting from the next page you open.",
   },
   {
     id: "device",
     n: "06",
     title: "What your browser remembers by itself",
     covers:
-      "The pieces you have added to your selection, which new arrivals you have already been shown, and whether you have seen the opening animation. All of it is kept by your browser on your own device, is never sent to us, and disappears when you clear your browsing data.",
+      "Four things. The pieces you have added to your selection, which new arrivals you have already been shown, whether you have seen the opening animation, and your answer to the counting question above so you are not asked again. All of it is kept by your browser on your own device, is never sent to us, and disappears when you clear your browsing data.",
   },
   {
     id: "keep",
@@ -141,11 +145,11 @@ export default function PrivacyPage() {
               </div>
               <div className="flex justify-between gap-6 border-b border-ink-900/15 py-3">
                 <dt className="eyebrow">Tracking</dt>
-                <dd className="text-ink-900">None</dd>
+                <dd className="text-ink-900">Only if you allow it</dd>
               </div>
               <div className="flex justify-between gap-6 border-b border-ink-900/15 py-3">
                 <dt className="eyebrow">Updated</dt>
-                <dd className="tabular text-ink-900">17 September 2026</dd>
+                <dd className="tabular text-ink-900">18 September 2026</dd>
               </div>
             </dl>
           </div>

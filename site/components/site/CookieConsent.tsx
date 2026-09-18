@@ -10,11 +10,14 @@ import {
 } from "react";
 
 /**
- * Cookie consent panel — DESIGN_SPEC_V3 §4.3. BUILT, DELIBERATELY NOT MOUNTED.
+ * Cookie consent panel — DESIGN_SPEC_V3 §4.3. MOUNTED 18 Sep 2026, in
+ * `SiteChrome`, in the same change that installed Cloudflare Web Analytics.
  *
- * The site today sets exactly one cookie (the strictly-necessary admin session
- * cookie), which is consent-exempt. Mounting this now would advertise tracking
- * that is not happening. Mount it only when an analytics script actually exists.
+ * It was built and deliberately left unmounted for four days on the reasoning
+ * that the site set no cookie needing consent, so a banner would have
+ * advertised tracking that was not happening. Item 18 is what changed that, and
+ * the two are mounted as a pair: `components/site/Analytics.tsx` sits inside the
+ * `AnalyticsGate` below, so the beacon cannot reach the DOM before an answer.
  *
  * It is a real gate, not a banner:
  *   - `<AnalyticsGate>` renders its children only once analytics consent is
@@ -299,7 +302,11 @@ export default function CookieConsent() {
             Let me choose
           </button>
         )}
-        <Link href="/policies" className={LINK}>
+        {/* /privacy, not /policies. This said /policies from the day it was
+            written, when the privacy clauses were going to be a section of the
+            rental terms; they got their own route on 17 Sep and this link was
+            never revisited, because nothing rendered it. */}
+        <Link href="/privacy" className={LINK}>
           Privacy policy
         </Link>
       </div>

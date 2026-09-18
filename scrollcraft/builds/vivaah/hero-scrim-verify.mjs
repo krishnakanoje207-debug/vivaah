@@ -78,6 +78,18 @@ const rec = (ok, tag, label, detail) => { results.push({ ok, tag, label, detail 
 
 for (const vp of VIEWPORTS) {
   const page = await browser.newPage(vp);
+  // Answer the cookie panel before the page opens. This gate measures hero type
+  // against the PHOTOGRAPH, and the panel is fixed to the foot of the viewport:
+  // at 390 it starts 2px under the h1's last line, and the sample cells are
+  // padded, so they reached into violet-950 and read 14 cells as failing type
+  // that had not moved. A stored "necessary only" is what a returning visitor
+  // has, and it takes the panel out of the frame without touching the hero.
+  // The panel's own contrast is audited by site-audit, not here.
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("vivaah:consent", JSON.stringify({ analytics: false, at: new Date().toISOString() }));
+    } catch {}
+  });
   await page.goto(URL, { waitUntil: "networkidle" });
   /* The dev server's own indicator is a floating badge with a white glyph in
      it, and it lands over the hero copy on a phone. It is not part of the page

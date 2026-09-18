@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { NAV_LINKS, SHOP } from "@/lib/site";
 import { Brand } from "@/components/site/Brand";
+import { CookieChoicesButton } from "@/components/site/CookieChoicesButton";
 
 export function Footer() {
   return (
@@ -45,6 +46,9 @@ export function Footer() {
                 >
                   Privacy
                 </Link>
+              </li>
+              <li>
+                <CookieChoicesButton className="block py-2 text-left transition-colors hover:text-porcelain-50 md:py-0" />
               </li>
             </ul>
           </nav>

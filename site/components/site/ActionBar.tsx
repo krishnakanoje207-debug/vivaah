@@ -33,9 +33,12 @@ import { useCookiePanelOpen } from "@/components/site/CookieConsent";
 export function ActionBar() {
   const [shown, setShown] = useState(false);
   // Whether the consent panel is actually on screen — NOT whether consent has
-  // been given. CookieConsent is not currently mounted anywhere, so nobody ever
-  // answers it and `useConsent()` is null forever; gating on that hid this bar
-  // at every scroll position on every page.
+  // been given. Gating on the answer hid this bar at every scroll position on
+  // every page back when CookieConsent was mounted nowhere and `useConsent()`
+  // was null forever. It is mounted now (18 Sep, with analytics), but the
+  // distinction still holds: "she has not answered yet" and "the panel is in
+  // front of her" are different questions, and only the second one is about
+  // who owns the bottom of the screen.
   const bannerUp = useCookiePanelOpen();
 
   useEffect(() => {

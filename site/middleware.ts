@@ -74,7 +74,13 @@ export async function middleware(req: NextRequest) {
     `img-src 'self' data: blob:`,
     `font-src 'self'`,
     // Turnstile verifies over its own origin; ws: is the dev server's HMR socket.
-    `connect-src 'self' https://challenges.cloudflare.com${isDev ? " ws: wss:" : ""}`,
+    // cloudflareinsights.com is where Cloudflare Web Analytics POSTs its page
+    // view (`/cdn-cgi/rum`). The beacon SCRIPT is not named anywhere: it is
+    // injected by our own client code, so 'strict-dynamic' admits it the same
+    // way it admits Turnstile, and naming it would be dead text under CSP3.
+    // Its report is a fetch, though, and a fetch is never covered by that.
+    // Both are unreachable until a visitor consents (components/site/Analytics.tsx).
+    `connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com${isDev ? " ws: wss:" : ""}`,
     // Turnstile's challenge frame, and the Google Maps embed on the front page
     // (which only renders once the owner's real address is in).
     `frame-src https://challenges.cloudflare.com https://maps.google.com https://www.google.com`,

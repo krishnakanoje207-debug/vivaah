@@ -7,8 +7,8 @@
  *
  * `/privacy` makes factual claims about this codebase: that it sets two cookies
  * and names them, that four keys are kept in the browser, that three companies
- * receive anything, that there is no analytics and no payment step. Those were
- * true on the day it was written. The failure mode is that someone adds a
+ * receive anything, that page views are counted only after a yes, and that
+ * there is no payment step. Those were true on the day it was written. The failure mode is that someone adds a
  * fourth storage key or an analytics snippet, nothing looks broken, and the
  * page quietly becomes a false statement about how a shop handles a bride's
  * phone number. That is worse than having no page.
@@ -78,27 +78,69 @@ check(
   unexpected.length ? `unlisted: ${unexpected.join(", ")} — /privacy clause 06 describes ${EXPECTED_KEYS.length}` : foundKeys.join(", "),
 );
 
-// --- claim: there is no analytics and no tracker ----------------------------
-// The page says "no analytics, so there is nothing here to consent to", and the
-// cookie banner stays unmounted on the strength of it.
+// --- claim: page views are counted, by one provider, only after a yes -------
+// Until 18 September this asserted that NO analytics existed, and the cookie
+// banner stayed unmounted on the strength of it. The owner chose Cloudflare Web
+// Analytics that day, so the claim the page makes changed, and so does the
+// claim worth gating. It is no longer "nothing is counted". It is "one named
+// provider counts, and it cannot run before she agrees" — which is a stronger
+// thing to hold, because it is the one a wrong refactor quietly breaks.
+//
+// Every other provider stays banned outright. Two analytics scripts is a
+// different privacy policy from one.
 const TRACKERS = [
   "googletagmanager", "google-analytics", "gtag(", "plausible.io", "posthog",
-  "segment.com", "mixpanel", "usefathom", "matomo", "cloudflareinsights", "hotjar", "clarity.ms",
+  "segment.com", "mixpanel", "usefathom", "matomo", "hotjar", "clarity.ms",
 ];
 const trackersFound = TRACKERS.filter((t) => all.toLowerCase().includes(t.toLowerCase()));
-check(trackersFound.length === 0, "no analytics or tracking script is installed", trackersFound.join(", "));
+check(trackersFound.length === 0, "no analytics provider beyond the one /privacy names", trackersFound.join(", "));
 
-// If one ever is, the banner has to be mounted in the same change.
+// The beacon may be referenced from exactly one file. Anything else loading it
+// is a second, ungated entry point however carefully the first one is written.
+const ANALYTICS_TSX = path.join("components", "site", "Analytics.tsx");
+const BEACON = "static.cloudflareinsights.com/beacon.min.js";
+const beaconFiles = sources.filter(({ src }) => src.includes(BEACON)).map(({ f }) => f);
+check(
+  beaconFiles.length === 1 && beaconFiles[0] === ANALYTICS_TSX,
+  "the analytics beacon is loaded from exactly one file",
+  beaconFiles.length ? beaconFiles.join(", ") : "not found at all — is analytics still installed?",
+);
+
+// The load-bearing one. `<Analytics />` must never be rendered except directly
+// inside `<AnalyticsGate>`, which returns null until consent is granted. If
+// someone hoists it out of the gate to "fix" a missing page view, the beacon
+// starts running before anybody has been asked and no page looks broken.
+const renders = sources
+  .filter(({ f }) => f !== ANALYTICS_TSX)
+  .flatMap(({ f, src }) => [...src.matchAll(/<Analytics\b(?!Gate)/g)].map((m) => ({ f, i: m.index })));
+const ungated = renders.filter(({ f, i }) => {
+  const src = sources.find((s) => s.f === f).src;
+  // What stands immediately before the tag must be the gate opening, and
+  // nothing else. Whitespace between them is all that is allowed.
+  return !/<AnalyticsGate>\s*$/.test(src.slice(Math.max(0, i - 120), i));
+});
+check(
+  renders.length >= 1 && ungated.length === 0,
+  "analytics is rendered only inside <AnalyticsGate>",
+  renders.length === 0
+    ? "nothing renders <Analytics /> at all, so nothing is counted"
+    : `${renders.length} render site(s), ${ungated.length} outside the gate` +
+      (ungated.length ? `: ${ungated.map((u) => u.f).join(", ")}` : ""),
+);
+
+// And the banner that grants that consent has to be mounted, or the gate can
+// never open and the panel describing it is never seen.
 const consentMounted = sources.some(
   ({ f, src }) => f !== path.join("components", "site", "CookieConsent.tsx") && /<CookieConsent\b/.test(src),
 );
-check(
-  trackersFound.length === 0 ? !consentMounted : consentMounted,
-  trackersFound.length === 0
-    ? "the cookie banner stays unmounted, which is what makes that claim true"
-    : "analytics is installed, so the cookie banner must be mounted",
-  `CookieConsent mounted: ${consentMounted}`,
+check(consentMounted, "the cookie banner is mounted, so consent can be given", `CookieConsent mounted: ${consentMounted}`);
+
+// Withdrawal has to be reachable. `openCookieConsent()` had no caller for four
+// days, which meant a stored yes could not be undone without clearing site data.
+const reopeners = sources.filter(
+  ({ f, src }) => f !== path.join("components", "site", "CookieConsent.tsx") && src.includes("openCookieConsent"),
 );
+check(reopeners.length >= 1, "something can reopen the panel to withdraw consent", reopeners.map((r) => r.f).join(", "));
 
 // --- claim: nothing is paid online ------------------------------------------
 // Payments were retired on 15 September (BOOKING_ENGINE_SPEC_V2). The page says
@@ -117,6 +159,8 @@ const ALLOWED_HOSTS = [
   "challenges.cloudflare.com", // clause 04, Cloudflare's bot check
   "maps.google.com",           // clause 04, the map embed
   "www.google.com",            // the same embed, after its redirect
+  "static.cloudflareinsights.com", // clause 04, the Web Analytics beacon
+  "cloudflareinsights.com",    // clause 04, where it reports the page view
   "developers.cloudflare.com", // a documentation link in a comment
   "vivaah.vivaah.workers.dev", // the site itself
   "wa.me",                     // a link the visitor taps

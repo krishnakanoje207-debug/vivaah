@@ -10,6 +10,8 @@ Status at audit (14 Sep, revised): **11 done, 4 partial, 4 not started, 1 blocke
 
 Status 17 Sep, after the pre-launch pass: **15 done, 1 correctly deferred, 1 not started, 1 blocked on the owner.** What is left is item 18 (analytics, which needs the owner to choose a provider) and item 19 (her real shop address; the phone now renders a real number).
 
+Status 18 Sep, after the owner chose Cloudflare Web Analytics: **18 done, 2 blocked on the owner.** Items 17 and 18 closed together, because neither one closes alone. The two that remain are not work: item 6 (the favicon set) waits on the logo file, and item 19 waits on her real address. Item 18's code is finished and **rests dark until she supplies a beacon token** from her Cloudflare dashboard, the same way the comms channels rest at `skipped: not_configured`.
+
 | # | Item | Status | Where it stands |
 |---|---|---|---|
 | 1 | Custom 404 page | **Done** | `app/not-found.tsx`, in the site-audit's seven routes. Wants its own `<title>` (see P1.1). |
@@ -28,8 +30,8 @@ Status 17 Sep, after the pre-launch pass: **15 done, 1 correctly deferred, 1 not
 | 14 | Thank-you page | **Done** | 18 Sep: this row was stale — Phase 2 built it. `ReserveFlow` pushes to `/booking/[code]?k=<token>` the moment the request is accepted, and that page is the confirmation: it names the request, walks the Requested -> Confirmed -> Collected -> Returned ladder, and is where she cancels. There is no separate thank-you route and there should not be, because a thank-you that cannot be returned to is worth less than a status page she can bookmark. |
 | 15 | Privacy policy page | **Done** | 17 Sep: `/privacy`, in `/policies`' grammar, linked from the footer and the sitemap. Every clause was read out of the code rather than adapted from a template, and `scripts/verify-privacy.mjs` fails if the code stops matching it. Two facts are marked unset rather than invented: the retention period and where to write. |
 | 16 | Terms page | **Done** | `/policies` — booking and pre-payment, extensions, damage and care, pickup and return. |
-| 17 | Cookie banner | **Correctly deferred** | 17 Sep: this row was wrong to call it unstarted. `CookieConsent.tsx` is finished and deliberately unmounted, and says so in its own header: the only cookies the site sets are strictly necessary, so there is nothing to consent to, and mounting a banner would advertise tracking that is not happening. It is item 18 that unblocks this, not the other way round. |
-| 18 | Analytics installed | **Not started** | The consent gate is built and empty. See P2.4. |
+| 17 | Cookie banner | **Done** | 18 Sep: mounted in `SiteChrome`, in the same change that installed analytics, which is the order this row and item 18 always implied. It is deliberately NOT subject to the rule that stands `ActionBar` and `NewStockPopup` down on `/reserve` and `/booking`: those are optional chrome, and consent is neither optional nor deferrable, so a visitor who lands straight on the booking form is asked too. It stays off `/admin`. A withdrawal path was added with it (`CookieChoicesButton`, in the footer), because `openCookieConsent()` had been exported for four days with no caller, which meant a stored yes could not be undone without clearing site data. The panel's "Privacy policy" link pointed at `/policies` from the day it was written and was never revisited because nothing rendered it; it points at `/privacy` now. |
+| 18 | Analytics installed | **Done, dark until the token lands** | 18 Sep: Cloudflare Web Analytics, on the owner's choice. `components/site/Analytics.tsx`, mounted inside `AnalyticsGate` so the beacon cannot reach the DOM before consent. Cookieless, so `/privacy` still names two cookies, and it adds no fourth company to clause 04 since Cloudflare already serves the site and runs the bot check. Nothing is counted until the owner pastes a beacon token into `NEXT_PUBLIC_CF_BEACON_TOKEN` and the site is rebuilt. See P2.4 for the build record. |
 | 19 | Real contact address | **Blocked on owner** | `TODO(owner)`; `/` renders "Shop address, City" and "+91 00000 00000". See P3.2. |
 | 20 | Compressed images | **Done** | 14 Sep: hero 2137 KB -> 124 KB, 18 category JPEGs -> WebP, `fetchPriority` on the LCP image. |
 
@@ -174,10 +176,62 @@ thank-you page belongs to the same build), and today's "hold one" button is a
 WhatsApp hand-off through `lib/enquiry.ts`, which has no error state by design
 and already degrades to `/visit` while the phone number is a placeholder.
 
-**P2.4 — Analytics.** `AnalyticsGate` exists and wraps nothing. Needs a
-free-tier, commercial-use-permitted, cookie-light provider to satisfy the ₹0/month
-lock; Cloudflare Web Analytics is the obvious one since the site already runs on
-Workers. Mount it inside the gate, never outside it.
+**P2.4 — Analytics. DONE 18 September 2026. Build record.**
+
+The owner chose Cloudflare Web Analytics, which was the provider this section
+had already argued for: free with commercial use permitted, cookieless, and
+already inside a company the site depends on, so it adds nobody new to the
+privacy page.
+
+What was built:
+
+- `components/site/Analytics.tsx` — the beacon, mounted in `SiteChrome` inside
+  `<AnalyticsGate>`. It creates its own `<script>` tag rather than rendering
+  one, which is not a style choice: `strict-dynamic` admits a script injected by
+  an already-trusted script without the policy naming its origin, and that is
+  the same route Turnstile takes. Its report is a different matter and
+  `middleware.ts` now names `https://cloudflareinsights.com` in `connect-src`.
+- `CookieConsent` mounted, and `CookieChoicesButton` added to the footer so a
+  stored choice can be withdrawn.
+- `/privacy` clauses 04, 05 and 06 rewritten, plus the masthead's "Tracking:
+  None", which stopped being true. Cloudflare gains a third job in 04; 05 no
+  longer says there is nothing to consent to and states plainly that switching
+  it off takes effect from the next page; 06 names the fourth stored key.
+
+**The token is the owner's and nothing counts without it.** She adds the site in
+her Cloudflare dashboard under Web Analytics, copies the token out of the JS
+snippet it offers, and it goes into `NEXT_PUBLIC_CF_BEACON_TOKEN`. It is
+`NEXT_PUBLIC_*`, so it is inlined at build time and needs a rebuild and
+redeploy, not a `wrangler secret put`. Keeping it in the `settings` table would
+have let her paste it in herself, and was rejected on measured grounds: reading
+it in the root layout puts a Neon query on the critical path of every route,
+including `/policies`, `/visit` and the 404, which touch no database at all
+today, and that property is what the cache-header and bfcache work rests on.
+
+**Gates.** `scripts/verify-privacy.mjs` went from asserting that no analytics
+exists to asserting the stronger thing, that exactly one named provider does and
+that it cannot render outside the gate (16/16, was 13/13). The new
+`scripts/verify-analytics.mjs` (11/11 dark, 15/15 with a token) asks the network
+rather than the source, because source-level proof that `<Analytics />` sits
+inside `<AnalyticsGate>` is not proof that the browser stays away from
+Cloudflare, and this project has been caught by that exact gap before with the
+font preload.
+
+**Two things the gates taught, both worth keeping.** The beacon does not report
+on a timer; it flushes when the document goes away, so the check had to navigate
+like a visitor instead of waiting longer. And when `cloudflareinsights.com` was
+deliberately taken back out of `connect-src` to prove the check bites, the
+report silently never happened while `securitypolicyviolation` stayed quiet —
+a refused beacon send raises nothing the document can hear. The request watcher
+caught it; the violation listener did not.
+
+**One thing the owner should know before it goes live.** Consent-gating means
+most visitors will never be counted, because most people ignore a cookie panel,
+so the numbers will read low against reality rather than wrong. Cloudflare Web
+Analytics is cookieless and stores nothing on the device, so running it ungated
+is a defensible position that many privacy-conscious sites take, and it would
+also let the banner come back down. That is a change of one wrapper and a
+rewrite of the same three clauses, and it is hers to make, not ours.
 
 ## P3 — blocked on the owner
 
