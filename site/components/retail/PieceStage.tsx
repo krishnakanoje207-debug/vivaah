@@ -31,6 +31,21 @@ import type { RetailVariant } from "@/lib/retail";
  * as available can still go while she is filling the form — and then /reserve
  * says so, naming the piece and the size.
  */
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph. Only the category stand-in has them: a piece's own photographs
+ *  are owner-supplied paths and nothing has written variants beside those. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
+/** The plate is the full `.shell` width in one column below lg — 339px on a
+ *  412px phone, which is 82vw, given the 92vw the rest of the site uses for a
+ *  shell-wide picture. From lg it is the `1fr` of `[1fr_0.85fr]` less the
+ *  5rem gap: 431px at 1024, 638px at 1440, 830px at 1920, which is 42 to 44vw
+ *  across that whole range. */
+const PLATE_SIZES = "(min-width: 1024px) 44vw, 92vw";
+
 export function PieceStage({
   slug,
   name,
@@ -81,6 +96,7 @@ export function PieceStage({
             <img
               src={photo.path}
               alt={photo.alt || `${name}, ${variant?.colourName}`}
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
             />
           ) : sample ? (
@@ -88,8 +104,13 @@ export function PieceStage({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={sample}
+                srcSet={photoSrcSet(sample)}
+                sizes={PLATE_SIZES}
                 alt=""
                 aria-hidden="true"
+                width={660}
+                height={880}
+                decoding="async"
                 className="absolute inset-0 h-full w-full object-cover"
               />
               {/* The honesty of the page rests on this label: the name, the
@@ -127,6 +148,8 @@ export function PieceStage({
                   src={img.path}
                   alt=""
                   aria-hidden="true"
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover"
                 />
               </button>

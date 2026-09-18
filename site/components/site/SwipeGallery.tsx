@@ -31,9 +31,20 @@ export function SwipeGallery({ images, alt }: { images: string[]; alt: string })
             className="keyline relative aspect-[4/5] w-[78%] flex-none snap-center overflow-hidden rounded-card bg-stage sm:w-[46%]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
+            {/* Lazy: the stills sit below the description on a product page,
+                and the six of them were 164 KB fetched before first paint. The
+                track scrolls sideways, so the two cards past the right edge are
+                deferred too — which is what this is for, and Chrome's load
+                distance is far wider than a card, so a swipe does not arrive on
+                an empty frame. No srcset: these are turntable frames and the
+                arc has no narrow copies (see RentalCard), and no intrinsic
+                dimensions, because the card is already fixed at aspect-[4/5]
+                and this takes arbitrary paths. */}
             <img
               src={src}
               alt={`${alt} — view ${i + 1}`}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover"
               draggable={false}
             />

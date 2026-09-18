@@ -41,6 +41,31 @@ import { Parallax } from "@/components/site/Parallax";
 // Mirrored by `.retail-hold`'s duration in globals.css.
 const HOLD_MS = 3400;
 
+/** The narrow copies `tools/make_image_variants.py` writes beside each shipped
+ *  photograph, so a phone fetches a file its own size instead of the 660px one.
+ *  Every arcade item's picture comes from the category list or
+ *  `app/jewellery/images.ts`, so it is always a 660x880 file under
+ *  /categories or /jewellery and always has these three beside it. */
+function photoSrcSet(src: string) {
+  const stem = src.slice(0, -".webp".length);
+  return `${stem}-160.webp 160w, ${stem}-320.webp 320w, ${stem}-480.webp 480w, ${src} 660w`;
+}
+
+/** The middle plate, which is the wider of the two and therefore the one this
+ *  is derived from. Below md the arcade is `max-w-[26rem]` inside `.shell-wide`
+ *  (94vw less its 1.25rem gutters), so on a 412px phone the box is 347px and
+ *  the plate is 58% of it, 201px, which is 49vw. From md the box is
+ *  `min(min(66svh,48rem)*7/8, 48vw)`, whose widest branch is 48vw, so the plate
+ *  can never exceed 0.58 * 48vw ≈ 28vw — on a 16:9 laptop the height budget
+ *  brings it to about 19vw, so this over-asks there and never under-asks, which
+ *  is the failure that would show.
+ *
+ *  The front plate is 30% and is given this same string on purpose. A `sizes`
+ *  of its own would make the browser pick a NARROWER candidate for a file the
+ *  middle plate is already fetching at 480, and the two planes draw the same
+ *  photographs — one picture would be downloaded twice. */
+const PLATE_SIZES = "(min-width: 768px) 28vw, 49vw";
+
 export type ArcadeItem = { slug: string; name: string; image: string; href: string };
 
 export function Arcade({
@@ -121,8 +146,13 @@ export function Arcade({
         <img
           key={c.slug}
           src={c.image}
+          srcSet={photoSrcSet(c.image)}
+          sizes={PLATE_SIZES}
           alt=""
           aria-hidden="true"
+          width={660}
+          height={880}
+          decoding="async"
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[900ms] ease-out-strong ${
             k === show ? "opacity-100" : "opacity-0"
           }`}

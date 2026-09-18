@@ -21,6 +21,16 @@ import { useEffect, useRef, useState } from "react";
 
 const STEP = 5; // §3.3: arrow keys move the seam 5% per press
 
+// Both pictures are lazy. The seam is Room III of /rentals, some 6000px down a
+// 10926px page, and the pair was 133 KB fetched before first paint by everyone
+// including the shopper who never scrolled that far. No srcset to go with it:
+// the stage is the full shell width on a phone (339px at 412, so 678 device
+// pixels at 2x) and half the shell from md (732px at 1920), and the sources are
+// 660px wide, so every candidate a ladder could offer is one the browser would
+// pass over. Nor intrinsic width/height: this takes arbitrary paths and cannot
+// know them, and both layouts already fix the box at aspect-[3/4], so there is
+// no shift for an attribute ratio to prevent.
+
 export function PatternSeam({
   photo,
   draft,
@@ -89,12 +99,16 @@ export function PatternSeam({
         <img
           src={photo}
           alt={alt}
+          loading="lazy"
+          decoding="async"
           className="keyline aspect-[3/4] w-full bg-porcelain-50 object-cover"
         />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={draft}
           alt={`${alt}, drawn as a pattern draft`}
+          loading="lazy"
+          decoding="async"
           className="keyline aspect-[3/4] w-full bg-porcelain-50 object-cover"
         />
       </div>
@@ -116,6 +130,8 @@ export function PatternSeam({
         src={photo}
         alt={alt}
         draggable={false}
+        loading="lazy"
+        decoding="async"
         className="absolute inset-0 h-full w-full object-cover"
       />
       {/* The draft sits above the photograph and is clipped back to the seam. */}
@@ -125,6 +141,8 @@ export function PatternSeam({
         alt=""
         aria-hidden="true"
         draggable={false}
+        loading="lazy"
+        decoding="async"
         className="absolute inset-0 h-full w-full object-cover"
         style={{ clipPath: "inset(0 calc(100% - var(--seam-x)) 0 0)" }}
       />
