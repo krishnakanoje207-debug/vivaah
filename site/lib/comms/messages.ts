@@ -129,6 +129,34 @@ export function customerMessage(
           `The return day stays ${formatDay(b.ret)}.\n\n` +
           signoff(b),
       };
+    // E10 and E11 are sent by the Worker's daily cron at 09:00 IST (v1.0's hour),
+    // never by the lazy sweep: see specs/COMMS_FLOW_SPEC_V2.md §2. Neither has the
+    // raw token, which is only ever held at creation, so the link asks her for
+    // the code and phone, the same as a confirmation.
+    case "reminder.pickup":
+      return {
+        subject: `Today: ${items} (${b.code})`,
+        text:
+          `Namaste ${b.name},\n\n` +
+          `A reminder that we will have ${items} ready for you today${b.time ? ` at ${formatTime(b.time)}` : ""}.\n\n` +
+          (b.pickup === b.ret ? "" : `Your return day is ${formatDay(b.ret)}.\n\n`) +
+          `Come to us at ${SHOP.address}. ${SHOP.mapsUrl}\n` +
+          `We are open ${SHOP.hours}.\n\n` +
+          signoff(b),
+      };
+    case "reminder.return": {
+      // Only what goes back. A retail piece in the same basket was bought.
+      const rentals = b.items.filter((i) => i.type === "rental");
+      return {
+        subject: `Your return day is today (${b.code})`,
+        text:
+          `Namaste ${b.name},\n\n` +
+          `A gentle reminder that ${line({ ...b, items: rentals })} ${rentals.length === 1 ? "is" : "are"} due back with us today.\n\n` +
+          `If you would like more days, ask from your booking page and we will tell you whether the dates are free.\n` +
+          `We are open ${SHOP.hours}.\n\n` +
+          signoff(b),
+      };
+    }
     default:
       return null;
   }

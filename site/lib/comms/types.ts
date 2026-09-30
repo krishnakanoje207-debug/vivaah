@@ -11,7 +11,9 @@ export type EventKind =
   | "booking.cancelled_customer"
   | "extension.requested"
   | "extension.approved"
-  | "extension.rejected";
+  | "extension.rejected"
+  | "reminder.pickup"
+  | "reminder.return";
 
 /** Everything a message needs, loaded in one query by `notify`. */
 export type CommsBooking = {
@@ -25,7 +27,7 @@ export type CommsBooking = {
   time: string | null;
   expiresAt: string | null;
   createdAt: string;
-  items: { name: string; colour: string | null; size: string | null }[];
+  items: { name: string; type: "rental" | "retail" | "jewellery"; colour: string | null; size: string | null }[];
 };
 
 export type Channel = "email" | "whatsapp" | "sms" | "push";

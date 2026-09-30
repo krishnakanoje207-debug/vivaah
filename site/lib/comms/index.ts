@@ -113,8 +113,8 @@ async function load(bookingId: string): Promise<CommsBooking | null> {
   const r = rows[0];
   if (!r) return null;
 
-  const items = await sql<{ name: string; colour: string | null; size: string | null }>`
-    select p.name, v.colour_name as colour, bi.size
+  const items = await sql<CommsBooking["items"][number]>`
+    select p.name, p.type, v.colour_name as colour, bi.size
       from booking_items bi
       join products p on p.id = bi.product_id
       left join product_variants v on v.id = bi.variant_id
