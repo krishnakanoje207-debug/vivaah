@@ -145,8 +145,9 @@ export function customerMessage(
           signoff(b),
       };
     case "reminder.return": {
-      // Only what goes back. A retail piece in the same basket was bought.
-      const rentals = b.items.filter((i) => i.type === "rental");
+      // Only what goes back: outfits and jewellery are rented, a retail piece in
+      // the same basket was bought.
+      const rentals = b.items.filter((i) => i.type !== "retail");
       return {
         subject: `Your return day is today (${b.code})`,
         text:
