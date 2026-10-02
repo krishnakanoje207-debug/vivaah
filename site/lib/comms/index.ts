@@ -16,20 +16,14 @@
 //      WhatsApp template, and it is not wired.
 
 import { sql } from "@/lib/db";
-import { customerMessage, ownerMessage } from "@/lib/comms/messages";
+import { compose, type Extra, type Stored } from "@/lib/comms/messages";
+import { readTemplates } from "@/lib/comms/templates";
 import { ownerAddress, sendEmail } from "@/lib/comms/email";
 import type { CommsBooking, Channel, EventKind, Recipient, SendResult } from "@/lib/comms/types";
 
 export type { EventKind } from "@/lib/comms/types";
 
-export type NotifyExtra = {
-  /** Only available at creation: the raw status token, so her first mail deep-links. */
-  token?: string;
-  /** The shop's reason for a decline or a cancellation, shown to her as written. */
-  reason?: string | null;
-  /** The return day an extension asks for or was granted. */
-  newReturn?: string | null;
-};
+export type NotifyExtra = Extra;
 
 /**
  * Tell whoever needs telling about `kind`, and record every attempt.
@@ -45,19 +39,28 @@ export async function notify(
     const booking = await load(bookingId);
     if (!booking) return logged;
 
-    const forCustomer = customerMessage(kind, booking, extra);
-    const forOwner = ownerMessage(kind, booking, extra);
+    // The shop's own wording, if she has saved any. A failed read is not a
+    // reason to stay silent: both messages go out in the built-in wording and
+    // say so in the log (specs/COMMS_TEMPLATES_SPEC.md §5).
+    let stored: Stored;
+    try {
+      stored = { overrides: await readTemplates() };
+    } catch (e) {
+      stored = { error: e instanceof Error ? e.message.slice(0, 120) : "unknown" };
+    }
+    const forCustomer = compose("customer", kind, booking, extra, stored);
+    const forOwner = compose("owner", kind, booking, extra, stored);
 
     // Email is the only live channel. The ladder's other rungs are specified and
     // unbuilt; when one lands it is another entry in this list, walked in the
     // order of v1.0 §1 with the same skip-and-log contract.
     if (forOwner) {
-      const r = await sendEmail("owner", ownerAddress(), forOwner.subject, forOwner.text);
-      logged.push({ channel: "email", recipient: "owner", result: r });
+      const r = await sendEmail("owner", ownerAddress(), forOwner.message.subject, forOwner.message.text);
+      logged.push({ channel: "email", recipient: "owner", result: noted(r, forOwner.fallback) });
     }
     if (forCustomer) {
-      const r = await sendEmail("customer", booking.email, forCustomer.subject, forCustomer.text);
-      logged.push({ channel: "email", recipient: "customer", result: r });
+      const r = await sendEmail("customer", booking.email, forCustomer.message.subject, forCustomer.message.text);
+      logged.push({ channel: "email", recipient: "customer", result: noted(r, forCustomer.fallback) });
     }
 
     for (const l of logged) await record(bookingId, kind, l.channel, l.recipient, l.result);
@@ -83,6 +86,17 @@ export async function notify(
  */
 export async function notifyLapsed(ids: string[]): Promise<void> {
   for (const id of ids) await notify("booking.lapsed", id);
+}
+
+/**
+ * The channel's own detail, plus the reason the shop's wording was not used
+ * when it was not. The send still happened in the built-in wording; this is
+ * what makes that findable in comms_log instead of silent.
+ */
+function noted(r: SendResult, fallback: string | null): SendResult {
+  if (!fallback) return r;
+  const note = `built-in wording used, ${fallback}`;
+  return { ...r, detail: r.detail ? `${r.detail} | ${note}` : note };
 }
 
 async function record(
