@@ -16,8 +16,8 @@ export function Footer() {
             <Link href="/" className="inline-block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/brand/logo-on-dark@1x.webp"
-                srcSet="/brand/logo-on-dark@1x.webp 1x, /brand/logo-on-dark@2x.webp 2x"
+                src="/brand/logo-on-dark-1x.webp"
+                srcSet="/brand/logo-on-dark-1x.webp 1x, /brand/logo-on-dark-2x.webp 2x"
                 width={200}
                 height={250}
                 alt={`${SHOP.name}, home`}

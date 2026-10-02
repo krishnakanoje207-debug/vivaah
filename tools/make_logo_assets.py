@@ -7,7 +7,7 @@ off-white ground, plus the generator's sparkle in the bottom-right corner. This
 lifts the ink off the ground (colour-to-alpha, so anti-aliased edges keep their
 true colour instead of a white fringe), drops the corner mark, and writes:
 
-  site/public/brand/logo-on-dark@{1,2}x.webp
+  site/public/brand/logo-on-dark-{1,2}x.webp
                                        lettering in porcelain-50, gold kept,
                                        for the violet-950 footer
   site/public/brand/arch.webp          the gold arch alone, cut at the word's
@@ -103,7 +103,7 @@ print("logo box", box, "word box", word)
 on_dark = color.copy()
 on_dark.paste(PORCELAIN_50, mask=violet.point(lambda v: 255 if v > 0 else 0))
 on_dark = rgba(on_dark, alpha).crop(box)
-for scale, name in ((1, "logo-on-dark@1x.webp"), (2, "logo-on-dark@2x.webp")):
+for scale, name in ((1, "logo-on-dark-1x.webp"), (2, "logo-on-dark-2x.webp")):
     w = 200 * scale
     on_dark.resize((w, round(on_dark.height * w / on_dark.width)), Image.LANCZOS).save(BRAND / name, quality=90)
 print("footer logo aspect", on_dark.width, on_dark.height)
