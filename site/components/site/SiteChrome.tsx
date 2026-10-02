@@ -6,6 +6,7 @@ import { ActionBar } from "@/components/site/ActionBar";
 import { NewStockPopup } from "@/components/site/NewStockPopup";
 import { Analytics } from "@/components/site/Analytics";
 import CookieConsent, { AnalyticsGate } from "@/components/site/CookieConsent";
+import { ANALYTICS_ON } from "@/lib/analytics";
 
 // The storefront Nav/Footer must NOT appear on /admin (it defines its own chrome).
 // Nav/Footer are passed in as already-created elements so Footer stays a server
@@ -47,9 +48,12 @@ export function SiteChrome({
           owner's own traffic and counting it would pollute her own numbers.
 
           AnalyticsGate renders nothing until she says yes, so the beacon
-          physically cannot reach the DOM first. */}
-      {!isAdmin && <CookieConsent />}
-      {!isAdmin && (
+          physically cannot reach the DOM first.
+
+          Both stay down while no beacon token is configured (lib/analytics.ts):
+          with nothing to count, there is nothing to ask about. */}
+      {!isAdmin && ANALYTICS_ON && <CookieConsent />}
+      {!isAdmin && ANALYTICS_ON && (
         <AnalyticsGate>
           <Analytics />
         </AnalyticsGate>

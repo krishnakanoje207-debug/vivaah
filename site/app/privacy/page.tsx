@@ -5,6 +5,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { Ornament } from "@/components/site/Ornament";
 import { Button } from "@/components/ui/Button";
 import { SHOP } from "@/lib/site";
+import { ANALYTICS_ON } from "@/lib/analytics";
 
 /**
  * `/privacy` — what the site does with a customer's details.
@@ -19,6 +20,10 @@ import { SHOP } from "@/lib/site";
  * and 06 names the fourth thing the browser keeps. Cloudflare Web Analytics
  * sets no cookie and does no fingerprinting, which is why 05 still says two
  * cookies and why no fourth company appears in 04.
+ *
+ * REVISED 2 Oct 2026, owner's call: no token, no banner. Until a beacon token
+ * exists nothing is counted, so 04, 05 and 06 say so; each keeps its counting
+ * wording in `coversCounting` for the day the token lands.
  *
  * It is needed because the shop now takes a name, a phone number and sometimes
  * an email through the booking form, keeps them in Neon, and as of 17 September
@@ -49,7 +54,12 @@ export const metadata: Metadata = {
     "What Vivaah Dresses and Suits collects when you book, why we hold it, who else sees it, and what stays on your device.",
 };
 
-const CLAUSES = [
+type Clause = { id: string; n: string; title: string; covers: string; coversCounting?: string };
+
+// `covers` is true while nothing is counted; `coversCounting` replaces it once a
+// beacon token switches page counting on (lib/analytics.ts). Both are kept as
+// literals so scripts/verify-privacy.mjs can read every word either one says.
+const CLAUSES: Clause[] = [
   {
     id: "collect",
     n: "01",
@@ -76,6 +86,8 @@ const CLAUSES = [
     n: "04",
     title: "Who else handles it",
     covers:
+      "Three companies. Neon stores the booking. Cloudflare serves the site and runs the check that tells a person from a bot. Resend sends the emails about your booking, when email is switched on. Nobody else receives your details. The one other thing that reaches outside is the map of the shop on our front page, which is loaded from Google, so opening that page lets Google see that a visit happened.",
+    coversCounting:
       "Three companies. Neon stores the booking. Cloudflare serves the site, runs the check that tells a person from a bot, and counts page views if you have allowed it. Resend sends the emails about your booking, when email is switched on. Nobody else receives your details. The one other thing that reaches outside is the map of the shop on our front page, which is loaded from Google, so opening that page lets Google see that a visit happened.",
   },
   {
@@ -83,6 +95,8 @@ const CLAUSES = [
     n: "05",
     title: "Cookies, and what stays on your device",
     covers:
+      "This site sets two cookies and neither one follows you. One remembers that the shop owner is signed in to her own admin panel. The other is set only if you open your booking with its code and phone number, so the page knows you are allowed to see it. There is no advertising cookie and nothing here is sold to anyone. Nothing on this site counts which pages you open, so there is nothing to ask your permission for.",
+    coversCounting:
       "This site sets two cookies and neither one follows you. One remembers that the shop owner is signed in to her own admin panel. The other is set only if you open your booking with its code and phone number, so the page knows you are allowed to see it. There is no advertising cookie and nothing here is sold to anyone. We also ask, in a panel at the foot of the page, whether we may count which pages get opened. That counting is done by Cloudflare, it sets no cookie of its own and does not try to recognise you or follow you to other sites, and it does not start until you say yes. If you say no, or close the panel without answering, nothing is counted. You can change your answer at any time from Cookie choices in the footer, and switching it off stops the counting from the next page you open.",
   },
   {
@@ -90,6 +104,8 @@ const CLAUSES = [
     n: "06",
     title: "What your browser remembers by itself",
     covers:
+      "Three things. The pieces you have added to your selection, which new arrivals you have already been shown, and whether you have seen the opening animation. All of it is kept by your browser on your own device, is never sent to us, and disappears when you clear your browsing data.",
+    coversCounting:
       "Four things. The pieces you have added to your selection, which new arrivals you have already been shown, whether you have seen the opening animation, and your answer to the counting question above so you are not asked again. All of it is kept by your browser on your own device, is never sent to us, and disappears when you clear your browsing data.",
   },
   {
@@ -145,11 +161,11 @@ export default function PrivacyPage() {
               </div>
               <div className="flex justify-between gap-6 border-b border-ink-900/15 py-3">
                 <dt className="eyebrow">Tracking</dt>
-                <dd className="text-ink-900">Only if you allow it</dd>
+                <dd className="text-ink-900">{ANALYTICS_ON ? "Only if you allow it" : "None"}</dd>
               </div>
               <div className="flex justify-between gap-6 border-b border-ink-900/15 py-3">
                 <dt className="eyebrow">Updated</dt>
-                <dd className="tabular text-ink-900">18 September 2026</dd>
+                <dd className="tabular text-ink-900">2 October 2026</dd>
               </div>
             </dl>
           </div>
@@ -202,7 +218,7 @@ export default function PrivacyPage() {
                   >
                     <p className="tabular text-caption text-gold-700">{c.n}</p>
                     <h2 className="text-h3 text-ink-900">{c.title}</h2>
-                    <p className="max-w-[62ch] text-ink-600">{c.covers}</p>
+                    <p className="max-w-[62ch] text-ink-600">{(ANALYTICS_ON && c.coversCounting) || c.covers}</p>
                   </article>
                 ))}
               </Reveal>

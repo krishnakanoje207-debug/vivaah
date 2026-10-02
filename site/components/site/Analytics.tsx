@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { BEACON_TOKEN } from "@/lib/analytics";
 
 /**
  * Cloudflare Web Analytics — LAUNCH_CHECKLIST item 18.
@@ -42,7 +43,7 @@ import { useEffect } from "react";
  * names it in `connect-src`.
  */
 
-const TOKEN = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN || "";
+const TOKEN = BEACON_TOKEN;
 const SRC = "https://static.cloudflareinsights.com/beacon.min.js";
 
 export function Analytics() {

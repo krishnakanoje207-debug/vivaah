@@ -71,7 +71,10 @@ check(
 // --- claim: four things are kept in the browser -----------------------------
 const EXPECTED_KEYS = ["vivaah.selection.v1", "vivaah:new-stock-seen", "vivaah:preloader-seen", "vivaah:consent"];
 const foundKeys = [...new Set([...all.matchAll(/["'`](vivaah[.:][a-z0-9.:-]+)["'`]/gi)].map((m) => m[1]))].sort();
-const unexpected = foundKeys.filter((k) => !EXPECTED_KEYS.includes(k));
+// Strings shaped like a key that are not browser storage: the HMAC label the
+// reminders cron signs with (lib/cronKey.ts), which never leaves the server.
+const NOT_STORAGE = ["vivaah:cron:reminders"];
+const unexpected = foundKeys.filter((k) => !EXPECTED_KEYS.includes(k) && !NOT_STORAGE.includes(k));
 check(
   unexpected.length === 0,
   "no new browser-storage key has appeared",
@@ -186,7 +189,7 @@ check(
 // --- house style -------------------------------------------------------------
 // Visible copy on this site carries no em dashes (shared contract G.3), and the
 // heritage register is banned (memory: shop-story-facts).
-const clauses = [...privacy.matchAll(/covers:\s*\n?\s*"([^"]+)"/g)].map((m) => m[1]);
+const clauses = [...privacy.matchAll(/covers(?:Counting)?:\s*\n?\s*"([^"]+)"/g)].map((m) => m[1]);
 check(clauses.length >= 8, "every clause is present", `${clauses.length} clauses`);
 check(!clauses.join(" ").includes("—"), "no em dashes in the visible copy");
 const BANNED = ["heritage", "timeless", "age-old", "centuries", "artisan", "legacy"];

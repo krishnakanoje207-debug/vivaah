@@ -100,6 +100,32 @@ console.log(
 );
 
 try {
+  // ---- 0. DARK: no token, so nothing to ask about (owner's call, 2 Oct 2026) ----
+  // lib/analytics.ts keeps the banner, the footer's "Cookie choices" and the
+  // gate itself unmounted until a token exists, and /privacy says nothing is
+  // counted. Sections 1-3 are the consent flow, which only exists with a token.
+  if (!TOKEN) {
+    for (const route of ["/", "/reserve", "/privacy"]) {
+      const v = await open(browser, route);
+      await v.settle();
+      check(!(await panel(v.page).isVisible()), `no consent panel on ${route} while nothing is counted`);
+      check(
+        (await v.page.getByRole("button", { name: /cookie choices/i }).count()) === 0,
+        `no "Cookie choices" control on ${route}`,
+      );
+      check(v.hits.length === 0 && (await v.tag()) === 0, `nothing reaches Cloudflare Analytics from ${route}`, v.hits.join(", "));
+      if (route === "/privacy") {
+        const body = await v.page.locator("main").innerText();
+        check(
+          /Nothing on this site counts which pages you open/.test(body) && !/counts page views if you have allowed it/.test(body),
+          "/privacy says nothing is counted, and not that it asks",
+        );
+      }
+      await v.close();
+    }
+  }
+
+  if (TOKEN) {
   // ---- 1. undecided: she is asked, and nothing is counted while she decides ----
   {
     const v = await open(browser, "/");
@@ -158,15 +184,9 @@ try {
       check(!(await panel(v.page).isVisible()), "and the next page is counted without asking again");
       const blockedAfter = v.violations.filter((x) => /cloudflareinsights/.test(x));
       check(blockedAfter.length === 0, "still no policy violation after the report", blockedAfter.join(" | "));
-    } else {
-      check(tags === 0, "with no token configured, consent grants nothing", `${tags} tag(s)`);
-      check(v.hits.length === 0, "and still nothing is requested", v.hits.join(", "));
-      console.log(
-        "      This is the resting state until the owner supplies a token.\n" +
-          "      Re-run with NEXT_PUBLIC_CF_BEACON_TOKEN in .env.local to exercise the live path."
-      );
     }
     await v.close();
+  }
   }
 
   // ---- 4. the owner's own panel is not a measured surface ----
