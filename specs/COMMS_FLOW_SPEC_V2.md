@@ -65,6 +65,8 @@ rows), or fold the reminder into the owner's morning call list, which she alread
 opens daily. **Do not build E10/E11 on the lazy sweep.** A reminder that arrives
 only if a stranger happens to load the site is worse than no reminder.
 
+*Built 30 Sep 2026 on the first option, a Cloudflare Cron Trigger. §8 is the record.*
+
 ## 3. The ladder, and what of it can actually ship today
 
 v1.0 §1's ladder stands as the design. What is honest about September 2026:
@@ -263,10 +265,75 @@ in code and reviewed there.
 
 **E10 and E11 (the two reminders) are NOT built**, for the architectural reason
 §2 gives: they need a clock, and the lazy sweep is not one. Nothing here changes
-that.
+that. *(Superseded 30 Sep 2026: built on a Cron Trigger, see §8.)*
 
 **Everything is still dark.** Every channel reports `skipped: not_configured`
 until the owner supplies what §6 lists. That is the designed resting state, not
 a failure, and it is what the gates assert against today. The first real send
 will be an owner alert on the day a Resend key exists; customer mail waits on a
 domain.
+
+## 8. E10 and E11, built (30 September 2026)
+
+**The clock is a Cloudflare Cron Trigger**, the first of §2's two options, at
+`30 3 * * *`: 03:30 UTC is 09:00 IST, the hour v1.0 set. It costs one Neon wake a
+day. What §2 ruled out was an hourly schedule that kept a free database awake to
+find nothing, and once a day is not that. The second option, folding reminders
+into the owner's call list, was not taken: it would tell the shop, not her, and
+E10/E11 are hers.
+
+**The shape.** `site/custom-worker.ts` is now the Worker's `main`. It passes
+`fetch` straight through to what `opennextjs-cloudflare build` generates and adds
+a `scheduled` handler, which is OpenNext's documented way to add a handler it does
+not provide. That handler calls the Next server in-process (no request leaves the
+Worker) at `POST /api/cron/reminders`, which runs `sendReminders()` in
+`site/lib/reminders.ts` and raises each reminder through the same `notify()` as
+every other event. So the reminders inherit everything the layer already does:
+the ladder, skip-and-log, never throwing at the caller.
+
+**The key.** The route answers 404, the same as a route that does not exist, to
+anything not carrying a key derived from `SESSION_SECRET` (`site/lib/cronKey.ts`,
+an HMAC under its own label). Deriving it means shipping this needs no new secret,
+and it hands out nothing new: whoever holds `SESSION_SECRET` can already mint an
+admin session.
+
+**Who is reminded.**
+- E10: `confirmed` bookings whose pickup day is today. A pending request is not a
+  booking yet, and its own lapse mail tells her if it dies. A one-day retail
+  collection is included; the shop also rings her two hours ahead (RETAIL_SPEC R2).
+- E11: `confirmed` or `picked_up` bookings whose return day is today and that hold
+  something rented. Jewellery is rented, so it counts; a retail piece in the same
+  basket was bought, so the message leaves it out. `confirmed` counts because the
+  shop not having marked the pickup in the panel is no reason to stay quiet.
+- Customer only. The owner column in §2 is empty for both, and stays so.
+
+**Idempotent through `comms_log`.** A booking that already has a row for the event
+is not reminded again, so a second firing on the same day sends nothing (Cron
+Triggers do not promise exactly once). A skipped send counts as the attempt, on
+purpose: the reminder is for that morning, and nothing later in the day is worth
+retrying for.
+
+**The copy** is in `lib/comms/messages.ts` beside every other message. Neither
+reminder has the raw status token, which exists only at creation, so the link asks
+her for the code and phone, the same as a confirmation.
+
+**Gate: `cd site && npx tsx --env-file=.env.local scripts/verify-reminders.mts`
+(17/17)**, against a running site. It writes throwaway products and eight bookings
+on a Wednesday about eleven weeks out, calls the route with that `day` (the route
+takes one only so a gate against the live database can use a day no real booking
+holds; the cron never sends it), and checks: 404 without the key and with a wrong
+one; E10 reaches the rental and the collection but not the pending, the cancelled
+or the already-reminded booking; E11 reaches the rental, the mixed basket and the
+jewellery but not the collection; one `comms_log` row per reminder, customer only;
+a second firing sends nothing; and the copy names what goes back and not what was
+bought. **Proved to bite:** with the same-day check and the jewellery rule each
+broken, it fails on exactly those four checks and no others.
+
+**Verified inside the built Worker (2 October 2026),** `opennextjs-cloudflare build`
+then `wrangler dev --test-scheduled`: verify-reminders 17/17 with
+`BASE=http://localhost:8787`; a real `/__scheduled` fire ran clean (no real
+booking held that day, checked first, so it touched nothing); and with the key
+deliberately broken in `custom-worker.ts` the route answered 404 and the handler
+threw, so a failed run shows as failed in the dashboard's cron history. Every
+public route answered as before through the wrapper, and verify-csp passed 98/98
+against it. **Not yet seen firing in production**: that needs a deploy.

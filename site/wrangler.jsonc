@@ -1,7 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "main": ".open-next/worker.js",
+  // Wraps .open-next/worker.js to add the reminders cron (see the file).
+  "main": "custom-worker.ts",
   "name": "vivaah",
+  // 03:30 UTC is 09:00 IST, the hour COMMS_FLOW_SPEC v1.0 set for reminders.
+  "triggers": {
+    "crons": ["30 3 * * *"]
+  },
   "compatibility_date": "2025-03-25",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
