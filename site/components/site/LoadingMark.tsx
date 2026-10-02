@@ -33,6 +33,16 @@ export function LoadingMark() {
   return (
     <div aria-hidden="true" className="vv-mark inline-flex flex-col leading-none">
       <span className="relative block">
+        {/* The arch from the owner's logo (2 Oct 2026), standing over the
+            name the way it does in the logo: the word spans the arch's full
+            width and sits on the foot of its columns (tools/make_logo_assets.py
+            cuts it there). Out of flow, so the box the Preloader measures and
+            flies to the nav is still the name alone; the Preloader fades the
+            wrapper as the flight begins. It rises with the name's draw. */}
+        <span className="vv-arch-wrap pointer-events-none absolute inset-x-0 bottom-[0.21em] block text-[clamp(2.75rem,9vw,5rem)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/arch.webp" alt="" width={560} height={454} className="vv-arch block h-auto w-full" />
+        </span>
         {/* The fill sits in flow and sets the box; the outline lies exactly
             over it and is what gets drawn. */}
         <span

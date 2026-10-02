@@ -497,6 +497,11 @@ main:has(.hero-frame) > section:nth-of-type(n + 2) {
     animation: vv-mark-draw 700ms cubic-bezier(0.45, 0, 0.55, 1) both;
     animation-delay: var(--vv-mark-at, 0ms);
   }
+  /* The logo's arch rises from the name's baseline as the name is drawn. */
+  .vv-arch {
+    animation: vv-arch-draw 700ms cubic-bezier(0.45, 0, 0.55, 1) both;
+    animation-delay: var(--vv-mark-at, 0ms);
+  }
   .vv-mark-fill,
   .vv-mark-lockup {
     animation: vv-mark-fill 320ms ease-out both;
@@ -513,6 +518,14 @@ main:has(.hero-frame) > section:nth-of-type(n + 2) {
 @keyframes vv-mark-draw {
   from {
     clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes vv-arch-draw {
+  from {
+    clip-path: inset(100% 0 0 0);
   }
   to {
     clip-path: inset(0 0 0 0);

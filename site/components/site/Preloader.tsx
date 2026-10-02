@@ -35,7 +35,8 @@ import { LoadingMark } from "@/components/site/LoadingMark";
  * it again.
  *
  * The interim wordmark is still real Bodoni Moda text wiped by `clip-path`
- * (§7.2). When the logo SVG lands, swap LoadingMark for the literal §3.4
+ * (§7.2). The owner's logo arrived 2 Oct 2026 as a raster, not an SVG; its
+ * arch now stands over this name (LoadingMark). Should an SVG land, the §3.4
  * technique and both screens follow.
  */
 
@@ -141,6 +142,9 @@ export function Preloader({ nonce }: { nonce?: string }) {
         },
       });
       tl.to(stitch, { opacity: 0, duration: 0.2, ease: "power2.out" }, 0);
+      // The logo's arch stays behind: only the name goes up to the nav.
+      const arch = mark.querySelector(".vv-arch-wrap");
+      if (arch) tl.to(arch, { opacity: 0, duration: 0.2, ease: "power2.out" }, 0);
       if (slot) {
         const to = slot.getBoundingClientRect();
         tl.to(

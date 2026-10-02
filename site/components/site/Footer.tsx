@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { NAV_LINKS, SHOP } from "@/lib/site";
-import { Brand } from "@/components/site/Brand";
 import { CookieChoicesButton } from "@/components/site/CookieChoicesButton";
 import { ANALYTICS_ON } from "@/lib/analytics";
 
@@ -11,7 +10,22 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1.2fr]">
           {/* Brand */}
           <div>
-            <Brand tone="light-on-dark" />
+            {/* The owner's full logo (2 Oct 2026), lettering in porcelain for
+                this ground. The nav keeps the text lockup: at 28px tall the
+                logo's word would be about 5px. */}
+            <Link href="/" className="inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/logo-on-dark@1x.webp"
+                srcSet="/brand/logo-on-dark@1x.webp 1x, /brand/logo-on-dark@2x.webp 2x"
+                width={200}
+                height={250}
+                alt={`${SHOP.name}, home`}
+                loading="lazy"
+                decoding="async"
+                className="block h-auto w-40 md:w-44"
+              />
+            </Link>
             <p className="mt-4 max-w-xs text-[0.9375rem] leading-relaxed">{SHOP.tagline}</p>
           </div>
 
