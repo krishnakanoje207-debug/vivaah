@@ -26,8 +26,8 @@ const CARD_SIZES = "(min-width: 1024px) 24vw, (min-width: 640px) 38vw, 60vw";
  * So this says exactly that, and says it in the shop's own voice. It does NOT
  * invent a garment: no made-up name, no made-up price, no stock photo dressed
  * up as inventory. The site's standing rule is that a visible placeholder is
- * honest and an invented sentence is not (see the `TODO(owner)` pair still on
- * the home page), and a fake product card would be the most expensive possible
+ * honest and an invented sentence is not (the owner's facts on the home page
+ * stay hidden until she gives them), and a fake product card would be the most expensive possible
  * violation of it — a renter would arrive asking for a piece that never existed.
  *
  * The device: the category's own photograph sits under a porcelain scrim, and

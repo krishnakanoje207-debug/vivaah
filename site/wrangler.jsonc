@@ -9,6 +9,15 @@
   },
   "compatibility_date": "2025-03-25",
   "compatibility_flags": ["nodejs_compat"],
+  // The shop's details as the owner saves them in Settings, mirrored out of
+  // Neon so the footer on every route can read them without waking the
+  // database (lib/shopInfo.ts). Free tier.
+  "kv_namespaces": [
+    {
+      "binding": "SHOP_KV",
+      "id": "9890c7e316a94d52bdfadb67bde0d58b"
+    }
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"

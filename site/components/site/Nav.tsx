@@ -9,6 +9,11 @@ import { Brand } from "@/components/site/Brand";
 
 const NAV_H = 64;
 
+// The EN | हिं switch waits for Phase 4's Hindi copy. Shown before then, its
+// हिं half looked like a working button and did nothing, so it is hidden until
+// it works (2 Oct 2026). Flip this when the Hindi pages exist.
+const HINDI_READY = false;
+
 export function Nav() {
   const [open, setOpen] = useState(false);
   // tone: "dark" (violet-950) | "light" (stage/porcelain) | null (not transparent)
@@ -81,9 +86,11 @@ export function Nav() {
           {/* Between md and lg the bar is too narrow for the dormant language
               toggle as well: "Reserve online" wrapped onto two lines at 768. */}
           <div className="hidden md:flex items-center gap-4 whitespace-nowrap">
-            <span className="hidden lg:inline-flex">
-              <LangToggle overDark={overDark} />
-            </span>
+            {HINDI_READY && (
+              <span className="hidden lg:inline-flex">
+                <LangToggle overDark={overDark} />
+              </span>
+            )}
             <Button href="/rentals#collection" variant={overDark ? "ghost-dark" : "ghost"}>
               Reserve online
             </Button>
@@ -118,7 +125,7 @@ export function Nav() {
               </li>
             ))}
             <li className="pt-3 flex items-center justify-between">
-              <LangToggle overDark={false} />
+              {HINDI_READY && <LangToggle overDark={false} />}
               <Button href="/rentals#collection" variant="ghost">
                 Reserve online
               </Button>

@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/requireAdmin";
 import { revokeAllSessions } from "@/lib/adminSessions";
 import { SESSION_COOKIE } from "@/lib/adminAuth";
 import { isTime, type PickupHours } from "@/lib/bookingRules";
+import { mirror } from "@/lib/shopInfo";
 
 export type SettingsState = {
   ok?: boolean;
@@ -97,45 +98,95 @@ export async function saveBookingRules(
   return { ok: true };
 }
 
-// --- Shop info: merge so lat/lng (untouched here) survive --------------------
+// --- Shop details: what customers read about the shop -----------------------
+// Every field here reaches a page (lib/shopInfo.ts says which and how). An empty
+// field means "not given": the address, map link and hours fall back to the
+// built-in values and every other row is hidden rather than printed as a gap.
+
+// The longest each may be, so a paste cannot break a layout built for a line.
+const SHOP_TEXT: Record<string, { label: string; max: number }> = {
+  address: { label: "The address", max: 200 },
+  hours: { label: "The hours", max: 100 },
+  town: { label: "The town", max: 80 },
+  getting_here: { label: "Getting here", max: 400 },
+  why_back: { label: "Why people come back", max: 300 },
+  retention: { label: "How long a booking is kept", max: 80 },
+};
+
 export async function saveShop(_prev: SettingsState, form: FormData): Promise<SettingsState> {
   await requireAdmin();
-  const patch = {
-    name: String(form.get("name") ?? "").trim(),
-    address: String(form.get("address") ?? "").trim(),
-    maps_url: String(form.get("maps_url") ?? "").trim(),
-    hours: String(form.get("hours") ?? "").trim(),
-    phone: String(form.get("phone") ?? "").trim(),
-  };
-  if (patch.name === "") {
-    return { fieldErrors: { name: "Shop name is required." } };
-  }
-  // The map link lands in an href on /visit, so anything that is not an https
-  // URL is refused rather than stored.
-  if (patch.maps_url !== "" && !patch.maps_url.startsWith("https://")) {
-    return { fieldErrors: { maps_url: "Must be an https:// link." } };
+  const errors: Record<string, string> = {};
+  const patch: Record<string, string | number | null> = {};
+
+  for (const [name, { label, max }] of Object.entries(SHOP_TEXT)) {
+    const v = String(form.get(name) ?? "").replace(/\s+/g, " ").trim();
+    if (v.length > max) errors[name] = `${label} has to be under ${max} characters.`;
+    // The site's copy never uses long dashes (house style), and this is copy.
+    else if (v.includes("—")) errors[name] = "The site does not use long dashes. Use a comma or a full stop instead.";
+    patch[name] = v;
   }
 
-  // `||` merges top-level keys; lat/lng absent from the patch are preserved.
-  await sql`
+  // The map link lands in an href on several pages, so anything that is not an
+  // https URL is refused rather than stored.
+  const maps = String(form.get("maps_url") ?? "").trim();
+  if (maps !== "" && !/^https:\/\/\S+$/.test(maps)) errors.maps_url = "Paste the whole link, starting https://";
+  patch.maps_url = maps;
+
+  // Empty means the built-in market figure; otherwise whole rupees.
+  const rawPrice = String(form.get("purchase_price") ?? "").replace(/[,\s₹]/g, "");
+  if (rawPrice === "") patch.purchase_price = null;
+  else if (!/^\d+$/.test(rawPrice) || +rawPrice < 1000 || +rawPrice > 10_000_000) {
+    errors.purchase_price = "Give the price in whole rupees, between 1,000 and 1,00,00,000.";
+  } else patch.purchase_price = Number.parseInt(rawPrice, 10);
+
+  if (Object.keys(errors).length > 0) return { fieldErrors: errors };
+
+  // `||` merges top-level keys, so lat/lng and anything else stored survive.
+  const rows = await sql<{ value: Record<string, unknown> }>`
     update settings set value = value || ${JSON.stringify(patch)}::jsonb
     where key = 'shop_info'
+    returning value
   `;
+  if (rows[0]) await mirror(rows[0].value);
   revalidatePath("/admin/settings");
   return { ok: true };
 }
 
-// --- Charges copy (EN + HI) --------------------------------------------------
-export async function saveCharges(_prev: SettingsState, form: FormData): Promise<SettingsState> {
+// --- Rental terms: /policies in the shop's own words --------------------------
+// Replaced the "Charges copy" form, which saved text no page ever showed. Kept
+// beside the shop details in `shop_info` so /policies reads them from the same
+// KV copy and still touches no database.
+const TERMS_FIELDS: Record<string, string> = {
+  terms_extensions: "Extensions",
+  terms_damage: "Damage and care",
+  terms_pickup: "Pickup and return",
+  terms_charges: "Charges",
+};
+const TERMS_MAX = 1200;
+
+export async function saveTerms(_prev: SettingsState, form: FormData): Promise<SettingsState> {
   await requireAdmin();
-  const patch = {
-    en: String(form.get("en") ?? ""),
-    hi: String(form.get("hi") ?? ""),
-  };
-  await sql`
+  const errors: Record<string, string> = {};
+  const patch: Record<string, string> = {};
+  for (const [name, label] of Object.entries(TERMS_FIELDS)) {
+    // Paragraph breaks are kept; runs of spaces inside a line are not.
+    const v = String(form.get(name) ?? "")
+      .replace(/\r\n?/g, "\n")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    if (v.length > TERMS_MAX) errors[name] = `${label} has to be under ${TERMS_MAX} characters.`;
+    else if (v.includes("—")) errors[name] = "The site does not use long dashes. Use a comma or a full stop instead.";
+    patch[name] = v;
+  }
+  if (Object.keys(errors).length > 0) return { fieldErrors: errors };
+
+  const rows = await sql<{ value: Record<string, unknown> }>`
     update settings set value = value || ${JSON.stringify(patch)}::jsonb
-    where key = 'charges_copy'
+    where key = 'shop_info'
+    returning value
   `;
+  if (rows[0]) await mirror(rows[0].value);
   revalidatePath("/admin/settings");
   return { ok: true };
 }

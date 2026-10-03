@@ -368,8 +368,22 @@ const line = (items: CommsBooking["items"]) =>
 
 const at = (b: CommsBooking) => (b.time ? ` at ${formatTime(b.time)}` : "");
 
+/**
+ * Where the shop is and when it is open, as the owner set them in Settings.
+ * `notify` passes `getShop()`; the defaults are the built-in values, which is
+ * what the byte-for-byte gate compares against.
+ */
+export type Place = { address: string; mapsUrl: string; hours: string };
+const BUILT_IN_PLACE: Place = { address: SHOP.address, mapsUrl: SHOP.mapsUrl, hours: SHOP.hours };
+
 /** Everything a placeholder can say about this booking, for this message. */
-export function fill(who: Recipient, kind: EventKind, b: CommsBooking, extra: Extra = {}): Record<Placeholder, string> {
+export function fill(
+  who: Recipient,
+  kind: EventKind,
+  b: CommsBooking,
+  extra: Extra = {},
+  place: Place = BUILT_IN_PLACE
+): Record<Placeholder, string> {
   const { token, reason, newReturn } = extra;
   // Only what goes back: outfits and jewellery are rented, a retail piece in the
   // same basket was bought.
@@ -411,9 +425,9 @@ export function fill(who: Recipient, kind: EventKind, b: CommsBooking, extra: Ex
     admin_link: `${SITE_URL}/admin/bookings`,
     shop_name: SHOP.name,
     shop_phone: SHOP.phone,
-    shop_address: SHOP.address,
-    shop_maps: SHOP.mapsUrl,
-    shop_hours: SHOP.hours,
+    shop_address: place.address,
+    shop_maps: place.mapsUrl,
+    shop_hours: place.hours,
   };
 }
 
@@ -565,11 +579,12 @@ export function compose(
   kind: EventKind,
   b: CommsBooking,
   extra: Extra,
-  stored: Stored
+  stored: Stored,
+  place?: Place
 ): { message: Message; fallback: string | null } | null {
   const slot = slotFor(who, kind);
   if (!slot) return null;
-  const values = fill(who, kind, b, extra);
+  const values = fill(who, kind, b, extra, place);
   const builtIn = (why: string | null) => ({ message: render(slot.builtIn, values), fallback: why });
 
   if ("error" in stored) return builtIn(`template read failed (${stored.error})`);

@@ -10,7 +10,8 @@ import { sql } from "@/lib/db";
 import { hasRealPhone } from "@/lib/enquiry";
 import { formatINR } from "@/lib/format";
 import { RENTAL_CATEGORIES, RETAIL_CATEGORIES } from "@/lib/categories";
-import { SHOP, hasRealAddress } from "@/lib/site";
+import { SHOP } from "@/lib/site";
+import { getShop } from "@/lib/shopInfo";
 import { jewelleryImage } from "@/app/jewellery/images";
 import { LookupForm } from "./LookupForm";
 import { CancelBooking } from "./CancelBooking";
@@ -172,6 +173,7 @@ export default async function BookingPage({
   params: Promise<{ code: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const shop = await getShop();
   const code = (await params).code.toUpperCase();
   const { k } = await searchParams;
   const cookie = (await cookies()).get(accessCookieName(code))?.value;
@@ -427,14 +429,14 @@ export default async function BookingPage({
 
             <dl className="border-t border-porcelain-50/20 pt-8">
               <dt className="eyebrow">Hours</dt>
-              <dd className="tabular mt-3 font-display text-h3 text-porcelain-50">{SHOP.hours}</dd>
-              {hasRealAddress() && (
+              <dd className="tabular mt-3 font-display text-h3 text-porcelain-50">{shop.hours}</dd>
+              {shop.realAddress && (
                 <>
                   <dt className="eyebrow mt-8">Address</dt>
-                  <dd className="mt-3 max-w-[26ch] font-display text-h3 text-porcelain-50">{SHOP.address}</dd>
+                  <dd className="mt-3 max-w-[26ch] font-display text-h3 text-porcelain-50">{shop.address}</dd>
                   <dd className="mt-3">
                     <a
-                      href={SHOP.mapsUrl}
+                      href={shop.mapsUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="text-caption text-gold-500 underline-offset-4 hover:underline"
@@ -444,7 +446,7 @@ export default async function BookingPage({
                   </dd>
                 </>
               )}
-              {!hasRealAddress() && (
+              {!shop.realAddress && (
                 <dd className="mt-3">
                   <Link href="/visit" className="text-caption text-gold-500 underline-offset-4 hover:underline">
                     How to find us

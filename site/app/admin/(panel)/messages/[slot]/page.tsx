@@ -4,6 +4,7 @@ import { getBookingSettings } from "@/lib/booking";
 import { todayIST } from "@/lib/bookingRules";
 import { isTemplate, overrideProblem } from "@/lib/comms/messages";
 import { readTemplates } from "@/lib/comms/templates";
+import { getShop } from "@/lib/shopInfo";
 import { slotBySlug } from "../slug";
 import { samples } from "../samples";
 import { TemplateEditor } from "../TemplateEditor";
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function EditMessagePage({ params }: { params: Promise<{ slot: string }> }) {
   const slot = slotBySlug((await params).slot);
   if (!slot) notFound();
-  const [stored, rules] = await Promise.all([readTemplates(), getBookingSettings()]);
+  const [stored, rules, shop] = await Promise.all([readTemplates(), getBookingSettings(), getShop()]);
 
   const own = stored[slot.id];
   const problem = own === undefined ? null : overrideProblem(own, slot);
@@ -45,6 +46,7 @@ export default async function EditMessagePage({ params }: { params: Promise<{ sl
         initial={initial}
         saved={own !== undefined}
         samples={samples(todayIST(), rules.expiryMinutes)}
+        place={{ address: shop.address, mapsUrl: shop.mapsUrl, hours: shop.hours }}
       />
     </div>
   );

@@ -5,6 +5,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { Ornament } from "@/components/site/Ornament";
 import { Button } from "@/components/ui/Button";
 import { SHOP } from "@/lib/site";
+import { getShop } from "@/lib/shopInfo";
 
 /**
  * `/policies` — the rental terms.
@@ -54,7 +55,9 @@ export const metadata: Metadata = {
 // `covers` is the old `d` string verbatim, `title` the old `t` with "&" set as
 // "and". 01 states the booking rules (15 Sep 2026). Its "6 hours" mirrors the
 // `cancel_cutoff_hours` setting; this page is prerendered, so change both.
-const TERMS = [
+type Term = { id: string; n: string; title: string; covers: string };
+
+const TERMS: Term[] = [
   {
     id: "booking",
     n: "01",
@@ -85,6 +88,19 @@ const TERMS = [
   },
 ];
 
+// The terms as the owner wrote them in Settings (lib/shopInfo.ts). A clause she
+// has written replaces what it "will cover"; one she has not keeps it. Charges
+// is a fifth clause that exists only once written. Returns whether 02-04 are
+// all hers, which is when the page stops saying the terms are being set.
+function termsFor(own: { extensions: string; damage: string; pickup: string; charges: string }) {
+  const terms = TERMS.map((t) => {
+    const mine = own[t.id as keyof typeof own];
+    return mine ? { ...t, covers: mine } : t;
+  });
+  if (own.charges) terms.push({ id: "charges", n: "05", title: "Charges", covers: own.charges });
+  return { terms, settled: Boolean(own.extensions && own.damage && own.pickup) };
+}
+
 // The row template is shared by the ledger's head and every clause, so the three
 // columns line up down the whole document.
 //
@@ -98,7 +114,9 @@ const LEDGER =
   "md:grid-cols-[minmax(0,4rem)_minmax(0,20rem)_1fr] md:gap-10 " +
   "2xl:grid-cols-[minmax(0,3rem)_minmax(0,15rem)_minmax(0,1fr)] 2xl:gap-8";
 
-export default function PoliciesPage() {
+export default async function PoliciesPage() {
+  const shop = await getShop();
+  const { terms, settled } = termsFor(shop.terms);
   return (
     <>
       {/* ---------- Masthead ------------------------------------------------
@@ -126,8 +144,9 @@ export default function PoliciesPage() {
                 </RippleHeading>
               </div>
               <p className="mt-8 max-w-[58ch] text-ink-600 2xl:mt-0">
-                The details behind every booking, kept plain and fair. How booking works
-                is set; the other parts will be filled in once the shop confirms them.
+                The details behind every booking, kept plain and fair.
+                {!settled &&
+                  " How booking works is set; the other parts will be filled in once the shop confirms them."}
               </p>
             </div>
 
@@ -138,7 +157,7 @@ export default function PoliciesPage() {
               </div>
               <div className="flex justify-between gap-6 border-b border-ink-900/15 py-3">
                 <dt className="eyebrow">Status</dt>
-                <dd className="text-ink-900">Being finalised</dd>
+                <dd className="text-ink-900">{settled ? "Set by the shop" : "Being finalised"}</dd>
               </div>
               <div className="flex justify-between gap-6 border-b border-ink-900/15 py-3">
                 <dt className="eyebrow">Languages</dt>
@@ -167,7 +186,7 @@ export default function PoliciesPage() {
             <nav aria-label="The terms" className="lg:sticky lg:top-24 lg:self-start">
               <p className="eyebrow">Contents</p>
               <ol className="mt-5 border-t border-ink-900/15">
-                {TERMS.map((t) => (
+                {terms.map((t) => (
                   <li key={t.id} className="border-b border-ink-900/15">
                     <a
                       href={`#${t.id}`}
@@ -200,7 +219,7 @@ export default function PoliciesPage() {
                   track so the text fills what it is ruled against, and the
                   document is half as tall. Reading order is unchanged. */}
               <Reveal className="2xl:grid 2xl:grid-cols-2 2xl:gap-x-16 2xl:border-t 2xl:border-ink-900/25">
-                {TERMS.map((t) => (
+                {terms.map((t) => (
                   <article
                     key={t.id}
                     id={t.id}
@@ -209,7 +228,14 @@ export default function PoliciesPage() {
                   >
                     <p className="tabular text-caption text-gold-700">{t.n}</p>
                     <h2 className="text-h3 text-ink-900">{t.title}</h2>
-                    <p className="max-w-[62ch] text-ink-600">{t.covers}</p>
+                    {/* A blank line in what she wrote is a new paragraph. */}
+                    <div className="flex max-w-[62ch] flex-col gap-3 text-ink-600">
+                      {t.covers.split(/\n{2,}/).map((para, i) => (
+                        <p key={i} className="whitespace-pre-line">
+                          {para}
+                        </p>
+                      ))}
+                    </div>
                   </article>
                 ))}
               </Reveal>
@@ -240,14 +266,14 @@ export default function PoliciesPage() {
             <div className="2xl:grid 2xl:grid-cols-[minmax(0,1fr)_minmax(0,38ch)] 2xl:gap-16">
               <div>
                 <RippleHeading className="max-w-[18ch] text-h2 text-porcelain-50 2xl:max-w-[26ch]">
-                  Full terms are being set by the shop.
+                  {settled ? "Ask before you book." : "Full terms are being set by the shop."}
                 </RippleHeading>
               </div>
               <div>
                 <p className="mt-8 max-w-[62ch] text-violet-300 2xl:mt-0">
-                  Full terms are being set by the shop through its admin panel, and will
-                  appear here in both English and Hindi. Until then, our team will walk you
-                  through everything in person or over the phone.
+                  {settled
+                    ? "If anything here is unclear, our team will walk you through it in person or over the phone before you book."
+                    : "Full terms are being set by the shop through its admin panel, and will appear here in both English and Hindi. Until then, our team will walk you through everything in person or over the phone."}
                 </p>
                 <div className="mt-10 flex flex-wrap gap-4">
                   <Button href="/visit" variant="primary-dark">
@@ -263,8 +289,8 @@ export default function PoliciesPage() {
             <dl className="border-t border-porcelain-50/20 text-caption">
               <div className="border-b border-porcelain-50/20 py-4">
                 <dt className="eyebrow">Ask in person</dt>
-                <dd className="mt-2 text-porcelain-50">{SHOP.address}</dd>
-                <dd className="tabular mt-1 text-violet-300">{SHOP.hours}</dd>
+                <dd className="mt-2 text-porcelain-50">{shop.address}</dd>
+                <dd className="tabular mt-1 text-violet-300">{shop.hours}</dd>
               </div>
               <div className="border-b border-porcelain-50/20 py-4">
                 <dt className="eyebrow">Ask by phone</dt>

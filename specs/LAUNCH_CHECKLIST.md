@@ -10,6 +10,8 @@ Status at audit (14 Sep, revised): **11 done, 4 partial, 4 not started, 1 blocke
 
 Status 17 Sep, after the pre-launch pass: **15 done, 1 correctly deferred, 1 not started, 1 blocked on the owner.** What is left is item 18 (analytics, which needs the owner to choose a provider) and item 19 (her real shop address; the phone now renders a real number).
 
+Status 2 Oct, after the logo landed and the shop details became editable: **19 done, 1 waiting on the owner to type her address into Settings** (item 19). Item 18 still rests dark until a beacon token exists, and the cookie banner stays down with it.
+
 Status 18 Sep, after the owner chose Cloudflare Web Analytics: **18 done, 2 blocked on the owner.** Items 17 and 18 closed together, because neither one closes alone. The two that remain are not work: item 6 (the favicon set) waits on the logo file, and item 19 waits on her real address. Item 18's code is finished and **rests dark until she supplies a beacon token** from her Cloudflare dashboard, the same way the comms channels rest at `skipped: not_configured`.
 
 | # | Item | Status | Where it stands |
@@ -19,7 +21,7 @@ Status 18 Sep, after the owner chose Cloudflare Web Analytics: **18 done, 2 bloc
 | 3 | Meta title per page | **Done** | 14 Sep: the two double-suffixed titles fixed; 404 titled. |
 | 4 | Meta description per page | **Done** | 14 Sep: jewellery, visit, policies and every product now describe themselves; the product's is built from its own row. |
 | 5 | Open Graph image | **Done** | 14 Sep: `metadataBase` + og/twitter tags sitewide, 1200x630 JPEG card; products use their own front frame. |
-| 6 | Favicon set | **Partial** | `favicon.ico` only; no `icon.png`, `apple-icon`, or manifest. Blocked with the logo. See P3.1. |
+| 6 | Favicon set | **Done** | 2 Oct: the owner's logo landed. `tools/make_logo_assets.py` writes `favicon.ico` (16/32/48), `apple-icon.png` (180) and `brand/icon-{192,512}.png` for `app/manifest.ts`, all the logo's arch in gold on violet-950. |
 | 7 | robots.txt | **Done** | 14 Sep: `app/robots.ts`, disallows `/admin`, points at the sitemap. |
 | 8 | sitemap.xml | **Done** | 14 Sep: `app/sitemap.ts`, six static routes plus every slug from `getRentals()`. |
 | 9 | Alt text on every image | **Done** | 17 Sep: audited every `<img>` in `app/` and `components/` by tag rather than by line. 47 images, 20 decorative, and all 20 now pair `alt=""` with `aria-hidden="true"`. The "16" in the original count was a line-based grep missing the attribute on the following line; one real offender remained, a thumbnail in `PieceStage`, and it is fixed. |
@@ -32,7 +34,7 @@ Status 18 Sep, after the owner chose Cloudflare Web Analytics: **18 done, 2 bloc
 | 16 | Terms page | **Done** | `/policies` — booking and pre-payment, extensions, damage and care, pickup and return. |
 | 17 | Cookie banner | **Done** | 18 Sep: mounted in `SiteChrome`, in the same change that installed analytics, which is the order this row and item 18 always implied. It is deliberately NOT subject to the rule that stands `ActionBar` and `NewStockPopup` down on `/reserve` and `/booking`: those are optional chrome, and consent is neither optional nor deferrable, so a visitor who lands straight on the booking form is asked too. It stays off `/admin`. A withdrawal path was added with it (`CookieChoicesButton`, in the footer), because `openCookieConsent()` had been exported for four days with no caller, which meant a stored yes could not be undone without clearing site data. The panel's "Privacy policy" link pointed at `/policies` from the day it was written and was never revisited because nothing rendered it; it points at `/privacy` now. |
 | 18 | Analytics installed | **Done, dark until the token lands** | 18 Sep: Cloudflare Web Analytics, on the owner's choice. `components/site/Analytics.tsx`, mounted inside `AnalyticsGate` so the beacon cannot reach the DOM before consent. Cookieless, so `/privacy` still names two cookies, and it adds no fourth company to clause 04 since Cloudflare already serves the site and runs the bot check. Nothing is counted until the owner pastes a beacon token into `NEXT_PUBLIC_CF_BEACON_TOKEN` and the site is rebuilt. See P2.4 for the build record. |
-| 19 | Real contact address | **Blocked on owner** | `TODO(owner)`; `/` renders "Shop address, City" and "+91 00000 00000". See P3.2. |
+| 19 | Real contact address | **Owner-editable** | 2 Oct: Settings → Shop details (`lib/shopInfo.ts`, Neon + a KV copy). The address, map link, hours, town, landmark, "why people come back", the purchase figure and the retention period all reach the pages that show them; unset rows are hidden, and site-audit now fails any page that prints `TODO(owner)`. The rental terms on `/policies` are hers to write the same way (Settings → Rental terms, which replaced the "Charges copy" form: it saved text no page ever showed, and its row was empty); a clause she has not written keeps saying what it will cover. Waits only on her typing it in. |
 | 20 | Compressed images | **Done** | 14 Sep: hero 2137 KB -> 124 KB, 18 category JPEGs -> WebP, `fetchPriority` on the LCP image. |
 
 ---
@@ -235,11 +237,11 @@ rewrite of the same three clauses, and it is hers to make, not ours.
 
 ## P3 — blocked on the owner
 
-**P3.1 — Favicon set.** Waits on the logo file for `site/public/brand/`. When it
+**P3.1 — Favicon set. DONE 2 Oct (see item 6).** Waited on the logo file for `site/public/brand/`. When it
 lands: `icon.png` at 32 and 192, `apple-icon.png` at 180, and a manifest. The
 preloader's interim drawn wordmark is replaced in the same pass.
 
-**P3.2 — Real contact address.** Already tracked in CLAUDE.md. Worth noting one
+**P3.2 — Real contact address. Editable in Settings from 2 Oct (see item 19); the map embed renders once an address is saved.** Already tracked in CLAUDE.md. Worth noting one
 consequence found in this audit that is not obvious from the TODO: the map on the
 front door embeds `?q=Vivaah+Dresses+and+Suits`, which resolves to nothing, so the
 close of the home page is a 590×442 empty grey rectangle. Until the address

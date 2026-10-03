@@ -15,7 +15,7 @@ true colour instead of a white fringe), drops the corner mark, and writes:
                                        loading mark (LoadingMark.tsx)
   site/public/og/og-default.jpg        1200x630 link card: the garden photo
                                        beside the logo on porcelain
-  site/app/favicon.ico, site/app/apple-icon.png
+  site/app/favicon.ico, site/app/apple-icon.png, site/public/brand/icon-{192,512}.png
                                        the arch's silhouette in gold on
                                        violet-950
 
@@ -169,5 +169,9 @@ def icon(size, radius_frac=0.22):
 
 icon(256).save(ROOT / "site" / "app" / "favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
 icon(180, radius_frac=0).save(ROOT / "site" / "app" / "apple-icon.png")
+# The web app manifest's icons (app/manifest.ts). Square, no corner radius: the
+# phone applies its own mask.
+for size in (192, 512):
+    icon(size, radius_frac=0).save(BRAND / f"icon-{size}.png", optimize=True)
 icon(512).save(Path(r"C:/Users/HP/AppData/Local/Temp/claude/D--vivaah-website-preview/e8d7ef94-f21b-4b5f-86ac-2c030b7c33cc/scratchpad") / "icon-preview.png")
 print("done")

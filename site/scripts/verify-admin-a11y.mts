@@ -129,7 +129,7 @@ try {
 
   // The shop form is a separate useActionState on the same page; submitting the
   // rules form must not make it start reporting errors.
-  const otherForm = await announced("name");
+  const otherForm = await announced("address");
   check(
     otherForm.invalid === "false" || otherForm.invalid === null,
     "settings: a different form on the same page is unaffected",

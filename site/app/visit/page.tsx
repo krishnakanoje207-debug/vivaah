@@ -7,6 +7,7 @@ import { Parallax } from "@/components/site/Parallax";
 import { Ornament } from "@/components/site/Ornament";
 import { Button } from "@/components/ui/Button";
 import { SHOP } from "@/lib/site";
+import { getShop } from "@/lib/shopInfo";
 
 /**
  * `/visit` — how a customer gets herself into the shop.
@@ -32,11 +33,10 @@ import { SHOP } from "@/lib/site";
  *
  * Every boundary is a `SectionEdge` tear, never a blend (shared contract §E).
  *
- * The four practical facts are read from `SHOP`, never typed here: today they
- * are placeholders and in Phase 1 they become admin settings. There is no map
- * embed and no booking form by design (§G.7, and booking is Phase 2). The town,
- * the landmark and the parking have not been given by the owner, so that row
- * carries a visible `TODO(owner)` rather than an invented direction.
+ * The practical facts are the owner's, set in Settings and read through
+ * `getShop()` (lib/shopInfo.ts), never typed here. There is no map embed and no
+ * booking form by design (§G.7). "Getting here" is hidden until she gives the
+ * town or the landmark, rather than carrying an invented direction.
  */
 
 export const metadata: Metadata = {
@@ -95,7 +95,8 @@ const ROW =
 // is horizontal, left-aligned under it once the row stacks.
 const NOTE = "text-caption text-ink-600 md:text-right 2xl:max-w-[46ch] 2xl:text-left";
 
-export default function VisitPage() {
+export default async function VisitPage() {
+  const shop = await getShop();
   return (
     <>
       {/* ---------- Head ---------------------------------------------------
@@ -148,11 +149,11 @@ export default function VisitPage() {
               <div data-reveal className={ROW}>
                 <p className="eyebrow">Address</p>
                 <p className="max-w-[22ch] font-display text-h2 text-ink-900">
-                  {SHOP.address}
+                  {shop.address}
                 </p>
                 <p className={NOTE}>
                   <a
-                    href={SHOP.mapsUrl}
+                    href={shop.mapsUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="text-gold-700 underline-offset-4 hover:underline"
@@ -165,7 +166,7 @@ export default function VisitPage() {
               <div data-reveal className={ROW}>
                 <p className="eyebrow">Hours</p>
                 <p className="tabular max-w-[22ch] font-display text-h2 text-ink-900">
-                  {SHOP.hours}
+                  {shop.hours}
                 </p>
               </div>
 
@@ -181,18 +182,18 @@ export default function VisitPage() {
                 </p>
               </div>
 
-              {/* The owner has not given the town, so there is nothing honest to
-                  write here yet. A placeholder is honest; an invented landmark is
-                  not (shared contract §A). */}
-              <div data-reveal className={ROW}>
-                <p className="eyebrow">Getting here</p>
-                <p className="max-w-[22ch] font-display text-h2 text-ink-600">
-                  TODO(owner)
-                </p>
-                <p className={NOTE}>
-                  Town, nearest landmark and where to park, once the owner confirms them.
-                </p>
-              </div>
+              {/* The town, the nearest landmark and where to park, from Settings.
+                  Hidden until the owner gives them: an invented landmark would
+                  send someone the wrong way (shared contract §A). */}
+              {(shop.town || shop.gettingHere) && (
+                <div data-reveal className={ROW}>
+                  <p className="eyebrow">Getting here</p>
+                  <p className="max-w-[22ch] font-display text-h2 text-ink-900">
+                    {shop.town || shop.gettingHere}
+                  </p>
+                  {shop.town && shop.gettingHere && <p className={NOTE}>{shop.gettingHere}</p>}
+                </div>
+              )}
             </Reveal>
           </div>
         </div>

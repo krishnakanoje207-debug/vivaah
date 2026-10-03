@@ -5,6 +5,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { Ornament } from "@/components/site/Ornament";
 import { Button } from "@/components/ui/Button";
 import { SHOP } from "@/lib/site";
+import { getShop } from "@/lib/shopInfo";
 import { ANALYTICS_ON } from "@/lib/analytics";
 
 /**
@@ -59,6 +60,11 @@ type Clause = { id: string; n: string; title: string; covers: string; coversCoun
 // `covers` is true while nothing is counted; `coversCounting` replaces it once a
 // beacon token switches page counting on (lib/analytics.ts). Both are kept as
 // literals so scripts/verify-privacy.mjs can read every word either one says.
+// Clause 07 once the owner has set a period in Settings. Until then the clause
+// says plainly that none is set, rather than inventing one.
+const keptFor = (period: string) =>
+  `We keep the details of a finished booking for ${period}, and then delete them. Until then you can ask us what we hold, and to correct it or delete it sooner. The quickest way is to call the shop.`;
+
 const CLAUSES: Clause[] = [
   {
     id: "collect",
@@ -130,7 +136,8 @@ const LEDGER =
   "md:grid-cols-[minmax(0,4rem)_minmax(0,20rem)_1fr] md:gap-10 " +
   "2xl:grid-cols-[minmax(0,3rem)_minmax(0,15rem)_minmax(0,1fr)] 2xl:gap-8";
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const shop = await getShop();
   return (
     <>
       {/* ---------- Masthead ---------------------------------------------- */}
@@ -218,7 +225,11 @@ export default function PrivacyPage() {
                   >
                     <p className="tabular text-caption text-gold-700">{c.n}</p>
                     <h2 className="text-h3 text-ink-900">{c.title}</h2>
-                    <p className="max-w-[62ch] text-ink-600">{(ANALYTICS_ON && c.coversCounting) || c.covers}</p>
+                    <p className="max-w-[62ch] text-ink-600">
+                      {c.id === "keep" && shop.retention
+                        ? keptFor(shop.retention)
+                        : (ANALYTICS_ON && c.coversCounting) || c.covers}
+                    </p>
                   </article>
                 ))}
               </Reveal>
@@ -266,8 +277,8 @@ export default function PrivacyPage() {
             <dl className="border-t border-porcelain-50/20 text-caption">
               <div className="border-b border-porcelain-50/20 py-4">
                 <dt className="eyebrow">Ask in person</dt>
-                <dd className="mt-2 text-porcelain-50">{SHOP.address}</dd>
-                <dd className="tabular mt-1 text-violet-300">{SHOP.hours}</dd>
+                <dd className="mt-2 text-porcelain-50">{shop.address}</dd>
+                <dd className="tabular mt-1 text-violet-300">{shop.hours}</dd>
               </div>
               <div className="border-b border-porcelain-50/20 py-4">
                 <dt className="eyebrow">Ask by phone</dt>

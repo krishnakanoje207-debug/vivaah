@@ -9,7 +9,8 @@ import { WipeIn } from "@/components/site/WipeIn";
 import { Parallax } from "@/components/site/Parallax";
 import { RentalRail } from "@/components/site/RentalRail";
 import { NavratriBand } from "@/components/site/NavratriBand";
-import { SHOP, hasRealAddress } from "@/lib/site";
+import { SHOP } from "@/lib/site";
+import { getShop } from "@/lib/shopInfo";
 import { Suspense } from "react";
 import { getRentals, getRentalCategories } from "@/lib/rentals";
 
@@ -20,7 +21,7 @@ import { getRentals, getRentalCategories } from "@/lib/rentals";
  * porcelain") against `specs/KOMBAI_MAIN_PAGE_PROMPT.md`. The copy is the
  * canvas's, kept as written because it holds to §A: no founding year, no
  * heritage, two partners, rentals and retail from the same day, and the two
- * facts the owner has not given yet still visibly `TODO(owner)`.
+ * facts only the owner can give (from Settings, hidden until she does).
  *
  * Grammar (DESIGN_SPEC_V3 §8.2 leaves the home grammar open, and binds it only
  * by two bans, both of which this respects): no second full-bleed scrubbed film,
@@ -185,6 +186,7 @@ async function RailSection() {
 }
 
 export default async function HomePage() {
+  const shop = await getShop();
   return (
     <>
       <Preloader nonce={(await headers()).get("x-nonce") ?? undefined} />
@@ -341,22 +343,29 @@ export default async function HomePage() {
                 reserve it and buy it.
               </p>
 
-              {/* The two facts the owner has not given yet. Left visible on
-                  purpose (work order §A): a placeholder is honest, an invented
-                  sentence is not. */}
-              <dl
-                data-reveal
-                className="mt-10 grid gap-x-12 gap-y-3 border-t border-porcelain-50/15 pt-6 text-caption sm:grid-cols-2"
-              >
-                <div>
-                  <dt className="text-porcelain-50/70">Why people come back</dt>
-                  <dd className="mt-1 text-porcelain-50/70">TODO(owner)</dd>
-                </div>
-                <div>
-                  <dt className="text-porcelain-50/70">The town</dt>
-                  <dd className="mt-1 text-porcelain-50/70">TODO(owner)</dd>
-                </div>
-              </dl>
+              {/* Two facts only the owner can give, from Settings
+                  (lib/shopInfo.ts). Each is hidden until she does: an invented
+                  sentence would be dishonest, and a visible placeholder told
+                  every customer the page was unfinished. */}
+              {(shop.whyBack || shop.town) && (
+                <dl
+                  data-reveal
+                  className="mt-10 grid gap-x-12 gap-y-3 border-t border-porcelain-50/15 pt-6 text-caption sm:grid-cols-2"
+                >
+                  {shop.whyBack && (
+                    <div>
+                      <dt className="text-porcelain-50/70">Why people come back</dt>
+                      <dd className="mt-1 text-porcelain-50">{shop.whyBack}</dd>
+                    </div>
+                  )}
+                  {shop.town && (
+                    <div>
+                      <dt className="text-porcelain-50/70">The town</dt>
+                      <dd className="mt-1 text-porcelain-50">{shop.town}</dd>
+                    </div>
+                  )}
+                </dl>
+              )}
             </Reveal>
           </div>
         </div>
@@ -650,7 +659,7 @@ export default async function HomePage() {
               rather than as a half-empty row. */}
           <div
             className={`mt-10 grid gap-10 sm:items-start lg:gap-20 ${
-              hasRealAddress() ? "sm:grid-cols-2" : "max-w-[60ch]"
+              shop.realAddress ? "sm:grid-cols-2" : "max-w-[60ch]"
             }`}
           >
             <Reveal>
@@ -659,7 +668,7 @@ export default async function HomePage() {
               <dl data-reveal>
                 <dt className="eyebrow">Hours</dt>
                 <dd className="mt-2 font-display text-h3 font-medium text-ink-900">
-                  {SHOP.hours}
+                  {shop.hours}
                 </dd>
               </dl>
 
@@ -669,10 +678,10 @@ export default async function HomePage() {
               >
                 <div>
                   <dt className="eyebrow">Address</dt>
-                  <dd className="mt-2 text-ink-900">{SHOP.address}</dd>
+                  <dd className="mt-2 text-ink-900">{shop.address}</dd>
                   <dd className="mt-1">
                     <a
-                      href={SHOP.mapsUrl}
+                      href={shop.mapsUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="text-gold-700 underline-offset-4 hover:underline"
@@ -707,13 +716,13 @@ export default async function HomePage() {
                 keylined like the proof frames so it sits in the same system.
                 Rendered only once the owner's real address is in, because the
                 keyless ?q= embed draws an empty grey frame for a place Maps
-                cannot find — see hasRealAddress(). */}
-            {hasRealAddress() && (
+                cannot find — see shop.realAddress. */}
+            {shop.realAddress && (
               <Reveal>
                 <div data-reveal className="ring-1 ring-ink-900/15">
                   <iframe
                     title={`Map to ${SHOP.name}`}
-                    src={SHOP.mapsEmbedUrl}
+                    src={shop.mapsEmbedUrl}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     className="block aspect-[4/3] w-full md:aspect-[3/4] lg:aspect-[4/3]"

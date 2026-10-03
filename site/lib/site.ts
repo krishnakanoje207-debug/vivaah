@@ -13,7 +13,10 @@ export const SHOP = {
   short: "Vivaah",
   lockup: "Dresses & Suits", // small line under the wordmark
   tagline: "Bridal and festive wear to rent or buy, with jewellery to match.",
-  // Placeholder shop details — replaced by admin settings later.
+  // Built-in shop details: what lib/shopInfo.ts falls back to until the owner
+  // sets her own in Settings. Its `realAddress` gates the front page's map
+  // embed, because the keyless `?q=` frame renders an empty grey box for an
+  // address Maps cannot find.
   address: "Shop address, City",
   hours: "Mon–Sat, 11am – 8pm",
   // The shop is run by two partners and there are two numbers. This is the one
@@ -35,23 +38,6 @@ export const SHOP = {
   // Logo asset lands here (owner sending); until then Nav/Footer show the wordmark.
   logo: null as string | null, // e.g. "/brand/logo.svg"
 } as const;
-
-/**
- * Whether `SHOP.address` is the owner's real one rather than the placeholder.
- *
- * The map embed uses the keyless `?q=` form, which renders an empty grey frame
- * when the query matches no place — and the shop is not on Maps under its own
- * name yet, so the front door's closing section was a 590x442 blank rectangle
- * (measured 14 Sep). A missing frame reads as a page that does not have a map;
- * a blank one reads as a page that is broken. So the embed is gated on this.
- *
- * Mirrors `hasRealPhone()` in lib/enquiry.ts, which gates the WhatsApp hand-off
- * the same way and for the same reason.
- */
-export function hasRealAddress(): boolean {
-  const a = SHOP.address.trim().toLowerCase();
-  return a.length > 0 && a !== "shop address, city";
-}
 
 export const NAV_LINKS = [
   { href: "/rentals", label: "Rent" },

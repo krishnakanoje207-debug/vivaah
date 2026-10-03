@@ -20,6 +20,7 @@ import { SectionEdge } from "@/components/site/SectionEdge";
 import { RequestButton } from "@/components/site/RequestButton";
 import { GoldFrame } from "@/components/site/GoldFrame";
 import { SHOP } from "@/lib/site";
+import { getShop } from "@/lib/shopInfo";
 import { navratriState } from "@/lib/navratri";
 import { getRentals, getRentalCategories } from "@/lib/rentals";
 
@@ -72,16 +73,16 @@ const ROOMS = [
   { id: "visit", label: "Visit" },
 ] as const;
 
-// TODO(owner): confirm the purchase figure. It is a typical market price for a
-// bridal lehenga, not a number of the shop's own, and §2.6 allows real figures
-// only. The rental figure beside it is live from the catalogue.
-const TYPICAL_PURCHASE_PRICE = 80_000;
+// The purchase figure in Room II is the owner's, set in Settings (lib/shopInfo.ts);
+// until she gives one it is a typical market price for a bridal lehenga. The
+// rental figure beside it is live from the catalogue.
 
 export default async function RentalsPage({
   searchParams,
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
+  const shop = await getShop();
   const { category: slug } = await searchParams;
   const categories = await getRentalCategories();
   const category = slug ? categories.find((c) => c.slug === slug) : undefined;
@@ -374,7 +375,7 @@ export default async function RentalsPage({
             <div>
               <p className="text-eyebrow uppercase tracking-[0.17em] text-ink-600">To buy</p>
               <CountFigure
-                value={TYPICAL_PURCHASE_PRICE}
+                value={shop.purchasePrice}
                 prefix="₹"
                 className="mt-2 font-display text-h1 leading-none"
               />
@@ -457,7 +458,7 @@ export default async function RentalsPage({
             </div>
 
             <p data-reveal className="mt-10 text-[0.9375rem] text-violet-300">
-              {SHOP.address} · <span className="tabular">{SHOP.hours}</span>
+              {shop.address} · <span className="tabular">{shop.hours}</span>
             </p>
             <p data-reveal className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
               <Link
@@ -467,7 +468,7 @@ export default async function RentalsPage({
                 How to find us
               </Link>
               <a
-                href={SHOP.mapsUrl}
+                href={shop.mapsUrl}
                 className="text-gold-500 underline decoration-gold-500/50 underline-offset-[5px]"
               >
                 Open in maps

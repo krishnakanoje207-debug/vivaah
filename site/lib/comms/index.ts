@@ -18,6 +18,7 @@
 import { sql } from "@/lib/db";
 import { compose, type Extra, type Stored } from "@/lib/comms/messages";
 import { readTemplates } from "@/lib/comms/templates";
+import { getShop } from "@/lib/shopInfo";
 import { ownerAddress, sendEmail } from "@/lib/comms/email";
 import type { CommsBooking, Channel, EventKind, Recipient, SendResult } from "@/lib/comms/types";
 
@@ -48,8 +49,10 @@ export async function notify(
     } catch (e) {
       stored = { error: e instanceof Error ? e.message.slice(0, 120) : "unknown" };
     }
-    const forCustomer = compose("customer", kind, booking, extra, stored);
-    const forOwner = compose("owner", kind, booking, extra, stored);
+    // The address and hours as the owner set them. Never throws.
+    const place = await getShop();
+    const forCustomer = compose("customer", kind, booking, extra, stored, place);
+    const forOwner = compose("owner", kind, booking, extra, stored, place);
 
     // Email is the only live channel. The ladder's other rungs are specified and
     // unbuilt; when one lands it is another entry in this list, walked in the

@@ -36,6 +36,9 @@ const BANNED = [
   { label: "shipping vocabulary", re: /\b(add to (bag|cart)|checkout|free delivery|order tracking)\b|(?<!no )(?<!without )\bshipping\b/i },
   { label: "heritage register", re: /\b(legacy|lineage|generations|timeless elegance|years of experience|trusted since)\b/i },
   { label: "founding year", re: /\b(since|est\.?)\s*(19|20)\d{2}\b/i },
+  // The owner's facts come from Settings and are hidden while unset
+  // (site/lib/shopInfo.ts); a placeholder reaching a customer is a bug.
+  { label: "unfilled placeholder", re: /TODO\(owner\)/ },
   { label: "groom content", re: /\b(groom|sherwani)\b/i },
 ];
 
@@ -173,7 +176,7 @@ async function auditRoute(browser, route) {
       rec(!m, route, w.name, `no ${b.label}`, m ? `"${text.slice(Math.max(0, m.index - 40), m.index + 40).replace(/\s+/g, " ")}"` : "");
     }
 
-    // ---- TODO(owner) must stay visible where present, never a stray "undefined" ----
+    // ---- never a stray "undefined" ----
     rec(!/\bundefined\b|\bNaN\b|\[object Object\]/.test(text), route, w.name, "no undefined/NaN leaking into copy");
 
     // ---- contrast on real rendered text over its real background ----

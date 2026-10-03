@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { PLACEHOLDERS, SLOTS, fill, render, type Template } from "@/lib/comms/messages";
+import { PLACEHOLDERS, SLOTS, fill, render, type Place, type Template } from "@/lib/comms/messages";
 import { describedBy, useFocusFirstError } from "@/components/admin/formA11y";
 import { saveTemplate, type TemplateState } from "./actions";
 import type { Sample } from "./samples";
@@ -24,11 +24,13 @@ export function TemplateEditor({
   initial,
   saved,
   samples,
+  place,
 }: {
   id: string;
   initial: Template;
   saved: boolean;
   samples: Sample[];
+  place: Place;
 }) {
   const slot = SLOTS.find((s) => s.id === id)!;
   // Controlled on purpose: React 19 resets an uncontrolled `<form action>` even
@@ -50,7 +52,7 @@ export function TemplateEditor({
   const choices = RENTAL_ONLY.has(slot.kind) ? samples.slice(0, 1) : samples;
   const [which, setWhich] = useState(0);
   const sample = choices[which] ?? choices[0];
-  const preview = render({ subject, text }, fill(slot.who, slot.kind, sample.booking, sample.extra));
+  const preview = render({ subject, text }, fill(slot.who, slot.kind, sample.booking, sample.extra, place));
 
   return (
     <div className="mt-8 grid items-start gap-6 lg:grid-cols-2">

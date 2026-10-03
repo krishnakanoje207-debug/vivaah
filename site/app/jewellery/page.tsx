@@ -12,6 +12,7 @@ import { PearlStrands } from "@/components/site/PearlStrands";
 import { getJewellery, getJewelleryCategories } from "@/lib/jewellery";
 import { jewelleryImages } from "./images";
 import { SHOP } from "@/lib/site";
+import { getShop } from "@/lib/shopInfo";
 
 /** The narrow copies `tools/make_image_variants.py` writes beside each shipped
  *  photograph, so a phone fetches a file its own size instead of the 660px one. */
@@ -80,6 +81,7 @@ export default async function JewelleryPage({
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
+  const shop = await getShop();
   const { category: slug } = await searchParams;
   const categories = await getJewelleryCategories();
   const category = slug ? categories.find((c) => c.slug === slug) : undefined;
@@ -398,15 +400,15 @@ export default async function JewelleryPage({
                 <dt className="eyebrow">Hours</dt>
                 {/* Wraps at 390, so the phone gets a real line height. */}
                 <dd className="tabular mt-3 font-display text-[1.625rem] leading-tight text-porcelain-50 sm:text-[2rem] sm:leading-none">
-                  {SHOP.hours}
+                  {shop.hours}
                 </dd>
               </div>
               <div>
                 <dt className="eyebrow">Address</dt>
-                <dd className="mt-2 text-porcelain-50">{SHOP.address}</dd>
+                <dd className="mt-2 text-porcelain-50">{shop.address}</dd>
                 <dd className="mt-1">
                   <a
-                    href={SHOP.mapsUrl}
+                    href={shop.mapsUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="text-gold-500 underline-offset-4 hover:underline"

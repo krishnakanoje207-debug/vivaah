@@ -12,6 +12,7 @@ import { PieceCard } from "@/components/retail/PieceCard";
 import { RETAIL_CATEGORIES } from "@/lib/categories";
 import { getRetailCards } from "@/lib/retail";
 import { SHOP } from "@/lib/site";
+import { getShop } from "@/lib/shopInfo";
 
 /**
  * The retail listing page — the half of the shop you keep.
@@ -141,6 +142,7 @@ export default async function RetailPage({
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
+  const shop = await getShop();
   const { category: slug } = await searchParams;
   // A slug that matches nothing is treated as no filter rather than as an empty
   // shop: a stale link should show the rail, not a void.
@@ -490,14 +492,15 @@ export default async function RetailPage({
               <dl className="mt-8 grid gap-x-10 gap-y-4 border-t border-ink-900/10 pt-6 text-caption sm:grid-cols-2">
                 <div>
                   <dt className="text-ink-600">Hours</dt>
-                  <dd className="mt-1 text-ink-900">{SHOP.hours}</dd>
+                  <dd className="mt-1 text-ink-900">{shop.hours}</dd>
                 </div>
-                {/* The owner has not given the town yet. Left visible rather
-                    than written around. */}
-                <div>
-                  <dt className="text-ink-600">The town</dt>
-                  <dd className="mt-1 text-ink-600">TODO(owner)</dd>
-                </div>
+                {/* From Settings; hidden until the owner gives it. */}
+                {shop.town && (
+                  <div>
+                    <dt className="text-ink-600">The town</dt>
+                    <dd className="mt-1 text-ink-900">{shop.town}</dd>
+                  </div>
+                )}
               </dl>
 
               {/* The ask comes first; the visit stays as the second step it

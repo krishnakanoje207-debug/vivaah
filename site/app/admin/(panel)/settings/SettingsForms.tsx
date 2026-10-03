@@ -6,7 +6,7 @@ import { describedBy, useFocusFirstError } from "@/components/admin/formA11y";
 import {
   saveBookingRules,
   saveShop,
-  saveCharges,
+  saveTerms,
   signOutEverywhere,
   type SettingsState,
 } from "./actions";
@@ -97,8 +97,7 @@ function Section({
 // Field order as each form reads on screen (P2.5): the hook focuses the first
 // error in THIS order, not whichever the server happened to check first.
 // Module constants, because a fresh array each render would defeat the hook's
-// once-per-submit identity check. ChargesForm has no per-field errors, so it
-// takes no hook.
+// once-per-submit identity check.
 const RULES_ORDER = [
   "buffer_days",
   "confirm_within_hours",
@@ -109,7 +108,18 @@ const RULES_ORDER = [
   "step_minutes",
   "closed_weekdays",
 ] as const;
-const SHOP_ORDER = ["name", "address", "phone", "hours", "maps_url"] as const;
+const SHOP_ORDER = [
+  "address",
+  "maps_url",
+  "hours",
+  "town",
+  "getting_here",
+  "why_back",
+  "purchase_price",
+  "retention",
+] as const;
+
+const TERMS_ORDER = ["terms_extensions", "terms_damage", "terms_pickup", "terms_charges"] as const;
 
 type BookingRules = {
   buffer_days: number;
@@ -118,8 +128,8 @@ type BookingRules = {
   pickup_hours: PickupHours;
   sms_daily_quota: number;
 };
-type ShopInfo = { name: string; address: string; maps_url: string; hours: string; phone: string };
-type Charges = { en: string; hi: string };
+type ShopInfo = Record<(typeof SHOP_ORDER)[number], string>;
+type Terms = Record<(typeof TERMS_ORDER)[number], string>;
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // index = 0..6, 0 = Sunday
 
@@ -306,59 +316,112 @@ export function BookingRulesForm({ initial }: { initial: BookingRules }) {
   );
 }
 
+// What each shop field is for, in her words, and where it shows. One row per
+// field, rendered by ShopField, so every one gets the same label, hint, error
+// and a11y wiring.
+const SHOP_FIELDS: {
+  name: (typeof SHOP_ORDER)[number];
+  label: string;
+  hint: string;
+  long?: boolean;
+  numeric?: boolean;
+}[] = [
+  {
+    name: "address",
+    label: "Address",
+    hint: "Shown in the footer of every page, on Visit us and in her booking. Once it is set, the front page shows a map of it.",
+  },
+  {
+    name: "maps_url",
+    label: "Google Maps link",
+    hint: "Where “Get directions” goes. In Google Maps, press Share and paste the link. Leave empty to search the address.",
+  },
+  { name: "hours", label: "Opening hours", hint: "For example: Mon to Sat, 11am to 8pm." },
+  { name: "town", label: "The town", hint: "Shown on the front page, Shop and Visit us. Hidden while empty." },
+  {
+    name: "getting_here",
+    label: "Getting here",
+    hint: "The nearest landmark and where to park, on Visit us. Hidden while empty.",
+    long: true,
+  },
+  {
+    name: "why_back",
+    label: "Why people come back",
+    hint: "One or two sentences, on the front page. Hidden while empty.",
+    long: true,
+  },
+  {
+    name: "purchase_price",
+    label: "Price to buy a bridal lehenga (₹)",
+    hint: "The “To buy” figure on Rent, set against what renting costs. Empty uses ₹80,000.",
+    numeric: true,
+  },
+  {
+    name: "retention",
+    label: "How long you keep a finished booking",
+    hint: "For example: one year. Shown on the privacy page; while empty it says no period is set yet.",
+  },
+];
+
+function ShopField({
+  spec,
+  value,
+  onChange,
+  error,
+}: {
+  spec: (typeof SHOP_FIELDS)[number];
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+}) {
+  const common = {
+    id: spec.name,
+    name: spec.name,
+    value,
+    onChange: (e: { target: { value: string } }) => onChange(e.target.value),
+    "aria-invalid": !!error,
+    "aria-describedby": describedBy(spec.name, true, !!error),
+    className: field,
+  };
+  return (
+    <div>
+      <label htmlFor={spec.name} className={labelCls}>
+        {spec.label}
+      </label>
+      {spec.long ? (
+        <textarea rows={3} {...common} />
+      ) : (
+        <input {...common} inputMode={spec.numeric ? "numeric" : undefined} />
+      )}
+      <p id={`${spec.name}-hint`} className="mt-1 text-caption text-ink-600">
+        {spec.hint}
+      </p>
+      <FieldError id={`${spec.name}-error`} msg={error} />
+    </div>
+  );
+}
+
 export function ShopForm({ initial }: { initial: ShopInfo }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveShop, {});
   const fe = state.fieldErrors ?? {};
   useFocusFirstError(state.fieldErrors, SHOP_ORDER, pending);
-  const shopName = useField(initial.name);
-  const address = useField(initial.address);
-  const phone = useField(initial.phone);
-  const openHours = useField(initial.hours);
-  const mapsUrl = useField(initial.maps_url);
+  // Controlled, so a refused save keeps what she typed (see useField).
+  const [values, setValues] = useState(initial);
   return (
-    <Section title="Shop" caption="Details shown to customers on the visit page.">
+    <Section
+      title="Shop details"
+      caption="What customers read about the shop. Saved changes reach the site within about a minute."
+    >
       <form action={action} className="flex flex-col gap-4">
-        <div>
-          <label htmlFor="name" className={labelCls}>
-            Shop name
-          </label>
-          <input
-            id="name"
-            name="name"
-            {...shopName}
-            aria-invalid={!!fe.name}
-            aria-describedby={describedBy("name", false, !!fe.name)}
-            className={field}
+        {SHOP_FIELDS.map((spec) => (
+          <ShopField
+            key={spec.name}
+            spec={spec}
+            value={values[spec.name]}
+            onChange={(v) => setValues((cur) => ({ ...cur, [spec.name]: v }))}
+            error={fe[spec.name]}
           />
-          <FieldError id="name-error" msg={fe.name} />
-        </div>
-        <div>
-          <label htmlFor="address" className={labelCls}>
-            Address
-          </label>
-          <input id="address" name="address" {...address} className={field} />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="phone" className={labelCls}>
-              Phone
-            </label>
-            <input id="phone" name="phone" {...phone} className={field} />
-          </div>
-          <div>
-            <label htmlFor="hours" className={labelCls}>
-              Hours
-            </label>
-            <input id="hours" name="hours" {...openHours} className={field} />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="maps_url" className={labelCls}>
-            Google Maps link
-          </label>
-          <input id="maps_url" name="maps_url" {...mapsUrl} className={field} />
-          <p className="mt-1 text-caption text-ink-400">Map pin coordinates are preserved as saved.</p>
-        </div>
+        ))}
         <div className="flex items-center gap-4">
           <SaveButton pending={pending} />
           <Feedback state={state} />
@@ -368,25 +431,48 @@ export function ShopForm({ initial }: { initial: ShopInfo }) {
   );
 }
 
-export function ChargesForm({ initial }: { initial: Charges }) {
-  const [state, action, pending] = useActionState<SettingsState, FormData>(saveCharges, {});
+// /policies' clauses, in her words. An empty box leaves that clause saying what
+// it will cover, as it does today; Charges has no clause until it is written.
+const TERMS_FIELDS: { name: (typeof TERMS_ORDER)[number]; label: string; hint: string }[] = [
+  { name: "terms_extensions", label: "Extensions", hint: "Keeping a piece for extra days: how it is asked for and what it costs." },
+  { name: "terms_damage", label: "Damage and care", hint: "What happens if a piece comes back marked or damaged." },
+  { name: "terms_pickup", label: "Pickup and return", hint: "When she collects, when it comes back, and what happens if it is late." },
+  { name: "terms_charges", label: "Charges", hint: "Deposits or any other charge. Shown as its own term once written." },
+];
+
+export function TermsForm({ initial }: { initial: Terms }) {
+  const [state, action, pending] = useActionState<SettingsState, FormData>(saveTerms, {});
+  const fe = state.fieldErrors ?? {};
+  useFocusFirstError(state.fieldErrors, TERMS_ORDER, pending);
+  // Controlled, so a refused save keeps what she typed (see useField).
+  const [values, setValues] = useState(initial);
   return (
-    <Section title="Charges copy" caption="Explains rental charges to customers, in English and Hindi.">
+    <Section
+      title="Rental terms"
+      caption="The terms on the Rental terms page. Leave a box empty until it is decided. A blank line starts a new paragraph."
+    >
       <form action={action} className="flex flex-col gap-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="en" className={labelCls}>
-              English
+        {TERMS_FIELDS.map((spec) => (
+          <div key={spec.name}>
+            <label htmlFor={spec.name} className={labelCls}>
+              {spec.label}
             </label>
-            <textarea id="en" name="en" rows={5} defaultValue={initial.en} className={field} />
+            <textarea
+              id={spec.name}
+              name={spec.name}
+              rows={4}
+              value={values[spec.name]}
+              onChange={(e) => setValues((cur) => ({ ...cur, [spec.name]: e.target.value }))}
+              aria-invalid={!!fe[spec.name]}
+              aria-describedby={describedBy(spec.name, true, !!fe[spec.name])}
+              className={field}
+            />
+            <p id={`${spec.name}-hint`} className="mt-1 text-caption text-ink-600">
+              {spec.hint}
+            </p>
+            <FieldError id={`${spec.name}-error`} msg={fe[spec.name]} />
           </div>
-          <div>
-            <label htmlFor="hi" className={labelCls}>
-              Hindi
-            </label>
-            <textarea id="hi" name="hi" rows={5} defaultValue={initial.hi} className={`${field} font-sans-hi`} />
-          </div>
-        </div>
+        ))}
         <div className="flex items-center gap-4">
           <SaveButton pending={pending} />
           <Feedback state={state} />

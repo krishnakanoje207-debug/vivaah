@@ -3,7 +3,7 @@ import { getBookingSettings } from "@/lib/booking";
 import {
   BookingRulesForm,
   ShopForm,
-  ChargesForm,
+  TermsForm,
   SessionsForm,
 } from "./SettingsForms";
 
@@ -28,13 +28,7 @@ export default async function AdminSettingsPage() {
   ]);
   const map = new Map(rows.map((r) => [r.key, r.value]));
 
-  const shop = obj(map.get("shop_info"), {
-    name: "",
-    address: "",
-    maps_url: "",
-    hours: "",
-    phone: "",
-  });
+  const shop = obj<Record<string, unknown>>(map.get("shop_info"), {});
   const charges = obj(map.get("charges_copy"), { en: "", hi: "" });
 
   return (
@@ -43,7 +37,7 @@ export default async function AdminSettingsPage() {
         <p className="eyebrow">Vivaah</p>
         <h1 className="mt-1 font-display text-h2 text-ink-900">Settings</h1>
         <p className="mt-2 text-body text-ink-600">
-          Shop details and booking rules.
+          Shop details, rental terms and booking rules.
         </p>
       </header>
 
@@ -60,14 +54,25 @@ export default async function AdminSettingsPage() {
         />
         <ShopForm
           initial={{
-            name: str(shop.name),
             address: str(shop.address),
             maps_url: str(shop.maps_url),
             hours: str(shop.hours),
-            phone: str(shop.phone),
+            town: str(shop.town),
+            getting_here: str(shop.getting_here),
+            why_back: str(shop.why_back),
+            // Empty means the built-in figure, so it is shown empty, not as 80000.
+            purchase_price: typeof shop.purchase_price === "number" ? String(shop.purchase_price) : "",
+            retention: str(shop.retention),
           }}
         />
-        <ChargesForm initial={{ en: str(charges.en), hi: str(charges.hi) }} />
+        <TermsForm
+          initial={{
+            terms_extensions: str(shop.terms_extensions),
+            terms_damage: str(shop.terms_damage),
+            terms_pickup: str(shop.terms_pickup),
+            terms_charges: str(shop.terms_charges),
+          }}
+        />
         <SessionsForm />
       </div>
     </div>

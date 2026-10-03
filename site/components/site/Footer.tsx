@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { getShop } from "@/lib/shopInfo";
 import { NAV_LINKS, SHOP } from "@/lib/site";
 import { CookieChoicesButton } from "@/components/site/CookieChoicesButton";
 import { ANALYTICS_ON } from "@/lib/analytics";
 
-export function Footer() {
+export async function Footer() {
+  const shop = await getShop();
   return (
     <footer className="on-dark grain bg-violet-950 text-violet-300">
       <div className="shell py-16 md:py-20">
@@ -75,7 +77,7 @@ export function Footer() {
           <div>
             <p className="eyebrow on-dark mb-4">Visit us</p>
             <a
-              href={SHOP.mapsUrl}
+              href={shop.mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-start gap-2 text-[0.9375rem] text-porcelain-50"
@@ -84,13 +86,13 @@ export function Footer() {
                 📍
               </span>
               <span className="group-hover:underline underline-offset-4">
-                {SHOP.address}
+                {shop.address}
                 <span className="block text-violet-300 group-hover:text-violet-100">
                   Get directions
                 </span>
               </span>
             </a>
-            <p className="mt-4 text-[0.9375rem]">{SHOP.hours}</p>
+            <p className="mt-4 text-[0.9375rem]">{shop.hours}</p>
             <a
               href={`tel:${SHOP.phone.replace(/\s/g, "")}`}
               className="mt-1 block py-2 text-gold-500 hover:text-gold-100 md:py-0"
